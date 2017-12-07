@@ -21,8 +21,8 @@ public:
         if (type == libfreenect2::Frame::Type::Ir && !irPhotoTaken) {
             FILE *photoFile = fopen("photo_ir.txt", "w");
 
-            for (int i = 0; i < frame->height; i++){
-                for (int j = 0; j < frame->width; j++) {
+            for (int i = 0; i < frame->width; i++){
+                for (int j = 0; j < frame->height; j++) {
                     fprintf(photoFile, "%d\t", int(data[i*frame->height + j]));
                 }
                 fprintf(photoFile, "\n");
@@ -34,8 +34,8 @@ public:
         if (type == libfreenect2::Frame::Type::Depth && !depthPhotoTaken) {
             FILE *photoFile = fopen("photo_depth.txt", "w");
 
-            for (int i = 0; i < frame->height; i++){
-                for (int j = 0; j < frame->width; j++) {
+            for (int i = 0; i < frame->width; i++){
+                for (int j = 0; j < frame->height; j++) {
                     fprintf(photoFile, "%d\t", int(data[i*frame->height + j]));
                 }
                 fprintf(photoFile, "\n");
