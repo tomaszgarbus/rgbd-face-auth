@@ -25,6 +25,7 @@ public:
                 for (int j = 0; j < frame->width; j++) {
                     fprintf(photoFile, "%d\t", int(data[i*frame->height + j]));
                 }
+                fprintf(photoFile, "\n");
             }
             fclose(photoFile);
             irPhotoTaken = true;
@@ -37,6 +38,7 @@ public:
                 for (int j = 0; j < frame->width; j++) {
                     fprintf(photoFile, "%d\t", int(data[i*frame->height + j]));
                 }
+                fprintf(photoFile, "\n");
             }
             fclose(photoFile);
             depthPhotoTaken = true;
