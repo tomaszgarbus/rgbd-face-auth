@@ -1,13 +1,9 @@
 #include <cstdio>
-#include <cstdlib>
-#include <unistd.h>
 
 #include <libfreenect2/libfreenect2.hpp>
 #include <libfreenect2/frame_listener_impl.h>
 #include <libfreenect2/registration.h>
-#include <libfreenect2/packet_pipeline.h>
 #include <libfreenect2/logger.h>
-#include <cstring>
 
 libfreenect2::Freenect2 freenect2;
 libfreenect2::Freenect2Device *dev = 0;
@@ -27,7 +23,7 @@ public:
 
             for (int i = 0; i < frame->height; i++){
                 for (int j = 0; j < frame->width; j++) {
-                    fprintf(photoFile, "%d\t ", int(data[i*frame->height + j]));
+                    fprintf(photoFile, "%d\t", int(data[i*frame->height + j]));
                 }
             }
             fclose(photoFile);
@@ -39,7 +35,7 @@ public:
 
             for (int i = 0; i < frame->height; i++){
                 for (int j = 0; j < frame->width; j++) {
-                    fprintf(photoFile, "%d\t ", int(data[i*frame->height + j]));
+                    fprintf(photoFile, "%d\t", int(data[i*frame->height + j]));
                 }
             }
             fclose(photoFile);
