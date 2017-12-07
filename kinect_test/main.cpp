@@ -11,9 +11,9 @@ bool photoTaken = false;
 void depthCallback(freenect_device *device, void *depthVoid, uint32_t timestamp) {
   uint16_t *depth = (uint16_t *) depthVoid;
   FILE *photoFile = fopen("photo.txt", "w");
-  for (int i = 0; i < 640; ++i) {
-    for (int j = 0; j < 480; ++j) {
-      fprintf(photoFile, "%u\t", depth[480 * i + j]);
+  for (int i = 0; i < 480; ++i) {
+    for (int j = 0; j < 640; ++j) {
+      fprintf(photoFile, "%u\t", depth[640 * i + j]);
     }
     fprintf(photoFile, "\n");
   }
@@ -51,7 +51,7 @@ int main() {
   freenect_set_depth_mode(
       device,
       freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM,
-                               FREENECT_DEPTH_11BIT));
+                               FREENECT_DEPTH_REGISTERED));
 
   freenect_start_depth(device);
   while (!photoTaken && freenect_process_events(ctx) >= 0) {}
