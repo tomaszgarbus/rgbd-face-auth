@@ -42,7 +42,7 @@ bool testDetectFace(cv::Mat &img) {
 
     faceCascade.detectMultiScale(img_gray, faces);
 
-    printf("Detected %u faces\n", faces.size());
+    printf("Detected %lu faces\n", faces.size());
     for (size_t i = 0; i < faces.size(); i++) {
         cv::Scalar color(0,0,255);
         drawEllipseAroundRect(img, faces[i], FACE_ELLIPSE_COLOR);
@@ -51,7 +51,7 @@ bool testDetectFace(cv::Mat &img) {
 
         std::vector<cv::Rect> eyes;
         eyesCascade.detectMultiScale(faceRect, eyes);
-        printf("Detected %u eyes\n", eyes.size());
+        printf("Detected %lu eyes\n", eyes.size());
         for (size_t j = 0; j < eyes.size(); j++) {
             eyes[j].x += faces[i].x;
             eyes[j].y += faces[i].y;
@@ -60,7 +60,7 @@ bool testDetectFace(cv::Mat &img) {
 
         std::vector<cv::Rect> smiles;
         smilesCascade.detectMultiScale(faceRect, smiles, /*scale=*/4);
-        printf("Detected %u smiles\n", smiles.size());
+        printf("Detected %lu smiles\n", smiles.size());
         for (size_t j = 0; j < smiles.size(); j++) {
             smiles[j].x += faces[i].x;
             smiles[j].y += faces[i].y;
@@ -79,24 +79,24 @@ int main(int argc, const char *argv[]) {
     img = cv::imread(argv[1], cv::IMREAD_COLOR);
     if (!img.data) {
         fprintf(stderr, "No image data\n");
-        return -1;
+        return 1;
     }
     if (!faceCascade.load(FACE_CASCADE_FILE)) {
         fprintf(stderr, "Error loading face cascade\n");
-        return false;
+        return 1;
     }
     if (!eyesCascade.load(EYES_CASCADE_FILE)) {
         fprintf(stderr, "Error loading eyes cascade\n");
-        return false;
+        return 1;
     }
     if (!smilesCascade.load(SMILE_CASCADE_FILE)) {
         fprintf(stderr, "Error loading smiles cascade\n");
-        return false;
+        return 1;
     }
 
     //testDraw(img);
     if (!testDetectFace(img)) {
-        return -1;
+        return 1;
     }
     cv::namedWindow(WINDOW_NAME, cv::WINDOW_AUTOSIZE);
     cv::imshow(WINDOW_NAME, img);
