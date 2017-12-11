@@ -4,3 +4,5 @@ CMakeCache.txt
 cmake_install.cmake
 .idea/*
 Makefile
+photo_depth.txt
+photo_ir.txt
