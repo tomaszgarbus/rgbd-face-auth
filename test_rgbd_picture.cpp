@@ -17,13 +17,17 @@ int main(int argc, char *argv[]) {
     std::fstream test_file_1("kinect_test/photo_kinect1_depth.txt", std::fstream::in);
     rgbd_picture_t<1> first_test(test_file_1);
 
+    first_test.update_bitmap(min_depth, max_depth);
+
     std::fstream output_file_1("picture_v1.ppm", std::fstream::out);
-    first_test.print_ppm(output_file_1, min_depth, max_depth);
+    first_test.print_ppm(output_file_1);
 
 
     std::fstream test_file_2("kinect2_test/photo_depth.txt", std::fstream::in);
     rgbd_picture_t<2> second_test(test_file_2);
 
+    second_test.update_bitmap(min_depth, max_depth);
+
     std::fstream output_file_2("picture_v2.ppm", std::fstream::out);
-    second_test.print_ppm(output_file_2, min_depth, max_depth);
+    second_test.print_ppm(output_file_2);
 }
