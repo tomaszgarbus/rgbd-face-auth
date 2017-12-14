@@ -8,6 +8,8 @@
 
 #include "rgbd_picture.h"
 
+uint8_t constexpr device_type = 1;
+
 enum {
     ID_MIN_D = 101,
     ID_MAX_D = 102
@@ -28,17 +30,17 @@ public:
 };
 
 class display_panel : public wxPanel {
-    rgbd_picture_t<1> *const picture;
+    rgbd_picture_t<device_type> *const picture;
     wxStaticBitmap *m_picture;
 
 public:
-    display_panel(wxPanel *parent, rgbd_picture_t<1> *picture);
+    display_panel(wxPanel *parent, rgbd_picture_t<device_type> *picture);
 
     void update_picture(uint64_t const min_depth, uint64_t const max_depth);
 };
 
 class main_window : public wxFrame {
-    rgbd_picture_t<1> *picture;
+    rgbd_picture_t<device_type> *picture;
     wxPanel *m_parent;
 
     display_panel *m_display;
@@ -70,10 +72,10 @@ void settings_panel::on_change(wxCommandEvent &WXUNUSED(event)) {
   picture_panel->update_picture(min_depth, max_depth);
 }
 
-display_panel::display_panel(wxPanel *parent, rgbd_picture_t<1> *picture) : wxPanel(parent, wxID_ANY,
-  wxDefaultPosition, wxSize(rgbd_picture_t<1>::WIDTH, rgbd_picture_t<1>::HEIGHT),
+display_panel::display_panel(wxPanel *parent, rgbd_picture_t<device_type> *picture) : wxPanel(parent, wxID_ANY,
+  wxDefaultPosition, wxSize(rgbd_picture_t<device_type>::width, rgbd_picture_t<device_type>::height),
   wxBORDER_SUNKEN), picture(picture) {
-    wxImage tmp(picture->WIDTH, picture->HEIGHT);
+    wxImage tmp(picture->width, picture->height);
     tmp.SetData(picture->raw_bitmap());
 
     m_picture = new wxStaticBitmap(this, wxID_ANY, wxBitmap(tmp),
@@ -83,7 +85,7 @@ display_panel::display_panel(wxPanel *parent, rgbd_picture_t<1> *picture) : wxPa
 void display_panel::update_picture(uint64_t const min_depth, uint64_t const max_depth) {
     picture->update_bitmap(min_depth, max_depth);
 
-    wxImage tmp(picture->WIDTH, picture->HEIGHT);
+    wxImage tmp(picture->width, picture->height);
     tmp.SetData(picture->raw_bitmap());
 
     delete m_picture;
@@ -93,7 +95,7 @@ void display_panel::update_picture(uint64_t const min_depth, uint64_t const max_
 
 main_window::main_window(const wxString& title) : wxFrame(NULL, wxID_ANY, title,
   wxDefaultPosition, wxSize(1900, 550)),
- picture( new rgbd_picture_t<1>(std::string("kinect_test/photo_kinect1_depth.txt")) ),
+ picture( new rgbd_picture_t<device_type>(std::string("kinect_test/photo_kinect1_depth.txt")) ),
  m_parent( new wxPanel(this, wxID_ANY) ),
  m_display( new display_panel(m_parent, picture) ),
  m_settings( new settings_panel(m_parent, m_display) ) {
