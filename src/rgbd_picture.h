@@ -28,10 +28,6 @@ private:
 public:
     rgbd_picture_t() = default;
     rgbd_picture_t(std::string const input_file_name); 
-    template<typename InputStreamT> rgbd_picture_t(InputStreamT &in)
-
-    template<typename InputStreamT> void read_depth(InputStreamT &in);
-    template<typename OutputStreamT> void print_ppm(OutputStreamT &out) const;
 
     void update_bitmap(depth_t const min_depth, depth_t const max_depth);
     dye_t *raw_bitmap();
