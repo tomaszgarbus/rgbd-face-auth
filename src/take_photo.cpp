@@ -48,7 +48,7 @@ class MyKinectDevice : public KinectDevice {
       auto data = static_cast<uint8_t *>(frame.data);
       cv::Mat image(
           cv::Size(int(frame.width), int(frame.height)),
-          CV_8UC3, videoBufferMine);
+          CV_8UC3, frame.data);
       cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
       cv::imwrite("../photo_kinect1_rgb.png", image);
       rgbPhotoTaken = true;
@@ -59,7 +59,7 @@ class MyKinectDevice : public KinectDevice {
 
 int main() {
   MyKinectDevice kinectDevice(0);
-  bool useDepth = true, useRgb = true, useIr = false;
+  bool useDepth = true, useRgb = true, useIr = true;
   depthPhotoTaken = !useDepth;
   rgbPhotoTaken = !useRgb;
   irPhotoTaken = !useIr;

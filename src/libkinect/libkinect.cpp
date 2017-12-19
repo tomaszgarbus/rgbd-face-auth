@@ -37,6 +37,7 @@ KinectDevice::KinectDevice(int deviceNumber = 0) {
       fprintf(stderr, "Error opening a Kinect v2 device.\n");
       exit(1);
     }
+    whichKinect = 2;
     fprintf(stderr, "Using a Kinect v2 device.\n");
   } else {
     fprintf(stderr, "There are less than %d devices connected.\n",
@@ -231,7 +232,7 @@ bool KinectDevice::Kinect2RgbListener::onNewFrame(
       frame->width * frame->height * sizeof(uint8_t) * 3));
   auto data = static_cast<uint8_t *>(frame->data);
   for (size_t i = 0; i < frame->height; ++i) {
-    for (size_t j = 0; j < frame->height; ++j) {
+    for (size_t j = 0; j < frame->width; ++j) {
       // Convert BGRX to RGB.
       size_t pixelIndex = i * frame->width + j;
       convertedData[3 * pixelIndex] = data[4 * pixelIndex + 2];
