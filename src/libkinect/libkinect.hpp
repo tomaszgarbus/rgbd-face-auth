@@ -44,6 +44,7 @@ class KinectDevice {
       freenect_device *device, void *buffer, uint32_t timestamp);
   class Kinect2IrAndDepthListener : public libfreenect2::FrameListener {
    public:
+    explicit Kinect2IrAndDepthListener(KinectDevice *kinectDevice);
     bool onNewFrame(
         libfreenect2::Frame::Type type, libfreenect2::Frame *frame) override;
    private:
@@ -51,6 +52,7 @@ class KinectDevice {
   };
   class Kinect2RgbListener : public libfreenect2::FrameListener {
    public:
+    explicit Kinect2RgbListener(KinectDevice *kinectDevice);
     bool onNewFrame(
         libfreenect2::Frame::Type type, libfreenect2::Frame *frame) override;
    private:

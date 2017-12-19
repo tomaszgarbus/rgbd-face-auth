@@ -101,11 +101,11 @@ void KinectDevice::startStreams(bool depth, bool rgb, bool ir) {
     stopStreams();
 
     if (depth && ir) {
-      kinect2IrAndDepthListener = new Kinect2IrAndDepthListener();
+      kinect2IrAndDepthListener = new Kinect2IrAndDepthListener(this);
       freenect2Device->setIrAndDepthFrameListener(kinect2IrAndDepthListener);
     }
     if (rgb) {
-      kinect2RgbListener = new Kinect2RgbListener();
+      kinect2RgbListener = new Kinect2RgbListener(this);
       freenect2Device->setColorFrameListener(kinect2RgbListener);
     }
 
@@ -196,6 +196,9 @@ void KinectDevice::kinect1VideoCallback(
       size_t(frameMode.height), convertedData));
 }
 
+KinectDevice::Kinect2IrAndDepthListener::Kinect2IrAndDepthListener(
+    KinectDevice *kinectDevice) : kinectDevice(kinectDevice) {}
+
 bool KinectDevice::Kinect2IrAndDepthListener::onNewFrame(
     libfreenect2::Frame::Type type, libfreenect2::Frame *frame) {
 
@@ -215,6 +218,9 @@ bool KinectDevice::Kinect2IrAndDepthListener::onNewFrame(
       frameType, frame->width, frame->height, convertedData));
   return false;
 }
+
+KinectDevice::Kinect2RgbListener::Kinect2RgbListener(
+    KinectDevice *kinectDevice) : kinectDevice(kinectDevice) {}
 
 bool KinectDevice::Kinect2RgbListener::onNewFrame(
     libfreenect2::Frame::Type type, libfreenect2::Frame *frame) {
