@@ -57,15 +57,12 @@ KinectDevice::~KinectDevice() {
 
 void KinectDevice::startStreams(bool depth, bool rgb, bool ir) {
   if (whichKinect == 1) {
-    if (!depth)
-      freenect_stop_depth(freenectDevice);
-    if (!rgb && !ir)
-      freenect_stop_video(freenectDevice);
-
     if (rgb && ir) {
       fprintf(stderr, "Kinect v1: can't stream RGB and IR at the same time.\n");
       return;
     }
+
+    stopStreams();
 
     if (depth) {
       freenect_set_depth_mode(freenectDevice, freenect_find_depth_mode(
@@ -73,10 +70,12 @@ void KinectDevice::startStreams(bool depth, bool rgb, bool ir) {
       freenect_set_depth_callback(freenectDevice, kinect1DepthCallback);
       freenect_start_depth(freenectDevice);
     }
+
     if (rgb || ir) {
       auto resolution = FREENECT_RESOLUTION_HIGH;
       if (depth && ir)
         resolution = FREENECT_RESOLUTION_MEDIUM;
+      // TODO: check if the high resolution IR stream ever works properly
       auto videoMode = rgb ? FREENECT_VIDEO_RGB : FREENECT_VIDEO_IR_10BIT;
       freenect_frame_mode frameMode =
           freenect_find_video_mode(resolution, videoMode);
@@ -87,6 +86,10 @@ void KinectDevice::startStreams(bool depth, bool rgb, bool ir) {
       freenect_set_video_buffer(freenectDevice, videoBufferFreenect);
       freenect_start_video(freenectDevice);
     }
+
+    depthRunning = depth;
+    rgbRunning = rgb;
+    irRunning = ir;
     while (freenect_process_events(freenectContext) >= 0);
     // TODO: this loop should be moved to a thread
   } else if (whichKinect == 2) {
@@ -94,17 +97,47 @@ void KinectDevice::startStreams(bool depth, bool rgb, bool ir) {
       fprintf(stderr, "Kinect v2 can't stream only one of (depth, IR).\n");
       return;
     }
+
+    stopStreams();
+
     if (depth && ir) {
-      auto kinect2IrAndDepthListener = new Kinect2IrAndDepthListener();
+      kinect2IrAndDepthListener = new Kinect2IrAndDepthListener();
       freenect2Device->setIrAndDepthFrameListener(kinect2IrAndDepthListener);
     }
     if (rgb) {
-      auto kinect2RgbListener = new Kinect2RgbListener();
+      kinect2RgbListener = new Kinect2RgbListener();
       freenect2Device->setColorFrameListener(kinect2RgbListener);
     }
+
+    freenect2Device->startStreams(rgb, depth && ir);
+    depthRunning = depth;
+    rgbRunning = rgb;
+    irRunning = ir;
     while (true);
     // TODO: don't do this after moving the Kinect v1 loop to a thread
   }
+}
+
+void KinectDevice::stopStreams() {
+  if (whichKinect == 1) {
+    if (depthRunning) {
+      freenect_stop_depth(freenectDevice);
+    }
+    if (rgbRunning || irRunning) {
+      freenect_stop_video(freenectDevice);
+    }
+  } else if (whichKinect == 2) {
+    if (depthRunning || rgbRunning || irRunning) {
+      freenect2Device->stop();
+    }
+    delete kinect2IrAndDepthListener;
+    delete kinect2RgbListener;
+    kinect2IrAndDepthListener = nullptr;
+    kinect2RgbListener = nullptr;
+  }
+  depthRunning = false;
+  rgbRunning = false;
+  irRunning = false;
 }
 
 void KinectDevice::kinect1DepthCallback(
