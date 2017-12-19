@@ -9,33 +9,39 @@ Frame::~Frame() {
   free(data);
 }
 
-KinectDevice::KinectDevice() {
+KinectDevice::KinectDevice(int deviceNumber = 0) {
   if (freenect_init(&freenectContext, nullptr) != 0) {
     fprintf(stderr, "freenect_init() failed.\n");
     exit(1);
   }
-  // TODO: init Kinect 2
 
   int kinect1Devices, kinect2Devices;
   kinect1Devices = freenect_num_devices(freenectContext);
-  kinect2Devices = 0; // TODO
+  kinect2Devices = freenect2.enumerateDevices();
 
-  if (kinect1Devices <= 0 && kinect2Devices <= 0) {
-    freenect_shutdown(freenectContext);
-    printf("No Kinect devices found.\n");
-    exit(1);
-  } else if (kinect1Devices > 0) {
-    if (freenect_open_device(freenectContext, &freenectDevice, 0) != 0) {
+  if (deviceNumber < kinect1Devices) {
+    if (freenect_open_device(
+        freenectContext, &freenectDevice, deviceNumber) != 0) {
       fprintf(stderr, "freenect_open_device() failed.\n");
       freenect_shutdown(freenectContext);
       exit(1);
     }
     whichKinect = 1;
     freenect_set_user(freenectDevice, this);
-    fprintf(stderr, "Using a Kinect 1 device.\n");
-  } else if (kinect2Devices > 0) {
-    // TODO
-    fprintf(stderr, "Using a Kinect 2 device.\n");
+    fprintf(stderr, "Using a Kinect v1 device.\n");
+  } else if (deviceNumber < kinect1Devices + kinect2Devices) {
+    freenect2Pipeline = new libfreenect2::CpuPacketPipeline();
+    freenect2Device = freenect2.openDevice(
+        deviceNumber + kinect1Devices,freenect2Pipeline);
+    if (!freenect2Device) {
+      fprintf(stderr, "Error opening a Kinect v2 device.\n");
+      exit(1);
+    }
+    fprintf(stderr, "Using a Kinect v2 device.\n");
+  } else {
+    fprintf(stderr, "There are less than %d devices connected.\n",
+            deviceNumber + 1);
+    exit(1);
   }
 }
 
@@ -43,6 +49,9 @@ KinectDevice::~KinectDevice() {
   if (whichKinect == 1) {
     freenect_close_device(freenectDevice);
     freenect_shutdown(freenectContext);
+  } else if (whichKinect == 2) {
+    freenect2Device->stop();
+    freenect2Device->close();
   }
 }
 
@@ -54,7 +63,7 @@ void KinectDevice::startStreams(bool depth, bool rgb, bool ir) {
       freenect_stop_video(freenectDevice);
 
     if (rgb && ir) {
-      fprintf(stderr, "Can't stream RGB and IR at the same time.\n");
+      fprintf(stderr, "Kinect v1: can't stream RGB and IR at the same time.\n");
       return;
     }
 
@@ -78,10 +87,23 @@ void KinectDevice::startStreams(bool depth, bool rgb, bool ir) {
       freenect_set_video_buffer(freenectDevice, videoBufferFreenect);
       freenect_start_video(freenectDevice);
     }
-    while (freenect_process_events(freenectContext) >= 0) {}
-    // TODO: this ^ loop should be moved to a thread
+    while (freenect_process_events(freenectContext) >= 0);
+    // TODO: this loop should be moved to a thread
   } else if (whichKinect == 2) {
-    // TODO
+    if (int(depth) + int(ir) == 1) {
+      fprintf(stderr, "Kinect v2 can't stream only one of (depth, IR).\n");
+      return;
+    }
+    if (depth && ir) {
+      auto kinect2IrAndDepthListener = new Kinect2IrAndDepthListener();
+      freenect2Device->setIrAndDepthFrameListener(kinect2IrAndDepthListener);
+    }
+    if (rgb) {
+      auto kinect2RgbListener = new Kinect2RgbListener();
+      freenect2Device->setColorFrameListener(kinect2RgbListener);
+    }
+    while (true);
+    // TODO: don't do this after moving the Kinect v1 loop to a thread
   }
 }
 
@@ -92,14 +114,15 @@ void KinectDevice::kinect1DepthCallback(
   freenect_frame_mode frameMode = freenect_get_current_depth_mode(device);
   auto convertedData = static_cast<float *>(
       malloc(frameMode.width * frameMode.height * sizeof(float)));
-  for (int i = 0; i < frameMode.height; ++i) {
-    for (int j = 0; j < frameMode.width; ++j) {
+  for (size_t i = 0; i < frameMode.height; ++i) {
+    for (size_t j = 0; j < frameMode.width; ++j) {
       convertedData[frameMode.width * i + j] =
           float(static_cast<uint16_t *>(data)[frameMode.width * i + j]);
     }
   }
   kinectDevice->frameHandler(Frame(
-      FrameType::DEPTH, frameMode.width, frameMode.height, convertedData));
+      FrameType::DEPTH, size_t(frameMode.width),
+      size_t(frameMode.height), convertedData));
 }
 
 void KinectDevice::kinect1VideoCallback(
@@ -125,8 +148,8 @@ void KinectDevice::kinect1VideoCallback(
     frameType = FrameType::IR;
     convertedData = malloc(
         frameMode.width * frameMode.height * 3 * sizeof(float));
-    for (int i = 0; i < frameMode.height; ++i) {
-      for (int j = 0; j < frameMode.width; ++j) {
+    for (size_t i = 0; i < frameMode.height; ++i) {
+      for (size_t j = 0; j < frameMode.width; ++j) {
         static_cast<float *>(convertedData)[frameMode.width * i + j] =
             float(static_cast<uint16_t *>(buffer)[frameMode.width * i + j]);
       }
@@ -135,6 +158,49 @@ void KinectDevice::kinect1VideoCallback(
     fprintf(stderr, "Invalid video format.\n");
     return;
   }
-  kinectDevice->frameHandler(
-      Frame(frameType, frameMode.width, frameMode.height, convertedData));
+  kinectDevice->frameHandler(Frame(
+      frameType, size_t(frameMode.width),
+      size_t(frameMode.height), convertedData));
+}
+
+bool KinectDevice::Kinect2IrAndDepthListener::onNewFrame(
+    libfreenect2::Frame::Type type, libfreenect2::Frame *frame) {
+
+  size_t dataSize = frame->width * frame->height * sizeof(float);
+  auto convertedData = static_cast<float *>(malloc(dataSize));
+  memcpy(convertedData, frame->data, dataSize);
+  FrameType frameType;
+  if (type == libfreenect2::Frame::Type::Ir) {
+    frameType = FrameType::IR;
+  } else if (type == libfreenect2::Frame::Type::Depth) {
+    frameType = FrameType::DEPTH;
+  } else {
+    fprintf(stderr, "Invalid video format.\n");
+    return false;
+  }
+  kinectDevice->frameHandler(Frame(
+      frameType, frame->width, frame->height, convertedData));
+  return false;
+}
+
+bool KinectDevice::Kinect2RgbListener::onNewFrame(
+    libfreenect2::Frame::Type type, libfreenect2::Frame *frame) {
+
+  assert(type == libfreenect2::Frame::Type::Color);
+  assert(frame->format == libfreenect2::Frame::BGRX);
+  auto convertedData = static_cast<uint8_t *>(malloc(
+      frame->width * frame->height * sizeof(uint8_t) * 3));
+  auto data = static_cast<uint8_t *>(frame->data);
+  for (size_t i = 0; i < frame->height; ++i) {
+    for (size_t j = 0; j < frame->height; ++j) {
+      // Convert BGRX to RGB.
+      size_t pixelIndex = i * frame->width + j;
+      convertedData[3 * pixelIndex] = data[4 * pixelIndex + 2];
+      convertedData[3 * pixelIndex + 1] = data[4 * pixelIndex + 1];
+      convertedData[3 * pixelIndex + 2] = data[4 * pixelIndex];
+    }
+  }
+  kinectDevice->frameHandler(Frame(
+      FrameType::RGB, frame->width, frame->height, convertedData));
+  return false;
 }

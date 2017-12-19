@@ -10,6 +10,7 @@ bool depthPhotoTaken, irPhotoTaken, rgbPhotoTaken;
 
 class MyKinectDevice : public KinectDevice {
  public:
+  explicit MyKinectDevice(int deviceNumber) : KinectDevice(deviceNumber) {}
   void frameHandler(Frame frame) override {
     if (depthPhotoTaken && rgbPhotoTaken && irPhotoTaken)
       exit(0);
@@ -46,7 +47,8 @@ class MyKinectDevice : public KinectDevice {
         return;
       auto data = static_cast<uint8_t *>(frame.data);
       cv::Mat image(
-          cv::Size(frame.width, frame.height), CV_8UC3, videoBufferMine);
+          cv::Size(int(frame.width), int(frame.height)),
+          CV_8UC3, videoBufferMine);
       cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
       cv::imwrite("../photo_kinect1_rgb.png", image);
       rgbPhotoTaken = true;
@@ -56,7 +58,7 @@ class MyKinectDevice : public KinectDevice {
 };
 
 int main() {
-  MyKinectDevice kinectDevice;
+  MyKinectDevice kinectDevice(0);
   bool useDepth = true, useRgb = true, useIr = false;
   depthPhotoTaken = !useDepth;
   rgbPhotoTaken = !useRgb;
