@@ -20,8 +20,8 @@ public:
     using depth_t = uint64_t;
 
 private:
-    matrix<depth_t, height, width> picture_depth;
-    matrix<pixel_t, height, width> picture_map;
+    matrix<depth_t> picture_depth = matrix<depth_t>(height, width);
+    matrix<pixel_t> picture_map = matrix<pixel_t>(height, width);
 
     pixel_t deptg_to_rgb(depth_t const depth, depth_t const min_depth, depth_t const max_depth) const;
 
@@ -36,8 +36,8 @@ public:
 
     template<typename InputStreamT>
     void read_depth(InputStreamT &in) {
-        for(auto &row : picture_depth) {
-            for(auto &depth : row) {
+        for(auto row : picture_depth) {
+            for(auto depth : row) {
                 in >> depth;
             }
         }
@@ -60,8 +60,8 @@ public:
         out << width << ' ' << height << endl;
         out << 255 << endl;
 
-        for(auto const &row : picture_map) {
-            for(auto const &pixel : row) {
+        for(auto const row : picture_map) {
+            for(auto const pixel : row) {
                 for(auto const dye : pixel) {
                     out << ' ' << static_cast<uint32_t>(dye) << ' ';
                 }
