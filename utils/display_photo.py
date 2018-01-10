@@ -1,6 +1,12 @@
+#!/usr/bin/env python3
+
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+
+if len(sys.argv) != 2:
+    print('Usage: ./display_photo.py filename')
+    sys.exit(1)
 
 filename = sys.argv[1]
 

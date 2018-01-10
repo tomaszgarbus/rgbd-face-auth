@@ -1,4 +1,5 @@
-#include <cstdio>
+#include <fstream>
+#include <iostream>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -11,55 +12,58 @@ bool depthPhotoTaken, irPhotoTaken, rgbPhotoTaken;
 class MyKinectDevice : public KinectDevice {
  public:
   explicit MyKinectDevice(int deviceNumber) : KinectDevice(deviceNumber) {}
-  void frameHandler(Frame frame) override {
-    if (depthPhotoTaken && rgbPhotoTaken && irPhotoTaken)
+  void frameHandler(const Frame &frame) const override {
+    if (depthPhotoTaken && rgbPhotoTaken && irPhotoTaken) {
       exit(0);
+    }
     if (frame.type == FrameType::DEPTH) {
-      if (depthPhotoTaken)
+      if (depthPhotoTaken) {
         return;
-      auto data = static_cast<float *>(frame.data);
-      FILE *depthFile = fopen("../photo_kinect1_depth.txt", "w");
+      }
+      std::ofstream depthFile("../photo_kinect1_depth.txt");
       for (int i = 0; i < frame.height; ++i) {
         for (int j = 0; j < frame.width; ++j) {
-          fprintf(depthFile, "%f\t", data[frame.width * i + j]);
+          depthFile << frame.data.depthOrIrData[frame.width * i + j] << '\t';
         }
-        fprintf(depthFile, "\n");
+        depthFile << std::endl;
       }
-      fclose(depthFile);
+      depthFile.close();
       depthPhotoTaken = true;
-      printf("Depth photo taken.\n");
+      std::cout << "Depth photo taken.\n";
     } else if (frame.type == FrameType::IR) {
-      if (irPhotoTaken)
+      if (irPhotoTaken) {
         return;
-      auto data = static_cast<float *>(frame.data);
-      FILE *depthFile = fopen("../photo_kinect1_ir.txt", "w");
+      }
+      std::ofstream irFile("../photo_kinect1_ir.txt");
       for (int i = 0; i < frame.height; ++i) {
         for (int j = 0; j < frame.width; ++j) {
-          fprintf(depthFile, "%f\t", data[frame.width * i + j]);
+          irFile << frame.data.depthOrIrData[frame.width * i + j] << '\t';
         }
-        fprintf(depthFile, "\n");
+        irFile << std::endl;
       }
-      fclose(depthFile);
+      irFile.close();
       irPhotoTaken = true;
-      printf("IR photo taken.\n");
+      std::cout << "IR photo taken.\n";
     } else if (frame.type == FrameType::RGB) {
-      if (rgbPhotoTaken)
+      if (rgbPhotoTaken) {
         return;
-      auto data = static_cast<uint8_t *>(frame.data);
+      }
       cv::Mat image(
           cv::Size(int(frame.width), int(frame.height)),
-          CV_8UC3, frame.data);
+          CV_8UC3, frame.data.rgbData);
       cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
       cv::imwrite("../photo_kinect1_rgb.png", image);
       rgbPhotoTaken = true;
-      printf("RGB photo taken.\n");
+      std::cout << "RGB photo taken.\n";
     }
   }
 };
 
 int main() {
   MyKinectDevice kinectDevice(0);
-  bool useDepth = true, useRgb = true, useIr = true;
+  bool useDepth = true,
+      useRgb = true,
+      useIr = kinectDevice.getKinectVersion() != 1;
   depthPhotoTaken = !useDepth;
   rgbPhotoTaken = !useRgb;
   irPhotoTaken = !useIr;
