@@ -27,17 +27,17 @@ private:
 
 public:
     rgbd_picture_t() = default;
-    rgbd_picture_t(std::string const input_file_name); 
+    rgbd_picture_t(std::string const input_file_name);
 
     void update_bitmap(depth_t const min_depth, depth_t const max_depth);
     dye_t *raw_bitmap();
-    
+
     // Template functions -- definition
 
     template<typename InputStreamT>
     void read_depth(InputStreamT &in) {
         for(auto row : picture_depth) {
-            for(auto depth : row) {
+            for(auto &depth : row) {
                 in >> depth;
             }
         }
@@ -97,9 +97,9 @@ depth_t const min_depth, depth_t const max_depth) const {
     dye_t const green = 255 * std::pow(percentage, 5);
     dye_t const red = 255 * std::pow( std::pow(1 - (percentage - 0.5), 2)/8, 0.6);
     dye_t const blue = 255 * (1 - 0.8 * std::pow(percentage, 0.05));
-   
 
-    /* SECOND TYPE OF COLORS 
+
+    /* SECOND TYPE OF COLORS
      * dye_t const red = 20 + 250 * percentage;
      * dye_t const green = 230 - 180 * percentage;
      * dye_t const blue = 250 - 240 * percentage;
@@ -107,7 +107,7 @@ depth_t const min_depth, depth_t const max_depth) const {
 
     return {red, green, blue};
 }
- 
+
 
 // Public definitions
 
@@ -137,7 +137,7 @@ typename rgbd_picture_t<KinectT>::dye_t *rgbd_picture_t<KinectT>::raw_bitmap() {
     for(size_t i = 0; i < 3 * width * height; ++i) {
         ret[i] = map[i];
     }
-    
+
     return ret;
 }
 
