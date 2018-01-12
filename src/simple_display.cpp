@@ -12,7 +12,9 @@ uint8_t constexpr device_type = 1;
 
 enum {
     ID_MIN_D = 101,
-    ID_MAX_D = 102
+    ID_MAX_D = 102,
+    ID_MIN_D_TEXT = 103,
+    ID_MAX_D_TEXT = 104
 };
 
 class display_panel;
@@ -22,6 +24,7 @@ class settings_panel : public wxPanel {
 
     wxPanel *m_parent;
     wxSlider *m_min_d, *m_max_d;
+    wxTextCtrl *m_min_d_text, *m_max_d_text;
 
 public:
     settings_panel(wxPanel *parent, display_panel *picture_panel);
@@ -57,17 +60,25 @@ settings_panel::settings_panel(wxPanel *parent, display_panel *picture_panel) : 
   wxPoint(-1, -1), wxSize(-1, -1), wxBORDER_SUNKEN),
  picture_panel(picture_panel),
  m_parent(parent),
- m_min_d( new wxSlider(this, ID_MIN_D, 300, 0, 10000, wxPoint(10, 10), wxSize(980, 15)) ),
- m_max_d( new wxSlider(this, ID_MAX_D, 1000, 0, 10000, wxPoint(10, 40), wxSize(980, 15)) ) {
-    Connect(ID_MIN_D, wxEVT_SCROLL_CHANGED, 
+ m_min_d( new wxSlider(this, ID_MIN_D, 300, 0, 10000, wxPoint(60, 10), wxSize(980, 15)) ),
+ m_max_d( new wxSlider(this, ID_MAX_D, 1000, 0, 10000, wxPoint(60, 40), wxSize(980, 15)) ),
+ m_min_d_text( new wxTextCtrl(this, ID_MIN_D_TEXT, std::to_string(300), wxPoint(10, 10), wxSize(40, 15) ) ),
+ m_max_d_text( new wxTextCtrl(this, ID_MAX_D_TEXT, std::to_string(1000), wxPoint(10, 40), wxSize(40, 15) ) ) {
+    Connect(ID_MIN_D, wxEVT_SCROLL_CHANGED,
      wxCommandEventHandler(settings_panel::on_change));
-    Connect(ID_MAX_D, wxEVT_SCROLL_CHANGED, 
+    Connect(ID_MAX_D, wxEVT_SCROLL_CHANGED,
      wxCommandEventHandler(settings_panel::on_change));
 }
 
 void settings_panel::on_change(wxCommandEvent &WXUNUSED(event)) {
   uint64_t const min_depth = m_min_d->GetValue();
   uint64_t const max_depth = m_max_d->GetValue();
+
+  m_min_d_text->Clear();
+  m_min_d_text->WriteText(std::to_string(m_min_d->GetValue()));
+  m_max_d_text->Clear();
+  m_max_d_text->WriteText(std::to_string(m_max_d->GetValue()));
+  // TODO: Make wxTextCtrls non-editable or update values on edit.
 
   picture_panel->update_picture(min_depth, max_depth);
 }
