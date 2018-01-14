@@ -4,7 +4,7 @@
 
 ### C++
 
-Before pushing, code should be formatted with `clang-format` using the `-style=.clang-format`, where `.clang-format` is located in the main directory of this repository. Things not covered by `.clang-format`:
+Before pushing, code should be formatted with `clang-format` using the `-style=file` option, which will use the `.clang-format` file located in the main directory of this repository. Things not covered by `.clang-format`:
 
 * Names of everything that can be used as a type - e.g. classes, structs, enums - should be written in CamelCase.
 * Every other name - e.g. functions, variables - should be lowercase and use underscores.
