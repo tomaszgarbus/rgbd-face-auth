@@ -4,7 +4,7 @@ project(rgbd_face_auth)
 find_package(OpenCV REQUIRED)
 find_package(freenect2 REQUIRED)
 
-set(SOURCE_FILES src/libkinect/libkinect.cpp src/libkinect/libkinect.hpp)
+set(SOURCE_FILES src/libkinect.hpp)
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories($ENV{HOME}/freenect2/include)
