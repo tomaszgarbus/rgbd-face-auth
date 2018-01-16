@@ -1,5 +1,5 @@
-#ifndef LIBKINECT_H
-#define LIBKINECT_H
+#ifndef LIBKINECT_HPP
+#define LIBKINECT_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -10,33 +10,9 @@
 #include <libfreenect/libfreenect.h>
 #include <libfreenect2/libfreenect2.hpp>
 
+#include "picture.hpp"
+
 // Declarations
-
-enum class FrameType { depth, ir, color };
-
-union FrameData {
- public:
-   float *depth_or_ir_data;
-   uint8_t *color_data;
-
-   FrameData() = default;
-   explicit FrameData(float *depth_or_ir_data) : depth_or_ir_data(depth_or_ir_data){};
-   explicit FrameData(uint8_t *color_data) : color_data(color_data){};
-};
-
-class Frame {
- public:
-   explicit Frame() {};
-   Frame(FrameType type, size_t width, size_t height, FrameData data)
-      : type(type), width(width), height(height), data(data){};
-   Frame(FrameType type, size_t width, size_t height, float *depth_or_ir_data)
-      : type(type), width(width), height(height), data(depth_or_ir_data){};
-   Frame(FrameType type, size_t width, size_t height, uint8_t *color_data)
-      : type(type), width(width), height(height), data(color_data){};
-   FrameType type;
-   size_t width, height;
-   FrameData data;
-};
 
 class KinectDevice {
  public:
@@ -268,7 +244,7 @@ void KinectDevice::kinect1_video_callback(freenect_device *device, void *buffer,
 }
 
 KinectDevice::Kinect2DepthAndIrListener::Kinect2DepthAndIrListener(KinectDevice *kinect_device)
-   : kinect_device(kinect_device) {}
+      : kinect_device(kinect_device) {}
 
 bool KinectDevice::Kinect2DepthAndIrListener::onNewFrame(libfreenect2::Frame::Type type, libfreenect2::Frame *frame) {
    size_t data_size    = frame->width * frame->height;

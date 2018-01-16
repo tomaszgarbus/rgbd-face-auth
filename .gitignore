@@ -5,3 +5,7 @@
 build/
 cmake-build-debug/
 /photos/
+sample_display
+**.depth
+**.ir
+**.jpg
