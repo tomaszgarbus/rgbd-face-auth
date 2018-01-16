@@ -1,4 +1,3 @@
-# Displays photo as described in data_format.md
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
@@ -9,16 +8,14 @@ FORMATS = ['PHDE', 'PHIR']
 filename = sys.argv[1]
 
 with open(filename, 'rb') as f:
-    format_arr = array('B', [])
-    format_arr.fromfile(f, 4)
+    format_arr = np.fromfile(f, dtype='i1', count=4)
     assert ''.join(map(chr, format_arr)) in FORMATS
 
-    size_arr = array('I', [])
-    size_arr.fromfile(f, 2)
+    size_arr = np.fromfile(f, dtype='>i4', count=2)
     width, height = size_arr
+    print(size_arr)
 
-    data_arr = array('f', [])
-    data_arr.fromfile(f, height * width)
+    data_arr = np.fromfile(f, dtype='>f', count=height * width)
 
 photo = np.asarray(data_arr)
 photo = photo.reshape(height, width)
