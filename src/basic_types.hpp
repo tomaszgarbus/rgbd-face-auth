@@ -9,18 +9,17 @@
 template <typename ElementType>
 class Array {
  public:
+   Array(ElementType *memory, size_t size);
+
+   ElementType *begin();
+   ElementType *end();
+   ElementType const *begin() const;
+   ElementType const *end() const;
+
    size_t const size;
 
  private:
    ElementType *const memory;
-
- public:
-   Array(ElementType *memory, size_t size);
-
-   ElementType *begin();
-   ElementType const *begin() const;
-   ElementType *end();
-   ElementType const *end() const;
 };
 
 // Array - public
@@ -53,15 +52,9 @@ ElementType const *Array<ElementType>::end() const {
 template <typename ElementType>
 class Matrix {
  public:
-   class iterator;
-   size_t const height, width;
-
- private:
-   ElementType *const memory = new ElementType[height * width];
-
- public:
    Matrix(size_t height, size_t width);
    ~Matrix();
+
    ElementType *operator[](size_t i);
    ElementType *data();
    ElementType const *data() const;
@@ -70,6 +63,12 @@ class Matrix {
    Matrix<ElementType>::iterator end();
    Matrix<ElementType>::iterator const begin() const;
    Matrix<ElementType>::iterator const end() const;
+
+   class iterator;
+   size_t const height, width;
+
+ private:
+   ElementType *const memory = new ElementType[height * width];
 };
 
 // Matrix - public
