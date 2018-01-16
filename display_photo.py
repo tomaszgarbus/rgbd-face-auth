@@ -11,11 +11,11 @@ with open(filename, 'rb') as f:
     format_arr = np.fromfile(f, dtype='i1', count=4)
     assert ''.join(map(chr, format_arr)) in FORMATS
 
-    size_arr = np.fromfile(f, dtype='>i4', count=2)
+    size_arr = np.fromfile(f, dtype='i4', count=2)
     width, height = size_arr
     print(size_arr)
 
-    data_arr = np.fromfile(f, dtype='>f', count=height * width)
+    data_arr = np.fromfile(f, dtype='f', count=height * width)
 
 photo = np.asarray(data_arr)
 photo = photo.reshape(height, width)
