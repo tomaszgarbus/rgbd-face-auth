@@ -1,21 +1,23 @@
-#!/usr/bin/env python3
-
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+from array import array
 
-if len(sys.argv) != 2:
-    print('Usage: ./display_photo.py filename')
-    sys.exit(1)
+FORMATS = ['PHDE', 'PHIR']
 
 filename = sys.argv[1]
 
-with open(filename, 'r') as f:
-    content = f.read()
-    height = content.count('\n')
-    width = len(content.split()) // height
+with open(filename, 'rb') as f:
+    format_arr = np.fromfile(f, dtype='i1', count=4)
+    assert ''.join(map(chr, format_arr)) in FORMATS
 
-photo = np.fromfile(filename, sep=' ')
+    size_arr = np.fromfile(f, dtype='i4', count=2)
+    width, height = size_arr
+    print(size_arr)
+
+    data_arr = np.fromfile(f, dtype='f', count=height * width)
+
+photo = np.asarray(data_arr)
 photo = photo.reshape(height, width)
 
 plt.gray()

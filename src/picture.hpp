@@ -151,7 +151,7 @@ Picture::Picture(ColorFrame *color_frame, DepthOrIrFrame *depth_frame, DepthOrIr
 
 void Picture::save_all_to_files(std::string const &base_filename) const {
    if (color_frame != nullptr) {
-      color_frame->save_to_file(base_filename + ".jpg");
+      color_frame->save_to_file(base_filename + ".png");
    }
    if (depth_frame != nullptr) {
       depth_frame->save_to_file(base_filename + ".depth");
