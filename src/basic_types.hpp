@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <iterator>
 
-// Array
+// Declarations
 
 template <typename ElementType>
 class Array {
@@ -22,7 +22,29 @@ class Array {
    ElementType *const memory;
 };
 
-// Array - public
+template <typename ElementType>
+class Matrix {
+ public:
+   Matrix(size_t height, size_t width);
+   ~Matrix();
+
+   ElementType *operator[](size_t i);
+   ElementType *data();
+   ElementType const *data() const;
+
+   Matrix<ElementType>::iterator begin();
+   Matrix<ElementType>::iterator end();
+   Matrix<ElementType>::iterator const begin() const;
+   Matrix<ElementType>::iterator const end() const;
+
+   class iterator;
+   size_t const height, width;
+
+ private:
+   ElementType *const memory = new ElementType[height * width];
+};
+
+// Definitions - Array
 
 template <typename ElementType>
 Array<ElementType>::Array(ElementType *const memory, size_t const size) : size(size), memory(memory) {}
@@ -47,31 +69,7 @@ ElementType const *Array<ElementType>::end() const {
    return memory + size;
 }
 
-// Matrix
-
-template <typename ElementType>
-class Matrix {
- public:
-   Matrix(size_t height, size_t width);
-   ~Matrix();
-
-   ElementType *operator[](size_t i);
-   ElementType *data();
-   ElementType const *data() const;
-
-   Matrix<ElementType>::iterator begin();
-   Matrix<ElementType>::iterator end();
-   Matrix<ElementType>::iterator const begin() const;
-   Matrix<ElementType>::iterator const end() const;
-
-   class iterator;
-   size_t const height, width;
-
- private:
-   ElementType *const memory = new ElementType[height * width];
-};
-
-// Matrix - public
+// Definitions - Matrix
 
 template <typename ElementType>
 Matrix<ElementType>::Matrix(size_t const height, size_t const width) : height(height), width(width) {}
@@ -116,11 +114,11 @@ typename Matrix<ElementType>::iterator const Matrix<ElementType>::end() const {
    return iterator(height, width, height, memory);
 }
 
-// Iterator
+// Matrix::iterator
 
 template <typename ElementType>
 class Matrix<ElementType>::iterator
-   : public std::iterator<std::random_access_iterator_tag, Array<ElementType>, int64_t, void *, Array<ElementType>> {
+      : public std::iterator<std::random_access_iterator_tag, Array<ElementType>, int64_t, void *, Array<ElementType>> {
    //                    <iterator_category,               value_type, difference_type, pointer, reference>
    friend Matrix<ElementType>;
    size_t const height, width;

@@ -40,7 +40,7 @@ ColumnLimit:     120
 CommentPragmas:  '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 6
-ContinuationIndentWidth: 3
+ContinuationIndentWidth: 6
 Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 DisableFormat:   false

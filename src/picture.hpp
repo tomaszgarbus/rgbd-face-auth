@@ -12,35 +12,11 @@
 
 // Declarations
 
-struct ColorPixel {
-   uint8_t blue, green, red;
-};
-
-class ColorFrame {
- public:
-   explicit ColorFrame(Matrix<ColorPixel> *pixels);
-   explicit ColorFrame(std::string const &filename);
-
-   void save_to_file(std::string const &filename) const;
-   void resize(size_t width, size_t height);
-
-   Matrix<ColorPixel> *pixels = nullptr;
-};
-
-class DepthOrIrFrame {
- public:
-   explicit DepthOrIrFrame(Matrix<float> *pixels, bool is_depth);
-   explicit DepthOrIrFrame(std::string const &filename);
-
-   void save_to_file(std::string const &filename) const;
-   void resize(size_t width, size_t height);
-
-   Matrix<float> *pixels = nullptr;
-   bool is_depth;  // false means that it's an IR photo
-};
-
 class Picture {
  public:
+   class ColorFrame;
+   class DepthOrIrFrame;
+
    Picture() = default;
    Picture(ColorFrame *color_frame, DepthOrIrFrame *depth_frame, DepthOrIrFrame *ir_frame);
 
@@ -52,11 +28,38 @@ class Picture {
    DepthOrIrFrame *ir_frame    = nullptr;
 };
 
+class Picture::ColorFrame {
+ public:
+   struct ColorPixel {
+      uint8_t blue, green, red;
+   };
+
+   explicit ColorFrame(Matrix<ColorPixel> *pixels);
+   explicit ColorFrame(std::string const &filename);
+
+   void save_to_file(std::string const &filename) const;
+   void resize(size_t width, size_t height);
+
+   Matrix<ColorPixel> *pixels = nullptr;
+};
+
+class Picture::DepthOrIrFrame {
+ public:
+   explicit DepthOrIrFrame(Matrix<float> *pixels, bool is_depth);
+   explicit DepthOrIrFrame(std::string const &filename);
+
+   void save_to_file(std::string const &filename) const;
+   void resize(size_t width, size_t height);
+
+   Matrix<float> *pixels = nullptr;
+   bool is_depth;  // false means that it's an IR photo
+};
+
 // Definitions - ColorFrame
 
-ColorFrame::ColorFrame(Matrix<ColorPixel> *pixels) : pixels(pixels) {}
+Picture::ColorFrame::ColorFrame(Matrix<ColorPixel> *pixels) : pixels(pixels) {}
 
-ColorFrame::ColorFrame(std::string const &filename) {
+Picture::ColorFrame::ColorFrame(std::string const &filename) {
    cv::Mat image = cv::imread(filename);
    auto width = static_cast<size_t>(image.size().width), height = static_cast<size_t>(image.size().height);
    pixels = new Matrix<ColorPixel>(height, width);
@@ -68,15 +71,15 @@ ColorFrame::ColorFrame(std::string const &filename) {
    }
 }
 
-void ColorFrame::save_to_file(std::string const &filename) const {
+void Picture::ColorFrame::save_to_file(std::string const &filename) const {
    cv::Mat image(cv::Size(static_cast<int>(pixels->width), static_cast<int>(pixels->height)), CV_8UC3,
-      (uint8_t *)(pixels->data()));
+         (uint8_t *)(pixels->data()));
    cv::imwrite(filename, image);
 }
 
-void ColorFrame::resize(size_t const width, size_t const height) {
+void Picture::ColorFrame::resize(size_t const width, size_t const height) {
    cv::Mat current_image(cv::Size(static_cast<int>(pixels->width), static_cast<int>(pixels->height)), CV_8UC3,
-      (uint8_t *)(pixels->data()));
+         (uint8_t *)(pixels->data()));
    cv::Mat destination_image(cv::Size(static_cast<int>(width), static_cast<int>(height)), CV_8UC3);
    cv::resize(current_image, destination_image, destination_image.size());
    delete pixels;
@@ -91,10 +94,10 @@ void ColorFrame::resize(size_t const width, size_t const height) {
 
 // Definitions - DepthOrIrFrame
 
-DepthOrIrFrame::DepthOrIrFrame(Matrix<float> *pixels, bool const is_depth) : pixels(pixels), is_depth(is_depth) {}
+Picture::DepthOrIrFrame::DepthOrIrFrame(Matrix<float> *pixels, bool const is_depth)
+      : pixels(pixels), is_depth(is_depth) {}
 
-DepthOrIrFrame::DepthOrIrFrame(std::string const &filename) {
-   auto extension = filename.substr(filename.find_last_of('.'));
+Picture::DepthOrIrFrame::DepthOrIrFrame(std::string const &filename) {
    std::ifstream file_stream(filename, std::ifstream::binary);
    if (file_stream) {
       char header[12];
@@ -115,7 +118,7 @@ DepthOrIrFrame::DepthOrIrFrame(std::string const &filename) {
    }
 }
 
-void DepthOrIrFrame::save_to_file(std::string const &filename) const {
+void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {
    std::ofstream file_stream(filename, std::ofstream::binary);
    char header[12];
    if (is_depth) {
@@ -129,9 +132,9 @@ void DepthOrIrFrame::save_to_file(std::string const &filename) const {
    file_stream.write(reinterpret_cast<char *>(pixels->data()), pixels->height * pixels->width * sizeof(float));
 }
 
-void DepthOrIrFrame::resize(size_t width, size_t height) {
+void Picture::DepthOrIrFrame::resize(size_t width, size_t height) {
    cv::Mat current_image(cv::Size(static_cast<int>(pixels->width), static_cast<int>(pixels->height)), CV_32FC1,
-      (uint8_t *)(pixels->data()));
+         (uint8_t *)(pixels->data()));
    cv::Mat destination_image(cv::Size(static_cast<int>(width), static_cast<int>(height)), CV_32FC1);
    cv::resize(current_image, destination_image, destination_image.size());
    delete pixels;
