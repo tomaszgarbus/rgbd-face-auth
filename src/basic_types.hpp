@@ -32,12 +32,13 @@ class Matrix {
    ElementType *data();
    ElementType const *data() const;
 
+   class iterator;
+
    Matrix<ElementType>::iterator begin();
    Matrix<ElementType>::iterator end();
    Matrix<ElementType>::iterator const begin() const;
    Matrix<ElementType>::iterator const end() const;
 
-   class iterator;
    size_t const height, width;
 
  private:

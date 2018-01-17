@@ -12,8 +12,6 @@
 
 char constexpr photos_directory[] = "../photos/";
 
-bool depth_photo_taken, ir_photo_taken, color_photo_taken;
-
 std::string get_current_time() {
    auto current_time           = std::chrono::system_clock::now();
    auto current_time_as_time_t = std::chrono::system_clock::to_time_t(current_time);
@@ -36,22 +34,24 @@ class MyKinectDevice : public KinectDevice {
    explicit MyKinectDevice(int device_number) : KinectDevice(device_number) {}
 
    void frame_handler(Picture const &picture) const override {
-      if (depth_photo_taken && color_photo_taken && ir_photo_taken) {
-         exit(0);
-      }
-      std::string filename =
-            photos_directory + get_current_time() + "-kinect" + std::to_string(get_kinect_version()) + "-";
+      std::string filename = photos_directory + get_current_time() + "-kinect" + std::to_string(which_kinect);
 
+      if (picture.color_frame) {
+         std::cout << "color" << std::endl;
+      }
+      if (picture.depth_frame) {
+         std::cout << "depth" << std::endl;
+      }
+      auto start_time = std::chrono::system_clock::now();
       picture.save_all_to_files(filename);
+      auto end_time = std::chrono::system_clock::now();
+      std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << std::endl;
    }
 };
 
 int main() {
-   MyKinectDevice kienct_device(0);
-   bool use_depth = true, use_rgb = true, use_ir = kienct_device.get_kinect_version() != 1;
-   depth_photo_taken = !use_depth;
-   color_photo_taken = !use_rgb;
-   ir_photo_taken    = !use_ir;
-   kienct_device.start_streams(use_depth, use_rgb, use_ir);
+   MyKinectDevice kinect_device(0);
+   bool use_depth = true, use_rgb = true, use_ir = kinect_device.which_kinect != 1;
+   kinect_device.start_streams(use_depth, use_rgb, use_ir);
    return 0;
 }

@@ -18,13 +18,14 @@ class KinectDevice {
  public:
    explicit KinectDevice(int device_number);
    ~KinectDevice();
+
    void start_streams(bool color, bool depth, bool ir);
    void stop_streams();
-   int get_kinect_version() const;
    virtual void frame_handler(Picture const &picture) const = 0;
 
+   int which_kinect = 0;  // 1 or 2 set in constructor
+
  protected:
-   int which_kinect   = 0;  // 1 or 2 set in constructor
    bool color_running = false, depth_running = false, ir_running = false;
    // Kinect v1:
    freenect_context *freenect1_context = nullptr;
@@ -221,12 +222,12 @@ void KinectDevice::stop_streams() {
 void KinectDevice::kinect1_depth_callback(freenect_device *device, void *depth_void, uint32_t timestamp) {
    auto kinect_device = static_cast<KinectDevice *>(freenect_get_user(device));
    auto frame_mode    = freenect_get_current_depth_mode(device);
-   auto width = static_cast<size_t>(frame_mode.width), height = static_cast<size_t>(frame_mode.height);
-   auto pixels = new Matrix<float>(height, width);
+   auto width         = static_cast<size_t>(frame_mode.width);
+   auto height        = static_cast<size_t>(frame_mode.height);
+   auto pixels        = new Matrix<float>(height, width);
    for (size_t i = 0; i < frame_mode.height; ++i) {
       for (size_t j = 0; j < frame_mode.width; ++j) {
-         (*pixels)[frame_mode.height][frame_mode.width] =
-               float(reinterpret_cast<uint16_t *>(depth_void)[frame_mode.width * i + j]);
+         (*pixels)[i][j] = float(static_cast<uint16_t *>(depth_void)[frame_mode.width * i + j]);
       }
    }
    Picture picture;
@@ -257,8 +258,7 @@ void KinectDevice::kinect1_video_callback(freenect_device *device, void *buffer,
       auto pixels = new Matrix<float>(height, width);
       for (size_t i = 0; i < frame_mode.height; ++i) {
          for (size_t j = 0; j < frame_mode.width; ++j) {
-            (*pixels)[frame_mode.height][frame_mode.width] =
-                  float(reinterpret_cast<uint16_t *>(buffer)[frame_mode.width * i + j]);
+            (*pixels)[i][j] = float(reinterpret_cast<uint16_t *>(buffer)[frame_mode.width * i + j]);
          }
       }
       picture.ir_frame = new Picture::DepthOrIrFrame(pixels, false);
