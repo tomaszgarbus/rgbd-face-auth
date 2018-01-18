@@ -120,7 +120,8 @@ typename Matrix<ElementType>::iterator const Matrix<ElementType>::end() const {
 template <typename ElementType>
 class Matrix<ElementType>::iterator
       : public std::iterator<std::random_access_iterator_tag, Array<ElementType>, int64_t, void *, Array<ElementType>> {
-   //                    <iterator_category,               value_type, difference_type, pointer, reference>
+   //                    <iterator_category,               value_type,
+   //                    difference_type, pointer, reference>
    friend Matrix<ElementType>;
    size_t const height, width;
    size_t position;

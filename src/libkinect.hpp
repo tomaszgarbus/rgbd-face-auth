@@ -194,7 +194,9 @@ void KinectDevice::start_streams(bool color, bool depth, bool ir) {
 void KinectDevice::stop_streams() {
    if (which_kinect == 1) {
       kinect1_run_event_loop.clear();
-      kinect1_event_thread->join();
+      if (kinect1_event_thread != nullptr) {
+         kinect1_event_thread->join();
+      }
       kinect1_run_event_loop.clear();
       if (depth_running) {
          if (freenect_stop_depth(freenect1_device) != 0) {
@@ -242,8 +244,9 @@ void KinectDevice::kinect1_depth_callback(freenect_device *device, void *depth_v
       }
    }
    Picture picture;
-   picture.depth_frame = new Picture::DepthOrIrFrame(pixels, true);
-   kinect_device->frame_handler(picture);
+   picture.depth_frame       = new Picture::DepthOrIrFrame(pixels, true);
+   auto frame_handler_thread = std::thread(&KinectDevice::frame_handler, kinect_device, picture);
+   frame_handler_thread.detach();
 }
 
 void KinectDevice::kinect1_video_callback(freenect_device *device, void *buffer, uint32_t timestamp) {
@@ -274,10 +277,12 @@ void KinectDevice::kinect1_video_callback(freenect_device *device, void *buffer,
       }
       picture.ir_frame = new Picture::DepthOrIrFrame(pixels, false);
    } else {
-      std::cerr << "kinect1_video_callback() received an unexcepted video format, skipping frame\n";
+      std::cerr << "kinect1_video_callback() received an unexcepted video "
+                   "format, skipping frame\n";
       return;
    }
-   kinect_device->frame_handler(picture);
+   auto frame_handler_thread = std::thread(&KinectDevice::frame_handler, kinect_device, picture);
+   frame_handler_thread.detach();
 }
 
 KinectDevice::Kinect2DepthAndIrListener::Kinect2DepthAndIrListener(KinectDevice *kinect_device)
@@ -293,7 +298,8 @@ bool KinectDevice::Kinect2DepthAndIrListener::onNewFrame(libfreenect2::Frame::Ty
    } else if (type == libfreenect2::Frame::Type::Ir) {
       picture.ir_frame = new Picture::DepthOrIrFrame(pixels, false);
    } else {
-      std::cerr << "Kinect2DepthAndIrListener::onNewFrame() received an unexcepted video format.\n";
+      std::cerr << "Kinect2DepthAndIrListener::onNewFrame() received an "
+                   "unexcepted video format.\n";
       return false;
    }
    kinect_device->frame_handler(picture);
@@ -304,7 +310,8 @@ KinectDevice::Kinect2ColorListener::Kinect2ColorListener(KinectDevice *kinect_de
 
 bool KinectDevice::Kinect2ColorListener::onNewFrame(libfreenect2::Frame::Type type, libfreenect2::Frame *frame) {
    if (type != libfreenect2::Frame::Type::Color || frame->format != libfreenect2::Frame::BGRX) {
-      std::cerr << "Kinect2ColorListener::onNewFrame received an unexcepted video format.\n";
+      std::cerr << "Kinect2ColorListener::onNewFrame received an unexcepted "
+                   "video format.\n";
       return false;
    }
    auto pixels = new Matrix<Picture::ColorFrame::ColorPixel>(frame->height, frame->width);

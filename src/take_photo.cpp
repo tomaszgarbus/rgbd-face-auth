@@ -53,5 +53,7 @@ int main() {
    MyKinectDevice kinect_device(0);
    bool use_depth = true, use_rgb = true, use_ir = kinect_device.which_kinect != 1;
    kinect_device.start_streams(use_depth, use_rgb, use_ir);
+   while (true) {
+   }
    return 0;
 }
