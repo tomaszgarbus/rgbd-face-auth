@@ -37,6 +37,10 @@ class KinectDevice {
    libfreenect2::PacketPipeline *freenect2_pipeline = nullptr;
 
  private:
+   std::atomic_flag kinect1_run_event_loop = ATOMIC_FLAG_INIT;
+   std::thread *kinect1_event_thread       = nullptr;
+   void kinect1_process_events();
+
    static void kinect1_depth_callback(freenect_device *device, void *depth_void, uint32_t timestamp);
    static void kinect1_video_callback(freenect_device *device, void *buffer, uint32_t timestamp);
 
@@ -160,9 +164,8 @@ void KinectDevice::start_streams(bool color, bool depth, bool ir) {
       depth_running = depth;
       ir_running    = ir;
 
-      while (freenect_process_events(freenect1_context) == 0) {
-      }
-      // TODO: this loop should be moved to a thread
+      kinect1_run_event_loop.test_and_set();
+      kinect1_event_thread = new std::thread(&KinectDevice::kinect1_process_events, this);
    } else if (which_kinect == 2) {
       if (int(depth) + int(ir) == 1) {
          throw std::invalid_argument("Kinect v2 can't stream only one of (depth, IR)");
@@ -185,14 +188,14 @@ void KinectDevice::start_streams(bool color, bool depth, bool ir) {
       depth_running = depth;
       color_running = color;
       ir_running    = ir;
-      while (true) {
-      }
-      // TODO: don't do this loop after moving the Kinect v1 loop to a thread
    }
 }
 
 void KinectDevice::stop_streams() {
    if (which_kinect == 1) {
+      kinect1_run_event_loop.clear();
+      kinect1_event_thread->join();
+      kinect1_run_event_loop.clear();
       if (depth_running) {
          if (freenect_stop_depth(freenect1_device) != 0) {
             throw std::runtime_error("freenect_stop_depth() failed");
@@ -217,6 +220,14 @@ void KinectDevice::stop_streams() {
    depth_running = false;
    color_running = false;
    ir_running    = false;
+}
+
+void KinectDevice::kinect1_process_events() {
+   while (freenect_process_events(freenect1_context) == 0) {
+      if (!kinect1_run_event_loop.test_and_set()) {
+         break;
+      }
+   }
 }
 
 void KinectDevice::kinect1_depth_callback(freenect_device *device, void *depth_void, uint32_t timestamp) {
