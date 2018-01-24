@@ -36,15 +36,16 @@ class MyKinectDevice : public KinectDevice {
    void frame_handler(Picture const &picture) const override {
       std::string filename = photos_directory + get_current_time() + "-kinect" + std::to_string(which_kinect);
 
+      auto start_time = std::chrono::system_clock::now();
+      picture.save_all_to_files(filename);
+      auto end_time = std::chrono::system_clock::now();
+
       if (picture.color_frame) {
          std::cout << "color" << std::endl;
       }
       if (picture.depth_frame) {
          std::cout << "depth" << std::endl;
       }
-      auto start_time = std::chrono::system_clock::now();
-      picture.save_all_to_files(filename);
-      auto end_time = std::chrono::system_clock::now();
       std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << std::endl;
    }
 };

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5.1)
 project(rgbd_face_auth)
 
+find_package(ZLIB REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(freenect2 REQUIRED)
 
@@ -14,3 +15,4 @@ add_executable(take_photo src/take_photo.cpp ${BASIC_SOURCE_FILES} ${LIBKINECT_S
 target_link_libraries(take_photo freenect)
 target_link_libraries(take_photo ${OpenCV_LIBS})
 target_link_libraries(take_photo ${freenect2_LIBRARIES})
+target_link_libraries(take_photo ${ZLIB_LIBRARIES})

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 
+#include <zlib.h>
 #include <opencv/cv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -119,17 +120,27 @@ Picture::DepthOrIrFrame::DepthOrIrFrame(std::string const &filename) {
 }
 
 void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {
-   std::ofstream file_stream(filename, std::ofstream::binary);
-   char header[12];
+   size_t pixels_size = pixels->height * pixels->width * sizeof(float);
+   char file_data[12 + pixels_size];
    if (is_depth) {
-      memcpy(header, "PHDE", 4);
+      memcpy(file_data, "PHDE", 4);
    } else {
-      memcpy(header, "PHIR", 4);
+      memcpy(file_data, "PHIR", 4);
    }
-   reinterpret_cast<uint32_t *>(header)[1] = static_cast<uint32_t>(pixels->width);
-   reinterpret_cast<uint32_t *>(header)[2] = static_cast<uint32_t>(pixels->height);
-   file_stream.write(header, 12);
-   file_stream.write(reinterpret_cast<char *>(pixels->data()), pixels->height * pixels->width * sizeof(float));
+   reinterpret_cast<uint32_t *>(file_data)[1] = static_cast<uint32_t>(pixels->width);
+   reinterpret_cast<uint32_t *>(file_data)[2] = static_cast<uint32_t>(pixels->height);
+   memcpy(file_data + 12, reinterpret_cast<char *>(pixels->data()), pixels_size);
+
+   gzFile gz_file = gzopen((filename + ".gz").c_str(), "w");
+   if (gz_file == Z_NULL) {
+      throw std::runtime_error("gzopen() could not open file " + filename + ".gz");
+   }
+   if (gzwrite(gz_file, file_data, static_cast<unsigned int>(12 + pixels_size)) != 12 + pixels_size) {
+      throw std::runtime_error("gzwrite() did not correctly write to file " + filename + ".gz");
+   }
+   if (gzclose(gz_file) != Z_OK) {
+      throw std::runtime_error("gzclose() did not correctly close file " + filename + ".gz");
+   }
 }
 
 void Picture::DepthOrIrFrame::resize(size_t width, size_t height) {
