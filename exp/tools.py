@@ -6,8 +6,22 @@ import matplotlib.pyplot as plt
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 
+image_size=50
+TYPES = 4
+
 def load_color_image_from_file(filename):
     return np.array(PIL.Image.open(filename))
+
+def load_depth_photo(path):
+    with open(path, 'rb') as f:
+        format_arr = np.fromfile(f, dtype='i1', count=4)
+        assert ''.join(map(chr, format_arr)) == 'PHDE'
+        size_arr = np.fromfile(f, dtype='i4', count=2)
+        width, height = size_arr
+        data_arr = np.fromfile(f, dtype='f', count=height * width)
+        photo = np.asarray(data_arr)
+        photo = photo.reshape(height, width)
+        return photo
 
 def change_image_mode(source_mode, output_mode, img):
     return np.array(PIL.Image.fromarray(img, mode=source_mode).convert(output_mode))
