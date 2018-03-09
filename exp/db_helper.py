@@ -1,3 +1,5 @@
+# TODO(tomek): implement loading IR photos
+
 # Unified class for loading images from databases
 import tools
 from tools import image_size, TYPES
@@ -12,22 +14,15 @@ from skimage.filters.rank import entropy
 from skimage.morphology import disk
 
 
-DB_NAMES = ['www.vap.aau.dk'] # TODO: add superface_dataset & the other 2
+DB_NAMES = ['www.vap.aau.dk', 'ias_lab_rgbd', 'superface_dataset']
 SUBJECTS_COUNTS = {
-    'www.vap.aau.dk': 31
+    'www.vap.aau.dk': 31,
+    'ias_lab_rgbd': 26,
+    'superface_dataset': 19 # TODO(tomek): fix folder subject010 and change 19->12
 }
 
-def vap_load_train_subject(subject_no, img_no):
-    path_depth = 'www.vap.aau.dk/files/' + '%d/0%02d_%d_d.depth' % (subject_no+1, 1+img_no/3, 1+img_no%3)
-    path_color = 'www.vap.aau.dk/files/' + '%d/0%02d_%d_c.png' % (subject_no+1, 1+img_no/3, 1+img_no%3)
-    x = []
-    y = []
-    # Load depth and color photo
-    color_photo = tools.load_color_image_from_file(path_color)
-    depth_photo = tools.load_depth_photo(path_depth)
-    # Resize to common size
-    color_photo = tools.change_image_mode('RGBA', 'RGB', color_photo)
-    color_photo = tools.rgb_image_resize(color_photo, (depth_photo.shape[1], depth_photo.shape[0]))
+def photo_to_face(color_photo, depth_photo):
+    # Converts full photo to just face image
     # Locate face
     face_coords = face_recognition.face_locations(color_photo)
     # Process face detected by the library
@@ -51,6 +46,41 @@ def vap_load_train_subject(subject_no, img_no):
         # Face couldn't be detected
         return None, None
 
+def vap_load_train_subject(subject_no, img_no):
+    path_depth = 'www.vap.aau.dk/files/%d/0%02d_%d_d.depth' % (subject_no+1, 1+img_no/3, 1+img_no%3)
+    path_color = 'www.vap.aau.dk/files/%d/0%02d_%d_c.png' % (subject_no+1, 1+img_no/3, 1+img_no%3)
+    # Load depth and color photo
+    color_photo = tools.load_color_image_from_file(path_color)
+    depth_photo = tools.load_depth_photo(path_depth)
+    # Resize to common size
+    color_photo = tools.change_image_mode('RGBA', 'RGB', color_photo)
+    color_photo = tools.rgb_image_resize(color_photo, (depth_photo.shape[1], depth_photo.shape[0]))
+    return photo_to_face(color_photo, depth_photo)
+
+def ias_load_train_subject(subject_no, img_no):
+    path_depth = 'ias_lab_rgbd/files/training/0%02d_%02d.depth' % (subject_no, img_no)
+    path_color = 'ias_lab_rgbd/files/training/0%02d_%02d.png' % (subject_no, img_no)
+    # Load depth and color photo
+    color_photo = tools.load_color_image_from_file(path_color)
+    depth_photo = tools.load_depth_photo(path_depth)
+    # Resize to common size
+    color_photo = tools.rgb_image_resize(color_photo, (depth_photo.shape[1], depth_photo.shape[0]))
+    return photo_to_face(color_photo, depth_photo)
+
+def superface_load_train_subject(subject_no, img_no):
+    path_color = 'superface_dataset/files/subject%03d/rgbFrame/frameRGB%d.png' % (subject_no+1, img_no+1)
+    path_depth = 'superface_dataset/files/subject%03d/depthFrame/frameD%d.depth' % (subject_no+1, img_no+1)
+    # Check if file exists. For some reason, this database lacks some files
+    if not os.path.isfile(path_color) or not os.path.isfile(path_depth):
+        return None, None
+
+    # Load depth and color photo
+    color_photo = tools.load_color_image_from_file(path_color)
+    depth_photo = tools.load_depth_photo(path_depth)
+    # Resize to common size
+    color_photo = tools.rgb_image_resize(color_photo, (depth_photo.shape[1], depth_photo.shape[0]))
+    return photo_to_face(color_photo, depth_photo)
+
 class DBHelper:
     db_name = None
     subjects_count = None
@@ -63,6 +93,17 @@ class DBHelper:
     def imgs_per_subject(self, subject_no):
         if self.db_name == 'www.vap.aau.dk':
             return 3 * 17
+        elif self.db_name == 'ias_lab_rgbd':
+            return 13
+        elif self.db_name == 'superface_dataset':
+            # TODO(tomek): fix folder subject010 and remove this line
+            if subject_no == 9:
+                subject_no = 19
+            color_path = 'superface_dataset/files/subject%03d/rgbFrame' % (subject_no+1)
+            depth_path = 'superface_dataset/files/subject%03d/depthFrame' % (subject_no+1)
+            color_files = next(os.walk(color_path))[2]
+            depth_files = next(os.walk(depth_path))[2]
+            return max(len(color_files), len(depth_files))  # some files seem to be missing in depthFrame/* ...
         else:
             assert False, 'NOT IMPLEMENTED'
 
@@ -71,8 +112,15 @@ class DBHelper:
         assert img_no in range(0, self.imgs_per_subject(subject_no)), 'img_no must be indexed from 0'
         if self.db_name == 'www.vap.aau.dk':
             return vap_load_train_subject(subject_no, img_no)
+        if self.db_name == 'ias_lab_rgbd':
+            return ias_load_train_subject(subject_no, img_no)
+        if self.db_name == 'superface_dataset':
+            return superface_load_train_subject(subject_no, img_no)
 
     def build_input_vector(self, subject_no, img_no):
+        # TODO(tomek): fix folder subject010 and remove this line
+        if subject_no == 9:
+            subject_no = 19
         """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
         (grey_face, depth_face) = self.load_greyd_face(subject_no, img_no)
         if grey_face is None or depth_face is None:
