@@ -28,8 +28,8 @@ from db_helper import DBHelper
 
 sys.setrecursionlimit(1000000)
 
-# TODO(tomek): fix folder subject010 and change 19->12
-TOTAL_SUBJECTS_COUNT = 19 + 26 + 31
+# TODO(tomek): fix folder subject010 and change 18->20
+TOTAL_SUBJECTS_COUNT = 18 + 26 + 31
 
 def display_photo(path):
     FORMATS = ['PHDE', 'PHIR']
@@ -92,7 +92,7 @@ y_test = []
 
 print("Loaded data")
 # If you want, display the first input image. It is already normalized to [0;1]
-tools.show_image(X_train[0].reshape((TYPES * image_size, image_size)));
+#tools.show_image(X_train[0].reshape((TYPES * image_size, image_size)));
 
 model = Sequential()
 model.add(Conv2D(20,
@@ -120,16 +120,14 @@ model.compile(optimizer='sgd',
 train_generator = ImageDataGenerator().flow(X_train, Y_train)
 test_generator = ImageDataGenerator().flow(X_test, Y_test)
 
-# 50 epochs is obviously not enough, repeat until convergence manually.
-# NOTE: X_test and Y_test are passed here as validation data so that score will
-# be displayed live while learning
-model.fit_generator(train_generator,
-          validation_data=test_generator,
-          epochs=50,
-          steps_per_epoch=10,
-          verbose=True,
-          validation_steps=1)
+while True:
+    # 50 epochs is obviously not enough, repeat until convergence manually.
+    model.fit_generator(train_generator,
+              epochs=50,
+              steps_per_epoch=10,
+              verbose=True,
+              validation_steps=1)
 
 
-loss = model.evaluate(X_test, Y_test)
-print(loss)
+    loss = model.evaluate(X_test, Y_test)
+    print(loss)

@@ -18,7 +18,7 @@ DB_NAMES = ['www.vap.aau.dk', 'ias_lab_rgbd', 'superface_dataset']
 SUBJECTS_COUNTS = {
     'www.vap.aau.dk': 31,
     'ias_lab_rgbd': 26,
-    'superface_dataset': 19 # TODO(tomek): fix folder subject010 and change 19->12
+    'superface_dataset': 18 # TODO(tomek): fix folder subject010 and change 18->20
 }
 
 def photo_to_face(color_photo, depth_photo):
@@ -68,6 +68,9 @@ def ias_load_train_subject(subject_no, img_no):
     return photo_to_face(color_photo, depth_photo)
 
 def superface_load_train_subject(subject_no, img_no):
+    # TODO(tomek): fix folder subject010 and remove this line
+    if subject_no == 9:
+        subject_no = 19
     path_color = 'superface_dataset/files/subject%03d/rgbFrame/frameRGB%d.png' % (subject_no+1, img_no+1)
     path_depth = 'superface_dataset/files/subject%03d/depthFrame/frameD%d.depth' % (subject_no+1, img_no+1)
     # Check if file exists. For some reason, this database lacks some files
@@ -118,9 +121,6 @@ class DBHelper:
             return superface_load_train_subject(subject_no, img_no)
 
     def build_input_vector(self, subject_no, img_no):
-        # TODO(tomek): fix folder subject010 and remove this line
-        if subject_no == 9:
-            subject_no = 19
         """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
         (grey_face, depth_face) = self.load_greyd_face(subject_no, img_no)
         if grey_face is None or depth_face is None:
