@@ -2,3 +2,8 @@ www.vap.aau.dk/files
 ias_lab_rgbd/files
 superface_dataset/files
 __pycache__
+X_test.npy
+X_train.npy
+Y_test.npy
+Y_train.npy
+

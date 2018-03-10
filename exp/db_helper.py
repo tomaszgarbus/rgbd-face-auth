@@ -1,3 +1,4 @@
+# TODO: add saliency map to input vectors
 # TODO(tomek): implement loading IR photos
 
 # Unified class for loading images from databases

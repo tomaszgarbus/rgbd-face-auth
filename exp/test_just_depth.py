@@ -25,8 +25,8 @@ X_train = np.load('X_train.npy')
 Y_train = np.load('Y_train.npy')
 X_test = np.load('X_test.npy')
 Y_test = np.load('Y_test.npy')
-X_train = X_train[:,:100,:,:]
-X_test = X_test[:,:100,:,:]
+X_train = np.concatenate([X_train[:,:50,:,:], X_train[:,150:,:,:]], axis=1)
+X_test = np.concatenate([X_test[:,:50,:,:], X_test[:,150:,:,:]], axis=1)
 print("Loaded data")
 # If you want, display the first input image. It is already normalized to [0;1]
 # tools.show_image(X_train[0].reshape((TYPES * image_size, image_size)));
@@ -56,6 +56,7 @@ model.compile(optimizer='sgd',
 
 train_generator = ImageDataGenerator().flow(X_train, Y_train)
 test_generator = ImageDataGenerator().flow(X_test, Y_test)
+
 
 total_epochs = 0
 while True:
