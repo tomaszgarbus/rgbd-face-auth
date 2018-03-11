@@ -4,10 +4,10 @@
 #include <fstream>
 #include <iostream>
 
-#include <zlib.h>
 #include <opencv/cv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <zlib.h>
 
 #include "basic_types.hpp"
 
@@ -20,6 +20,8 @@ class Picture {
 
    Picture() = default;
    Picture(ColorFrame *color_frame, DepthOrIrFrame *depth_frame, DepthOrIrFrame *ir_frame);
+   Picture(const Picture &src);
+   ~Picture();
 
    void save_all_to_files(std::string const &base_filename) const;
    void resize_all(size_t width, size_t height);
@@ -37,6 +39,7 @@ class Picture::ColorFrame {
 
    explicit ColorFrame(Matrix<ColorPixel> *pixels);
    explicit ColorFrame(std::string const &filename);
+   ~ColorFrame();
 
    void save_to_file(std::string const &filename) const;
    void resize(size_t width, size_t height);
@@ -48,6 +51,7 @@ class Picture::DepthOrIrFrame {
  public:
    explicit DepthOrIrFrame(Matrix<float> *pixels, bool is_depth);
    explicit DepthOrIrFrame(std::string const &filename);
+   ~DepthOrIrFrame();
 
    void save_to_file(std::string const &filename) const;
    void resize(size_t width, size_t height);
@@ -70,6 +74,10 @@ Picture::ColorFrame::ColorFrame(std::string const &filename) {
          (*pixels)[i][j] = ColorPixel{pixel[0], pixel[1], pixel[2]};
       }
    }
+}
+
+Picture::ColorFrame::~ColorFrame() {
+   delete pixels;
 }
 
 void Picture::ColorFrame::save_to_file(std::string const &filename) const {
@@ -119,6 +127,10 @@ Picture::DepthOrIrFrame::DepthOrIrFrame(std::string const &filename) {
    }
 }
 
+Picture::DepthOrIrFrame::~DepthOrIrFrame() {
+   delete pixels;
+}
+
 void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {
    size_t pixels_size = pixels->height * pixels->width * sizeof(float);
    char file_data[12 + pixels_size];
@@ -162,6 +174,24 @@ void Picture::DepthOrIrFrame::resize(size_t width, size_t height) {
 
 Picture::Picture(ColorFrame *color_frame, DepthOrIrFrame *depth_frame, DepthOrIrFrame *ir_frame)
       : color_frame(color_frame), depth_frame(depth_frame), ir_frame(ir_frame) {}
+
+Picture::Picture(const Picture &src) {
+   if (src.color_frame != nullptr) {
+      color_frame = new ColorFrame(new Matrix<Picture::ColorFrame::ColorPixel>(*src.color_frame->pixels));
+   }
+   if (src.depth_frame != nullptr) {
+      depth_frame = new DepthOrIrFrame(new Matrix<float>(*src.depth_frame->pixels), true);
+   }
+   if (src.ir_frame != nullptr) {
+      ir_frame = new DepthOrIrFrame(new Matrix<float>(*src.ir_frame->pixels), false);
+   }
+}
+
+Picture::~Picture() {
+   delete color_frame;
+   delete depth_frame;
+   delete ir_frame;
+}
 
 void Picture::save_all_to_files(std::string const &base_filename) const {
    if (color_frame != nullptr) {

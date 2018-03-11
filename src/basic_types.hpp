@@ -26,6 +26,7 @@ template <typename ElementType>
 class Matrix {
  public:
    Matrix(size_t height, size_t width);
+   Matrix(const Matrix &src);
    ~Matrix();
 
    ElementType *operator[](size_t i);
@@ -74,6 +75,11 @@ ElementType const *Array<ElementType>::end() const {
 
 template <typename ElementType>
 Matrix<ElementType>::Matrix(size_t const height, size_t const width) : height(height), width(width) {}
+
+template <typename ElementType>
+Matrix<ElementType>::Matrix(const Matrix &src) : height(src.height), width(src.width) {
+   memcpy(memory, src.memory, height * width * sizeof(ElementType));
+}
 
 template <typename ElementType>
 Matrix<ElementType>::~Matrix() {

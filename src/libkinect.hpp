@@ -6,6 +6,7 @@
 #include <cstring>
 #include <exception>
 #include <iostream>
+#include <thread>
 
 #include <libfreenect/libfreenect.h>
 #include <libfreenect2/libfreenect2.hpp>
@@ -277,8 +278,7 @@ void KinectDevice::kinect1_video_callback(freenect_device *device, void *buffer,
       }
       picture.ir_frame = new Picture::DepthOrIrFrame(pixels, false);
    } else {
-      std::cerr << "kinect1_video_callback() received an unexcepted video "
-                   "format, skipping frame\n";
+      std::cerr << "kinect1_video_callback() received an unexcepted video format, skipping frame\n";
       return;
    }
    auto frame_handler_thread = std::thread(&KinectDevice::frame_handler, kinect_device, picture);
