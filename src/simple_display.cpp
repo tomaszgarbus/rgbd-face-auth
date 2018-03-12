@@ -149,8 +149,8 @@ class MyKinectDevice : public KinectDevice {
       Picture picture_copy(picture);
 
       if (picture_copy.color_frame) {
-         auto frame_size = fit_to_size(picture_copy.color_frame->pixels->height,
-               picture_copy.color_frame->pixels->width, display_panel_width, display_panel_height);
+         auto frame_size = fit_to_size(picture_copy.color_frame->pixels->width,
+               picture_copy.color_frame->pixels->height, display_panel_width, display_panel_height);
          size_t frame_width  = frame_size.first;
          size_t frame_height = frame_size.second;
 
@@ -171,8 +171,8 @@ class MyKinectDevice : public KinectDevice {
       }
 
       if (picture_copy.depth_frame) {
-         auto frame_size = fit_to_size(picture_copy.depth_frame->pixels->height,
-               picture_copy.depth_frame->pixels->width, display_panel_width, display_panel_height);
+         auto frame_size = fit_to_size(picture_copy.depth_frame->pixels->width,
+               picture_copy.depth_frame->pixels->height, display_panel_width, display_panel_height);
          size_t frame_width  = frame_size.first;
          size_t frame_height = frame_size.second;
 
@@ -201,16 +201,29 @@ class MyKinectDevice : public KinectDevice {
       }
 
       if (picture_copy.ir_frame) {
-         auto frame_size = fit_to_size(picture_copy.ir_frame->pixels->height, picture_copy.ir_frame->pixels->width,
+         auto frame_size = fit_to_size(picture_copy.ir_frame->pixels->width, picture_copy.ir_frame->pixels->height,
                display_panel_width, display_panel_height);
          size_t frame_width  = frame_size.first;
          size_t frame_height = frame_size.second;
+
+         float max1 = 0.0, max2 = 0.0;
+         for (size_t i = 0; i < frame_height; ++i) {
+            for (size_t j = 0; j < frame_width; ++j) {
+               max1 = std::max(max1, (*picture_copy.ir_frame->pixels)[i][j]);
+            }
+         }
 
          picture_copy.ir_frame->resize(frame_width, frame_height);
 
          for (size_t i = 0; i < frame_height; ++i) {
             for (size_t j = 0; j < frame_width; ++j) {
-               auto pixel_value = static_cast<uint8_t>(255.0 * picture_copy.ir_frame->pixels->data()[i] / 65535.0);
+               max2 = std::max(max2, (*picture_copy.ir_frame->pixels)[i][j]);
+            }
+         }
+
+         for (size_t i = 0; i < frame_height; ++i) {
+            for (size_t j = 0; j < frame_width; ++j) {
+               auto pixel_value = static_cast<uint8_t>(255.0 * (*picture_copy.ir_frame->pixels)[i][j] / 65535.0);
                window->m_display_ir->bitmap[3 * (i * display_panel_width + j)] = pixel_value;
                window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
                window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
