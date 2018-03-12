@@ -206,20 +206,7 @@ class MyKinectDevice : public KinectDevice {
          size_t frame_width  = frame_size.first;
          size_t frame_height = frame_size.second;
 
-         float max1 = 0.0, max2 = 0.0;
-         for (size_t i = 0; i < frame_height; ++i) {
-            for (size_t j = 0; j < frame_width; ++j) {
-               max1 = std::max(max1, (*picture_copy.ir_frame->pixels)[i][j]);
-            }
-         }
-
          picture_copy.ir_frame->resize(frame_width, frame_height);
-
-         for (size_t i = 0; i < frame_height; ++i) {
-            for (size_t j = 0; j < frame_width; ++j) {
-               max2 = std::max(max2, (*picture_copy.ir_frame->pixels)[i][j]);
-            }
-         }
 
          for (size_t i = 0; i < frame_height; ++i) {
             for (size_t j = 0; j < frame_width; ++j) {
