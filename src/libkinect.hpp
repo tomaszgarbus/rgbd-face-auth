@@ -298,8 +298,7 @@ bool KinectDevice::Kinect2DepthAndIrListener::onNewFrame(libfreenect2::Frame::Ty
    } else if (type == libfreenect2::Frame::Type::Ir) {
       picture.ir_frame = new Picture::DepthOrIrFrame(pixels, false);
    } else {
-      std::cerr << "Kinect2DepthAndIrListener::onNewFrame() received an "
-                   "unexcepted video format.\n";
+      std::cerr << "Kinect2DepthAndIrListener::onNewFrame() received an unexcepted video format.\n";
       return false;
    }
    kinect_device->frame_handler(picture);
@@ -310,21 +309,22 @@ KinectDevice::Kinect2ColorListener::Kinect2ColorListener(KinectDevice *kinect_de
 
 bool KinectDevice::Kinect2ColorListener::onNewFrame(libfreenect2::Frame::Type type, libfreenect2::Frame *frame) {
    if (type != libfreenect2::Frame::Type::Color || frame->format != libfreenect2::Frame::BGRX) {
-      std::cerr << "Kinect2ColorListener::onNewFrame received an unexcepted "
-                   "video format.\n";
+      std::cerr << "Kinect2ColorListener::onNewFrame received an unexcepted video format.\n";
       return false;
    }
    auto pixels = new Matrix<Picture::ColorFrame::ColorPixel>(frame->height, frame->width);
    auto data   = static_cast<uint8_t *>(frame->data);
+
+   // Convert BGRX to BGR.
    for (size_t i = 0; i < frame->height; ++i) {
       for (size_t j = 0; j < frame->width; ++j) {
-         // Convert BGRX to BGR.
-         size_t pixel_index  = 4 * i * frame->width + j;
-         pixels[i][j]->blue  = data[pixel_index];
-         pixels[i][j]->green = data[pixel_index + 1];
-         pixels[i][j]->red   = data[pixel_index + 2];
+         size_t pixel_index    = 4 * (i * frame->width + j);
+         (*pixels)[i][j].blue  = data[pixel_index];
+         (*pixels)[i][j].green = data[pixel_index + 1];
+         (*pixels)[i][j].red   = data[pixel_index + 2];
       }
    }
+
    Picture picture;
    picture.color_frame = new Picture::ColorFrame(pixels);
    kinect_device->frame_handler(picture);
