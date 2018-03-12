@@ -208,9 +208,16 @@ class MyKinectDevice : public KinectDevice {
 
          picture_copy.ir_frame->resize(frame_width, frame_height);
 
+         float max_value;
+         if (which_kinect == 1) {
+            max_value = 1024.0;
+         } else {
+            max_value = 65535.0;
+         }
+
          for (size_t i = 0; i < frame_height; ++i) {
             for (size_t j = 0; j < frame_width; ++j) {
-               auto pixel_value = static_cast<uint8_t>(255.0 * (*picture_copy.ir_frame->pixels)[i][j] / 65535.0);
+               auto pixel_value = static_cast<uint8_t>(255.0 * (*picture_copy.ir_frame->pixels)[i][j] / max_value);
                window->m_display_ir->bitmap[3 * (i * display_panel_width + j)] = pixel_value;
                window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
                window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
@@ -245,7 +252,17 @@ bool AppMain::OnInit() {
    window->Show(true);
 
    auto kinect_device = new MyKinectDevice(0, window);
-   kinect_device->start_streams(true, true, true);
+   bool use_color, use_depth, use_ir;
+   if (kinect_device->which_kinect == 1) {
+      use_color = true;
+      use_depth = true;
+      use_ir = false;
+   } else {
+      use_color = true;
+      use_depth = true;
+      use_ir = true;
+   }
+   kinect_device->start_streams(use_color, use_depth, use_ir);
 
    return true;
 }
