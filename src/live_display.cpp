@@ -140,12 +140,16 @@ std::pair<size_t, size_t> fit_to_size(size_t width, size_t height, size_t max_wi
 // Kinect handling
 
 class MyKinectDevice : public KinectDevice {
-   MainWindow *window;
-
  public:
-   explicit MyKinectDevice(int device_number, MainWindow *window) : KinectDevice(device_number), window(window) {}
+   MainWindow *window = nullptr;
+
+   explicit MyKinectDevice(int device_number) : KinectDevice(device_number) {}
 
    void frame_handler(Picture const &picture) const override {
+      if (window == nullptr) {
+         return;
+      }
+
       Picture picture_copy(picture);
 
       if (picture_copy.color_frame) {
@@ -234,9 +238,8 @@ class MyKinectDevice : public KinectDevice {
 class AppMain : public wxApp {
  public:
    bool OnInit() override;
+   MyKinectDevice *kinect_device = nullptr;
 };
-
-IMPLEMENT_APP(AppMain)
 
 bool AppMain::OnInit() {
    auto *color_bitmap = new uint8_t[display_panel_width * display_panel_height * 3];
@@ -248,10 +251,16 @@ bool AppMain::OnInit() {
       ir_bitmap[i]    = 0;
    }
 
-   MainWindow *window = new MainWindow(wxT("Simple display"), color_bitmap, depth_bitmap, ir_bitmap);
+   MainWindow *window = new MainWindow(wxT("Live Kinect display"), color_bitmap, depth_bitmap, ir_bitmap);
    window->Show(true);
 
-   auto kinect_device = new MyKinectDevice(0, window);
+   kinect_device->window = window;
+
+   return true;
+}
+
+int main(int argc, char **argv) {
+   auto kinect_device = new MyKinectDevice(0);
    bool use_color, use_depth, use_ir;
    if (kinect_device->which_kinect == 1) {
       use_color = true;
@@ -264,5 +273,8 @@ bool AppMain::OnInit() {
    }
    kinect_device->start_streams(use_color, use_depth, use_ir);
 
-   return true;
+   auto app = new AppMain();
+   app->kinect_device = kinect_device;
+   wxApp::SetInstance(app);
+   return wxEntry(argc, argv);
 }
