@@ -90,8 +90,7 @@ KinectDevice::KinectDevice(int device_number = 0) {
       which_kinect = 1;
       std::cout << "Using a Kinect v1 device.\n";
    } else if (device_number < kinect1_devices + kinect2_devices) {
-      freenect2_pipeline = new libfreenect2::CpuPacketPipeline();
-      freenect2_device   = freenect2.openDevice(device_number - kinect1_devices, freenect2_pipeline);
+      freenect2_device   = freenect2.openDevice(device_number - kinect1_devices);
       if (!freenect2_device) {
          throw std::runtime_error("freenect2.openDevice() failed");
       }

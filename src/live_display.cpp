@@ -26,8 +26,8 @@ enum {
 
 wxDEFINE_EVENT(REFRESH_DISPLAY_EVENT, wxCommandEvent);
 
-const size_t display_panel_width  = 576;
-const size_t display_panel_height = 432;
+const size_t display_panel_width  = 512;
+const size_t display_panel_height = 424;
 
 // Declarations
 
@@ -89,8 +89,6 @@ void SettingsPanel::on_change(wxCommandEvent &event) {
    m_max_d_text->Clear();
    m_max_d_text->WriteText(std::to_string(m_max_d->GetValue()));
    // TODO: Make wxTextCtrls non-editable or update values on edit.
-
-   // picture_panel->update_picture(min_depth, max_depth);
 }
 
 DisplayPanel::DisplayPanel(wxPanel *parent, wxWindowID window_id, uint8_t *bitmap)
@@ -180,7 +178,9 @@ class MyKinectDevice : public KinectDevice {
          size_t frame_width  = frame_size.first;
          size_t frame_height = frame_size.second;
 
-         picture_copy.depth_frame->resize(frame_width, frame_height);
+         if (frame_width != picture_copy.depth_frame->pixels->width || frame_height != picture_copy.depth_frame->pixels->height) {
+            picture_copy.depth_frame->resize(frame_width, frame_height);
+         }
 
          auto int_pixels = new uint8_t[frame_width * frame_height];
          for (size_t i = 0; i < frame_width * frame_height; ++i) {
@@ -210,7 +210,9 @@ class MyKinectDevice : public KinectDevice {
          size_t frame_width  = frame_size.first;
          size_t frame_height = frame_size.second;
 
-         picture_copy.ir_frame->resize(frame_width, frame_height);
+         if (frame_width != picture_copy.ir_frame->pixels->width || frame_height != picture_copy.ir_frame->pixels->height) {
+            picture_copy.ir_frame->resize(frame_width, frame_height);
+         }
 
          float max_value;
          if (which_kinect == 1) {
