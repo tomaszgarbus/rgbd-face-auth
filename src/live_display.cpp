@@ -24,27 +24,12 @@ enum {
    ID_DISPLAY_IR    = 107
 };
 
-wxDEFINE_EVENT(REFRESH_DISPLAY_EVENT, wxCommandEvent);
-
 const size_t display_panel_width  = 512;
 const size_t display_panel_height = 424;
 
+wxDEFINE_EVENT(REFRESH_DISPLAY_EVENT, wxCommandEvent);
+
 // Declarations
-
-class DisplayPanel;
-
-class SettingsPanel : public wxPanel {
-   DisplayPanel *picture_panel;
-
-   wxPanel *m_parent;
-   wxSlider *m_min_d, *m_max_d;
-   wxTextCtrl *m_min_d_text, *m_max_d_text;
-
- public:
-   SettingsPanel(wxPanel *parent, DisplayPanel *picture_panel);
-
-   void on_change(wxCommandEvent &event);
-};
 
 class DisplayPanel : public wxPanel {
    wxStaticBitmap *m_picture = nullptr;
@@ -55,6 +40,20 @@ class DisplayPanel : public wxPanel {
    void refresh_display(wxCommandEvent &event);
 
    uint8_t *bitmap;
+};
+
+class SettingsPanel : public wxPanel {
+ public:
+   explicit SettingsPanel(wxPanel *parent);
+
+   void on_min_slider_change(wxCommandEvent &event);
+   void on_max_slider_change(wxCommandEvent &event);
+   void on_min_text_change(wxCommandEvent &event);
+   void on_max_text_change(wxCommandEvent &event);
+
+   wxPanel *m_parent;
+   wxSlider *m_min_d, *m_max_d;
+   wxTextCtrl *m_min_d_text, *m_max_d_text;
 };
 
 class MainWindow : public wxFrame {
@@ -70,25 +69,68 @@ class MainWindow : public wxFrame {
 
 // Definitions
 
-SettingsPanel::SettingsPanel(wxPanel *parent, DisplayPanel *picture_panel)
-      : wxPanel(parent, -1, wxPoint(-1, -1), wxSize(-1, -1), wxBORDER_SUNKEN), picture_panel(picture_panel),
-        m_parent(parent), m_min_d(new wxSlider(this, ID_MIN_D, 300, 0, 10000, wxPoint(60, 10), wxSize(980, 15))),
-        m_max_d(new wxSlider(this, ID_MAX_D, 1000, 0, 10000, wxPoint(60, 40), wxSize(980, 15))),
-        m_min_d_text(new wxTextCtrl(this, ID_MIN_D_TEXT, "300", wxPoint(10, 10), wxSize(40, 15))),
-        m_max_d_text(new wxTextCtrl(this, ID_MAX_D_TEXT, "1000", wxPoint(10, 40), wxSize(40, 15))) {
-   Connect(ID_MIN_D, wxEVT_SCROLL_CHANGED, wxCommandEventHandler(SettingsPanel::on_change));
-   Connect(ID_MAX_D, wxEVT_SCROLL_CHANGED, wxCommandEventHandler(SettingsPanel::on_change));
+SettingsPanel::SettingsPanel(wxPanel *parent)
+      : wxPanel(parent, -1, wxPoint(-1, -1), wxSize(-1, -1), wxBORDER_SUNKEN), m_parent(parent),
+        m_min_d(new wxSlider(this, ID_MIN_D, 500, 0, 10000, wxPoint(80, 10), wxSize(980, 15))),
+        m_max_d(new wxSlider(this, ID_MAX_D, 4500, 0, 10000, wxPoint(80, 40), wxSize(980, 15))),
+        m_min_d_text(new wxTextCtrl(this, ID_MIN_D_TEXT, "500", wxPoint(10, 10), wxSize(60, 15))),
+        m_max_d_text(new wxTextCtrl(this, ID_MAX_D_TEXT, "4500", wxPoint(10, 40), wxSize(60, 15))) {
+   m_min_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_min_slider_change, this);
+   m_min_d->Bind(wxEVT_SCROLL_THUMBTRACK, &SettingsPanel::on_min_slider_change, this);
+   m_max_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_max_slider_change, this);
+   m_max_d->Bind(wxEVT_SCROLL_THUMBTRACK, &SettingsPanel::on_max_slider_change, this);
+   m_min_d_text->Bind(wxEVT_TEXT, &SettingsPanel::on_min_text_change, this);
+   m_max_d_text->Bind(wxEVT_TEXT, &SettingsPanel::on_max_text_change, this);
 }
 
-void SettingsPanel::on_change(wxCommandEvent &event) {
-   int64_t const min_depth = m_min_d->GetValue();
-   int64_t const max_depth = m_max_d->GetValue();
+void SettingsPanel::on_min_slider_change(wxCommandEvent &event) {
+   if (m_max_d->GetValue() <= m_min_d->GetValue()) {
+      m_max_d->SetValue(m_min_d->GetValue() + 1);
+      m_max_d_text->Clear();
+      m_max_d_text->WriteText(std::to_string(m_min_d->GetValue() + 1));
+   }
 
    m_min_d_text->Clear();
    m_min_d_text->WriteText(std::to_string(m_min_d->GetValue()));
+}
+
+void SettingsPanel::on_max_slider_change(wxCommandEvent &event) {
+   if (m_max_d->GetValue() <= m_min_d->GetValue()) {
+      m_min_d->SetValue(m_max_d->GetValue() - 1);
+      m_min_d_text->Clear();
+      m_min_d_text->WriteText(std::to_string(m_max_d->GetValue() - 1));
+   }
+
    m_max_d_text->Clear();
    m_max_d_text->WriteText(std::to_string(m_max_d->GetValue()));
-   // TODO: Make wxTextCtrls non-editable or update values on edit.
+}
+
+void SettingsPanel::on_min_text_change(wxCommandEvent &event) {
+   long min_d;
+   if (!m_min_d_text->GetValue().ToLong(&min_d)) {
+      return;
+   }
+   m_min_d->SetValue(static_cast<int>(min_d));
+
+   if (m_max_d->GetValue() <= min_d) {
+      m_max_d->SetValue(static_cast<int>(min_d) + 1);
+      m_max_d_text->Clear();
+      m_max_d_text->WriteText(std::to_string(min_d + 1));
+   }
+}
+
+void SettingsPanel::on_max_text_change(wxCommandEvent &event) {
+   long max_d;
+   if (!m_max_d_text->GetValue().ToLong(&max_d)) {
+      return;
+   }
+   m_max_d->SetValue(static_cast<int>(max_d));
+
+   if (max_d <= m_min_d->GetValue()) {
+      m_min_d->SetValue(static_cast<int>(max_d) - 1);
+      m_min_d_text->Clear();
+      m_min_d_text->WriteText(std::to_string(max_d - 1));
+   }
 }
 
 DisplayPanel::DisplayPanel(wxPanel *parent, wxWindowID window_id, uint8_t *bitmap)
@@ -105,12 +147,11 @@ void DisplayPanel::refresh_display(wxCommandEvent &event) {
 }
 
 MainWindow::MainWindow(const wxString &title, uint8_t *color_bitmap, uint8_t *depth_bitmap, uint8_t *ir_bitmap)
-      : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(1900, 900)),
+      : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(1800, 600)),
         picture(new Picture(nullptr, nullptr, nullptr)), m_parent(new wxPanel(this, wxID_ANY)),
         m_display_color(new DisplayPanel(m_parent, ID_DISPLAY_COLOR, color_bitmap)),
         m_display_depth(new DisplayPanel(m_parent, ID_DISPLAY_DEPTH, depth_bitmap)),
-        m_display_ir(new DisplayPanel(m_parent, ID_DISPLAY_IR, ir_bitmap)),
-        m_settings(new SettingsPanel(m_parent, m_display_color)) {
+        m_display_ir(new DisplayPanel(m_parent, ID_DISPLAY_IR, ir_bitmap)), m_settings(new SettingsPanel(m_parent)) {
 
    auto vbox          = new wxBoxSizer(wxVERTICAL);
    auto displays_hbox = new wxBoxSizer(wxHORIZONTAL);
@@ -178,19 +219,27 @@ class MyKinectDevice : public KinectDevice {
          size_t frame_width  = frame_size.first;
          size_t frame_height = frame_size.second;
 
-         if (frame_width != picture_copy.depth_frame->pixels->width || frame_height != picture_copy.depth_frame->pixels->height) {
+         if (frame_width != picture_copy.depth_frame->pixels->width
+               || frame_height != picture_copy.depth_frame->pixels->height) {
             picture_copy.depth_frame->resize(frame_width, frame_height);
+         }
+
+         float min_depth = window->m_settings->m_min_d->GetValue(), max_depth = window->m_settings->m_max_d->GetValue();
+         if (max_depth - min_depth < 1.0) {
+            max_depth = min_depth + 1.0f;
          }
 
          auto int_pixels = new uint8_t[frame_width * frame_height];
          for (size_t i = 0; i < frame_width * frame_height; ++i) {
-            int_pixels[i] = uint8_t(std::min(255.0 * picture_copy.depth_frame->pixels->data()[i] / 4500.0, 255.0));
+            int_pixels[i] = uint8_t(std::max(0.0,
+                  std::min(255.0 * (picture_copy.depth_frame->pixels->data()[i] - min_depth) / (max_depth - min_depth),
+                                                   255.0)));
          }
 
          cv::Mat current_image(
                cv::Size(static_cast<int>(frame_width), static_cast<int>(frame_height)), CV_8UC1, int_pixels);
          cv::Mat destination_image(cv::Size(static_cast<int>(frame_width), static_cast<int>(frame_height)), CV_8UC3);
-         cv::applyColorMap(current_image, destination_image, cv::COLORMAP_HSV);
+         cv::applyColorMap(current_image, destination_image, cv::COLORMAP_RAINBOW);
 
          for (size_t i = 0; i < frame_height; ++i) {
             for (size_t j = 0; j < frame_width; ++j) {
@@ -210,7 +259,8 @@ class MyKinectDevice : public KinectDevice {
          size_t frame_width  = frame_size.first;
          size_t frame_height = frame_size.second;
 
-         if (frame_width != picture_copy.ir_frame->pixels->width || frame_height != picture_copy.ir_frame->pixels->height) {
+         if (frame_width != picture_copy.ir_frame->pixels->width
+               || frame_height != picture_copy.ir_frame->pixels->height) {
             picture_copy.ir_frame->resize(frame_width, frame_height);
          }
 
@@ -224,7 +274,7 @@ class MyKinectDevice : public KinectDevice {
          for (size_t i = 0; i < frame_height; ++i) {
             for (size_t j = 0; j < frame_width; ++j) {
                auto pixel_value = static_cast<uint8_t>(255.0 * (*picture_copy.ir_frame->pixels)[i][j] / max_value);
-               window->m_display_ir->bitmap[3 * (i * display_panel_width + j)] = pixel_value;
+               window->m_display_ir->bitmap[3 * (i * display_panel_width + j)]     = pixel_value;
                window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
                window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
             }
@@ -265,17 +315,17 @@ int main(int argc, char **argv) {
    auto kinect_device = new MyKinectDevice(0);
    bool use_color, use_depth, use_ir;
    if (kinect_device->which_kinect == 1) {
-      use_color = true;
+      use_color = false;
       use_depth = true;
-      use_ir = false;
+      use_ir    = true;
    } else {
       use_color = true;
       use_depth = true;
-      use_ir = true;
+      use_ir    = true;
    }
    kinect_device->start_streams(use_color, use_depth, use_ir);
 
-   auto app = new AppMain();
+   auto app           = new AppMain();
    app->kinect_device = kinect_device;
    wxApp::SetInstance(app);
    return wxEntry(argc, argv);
