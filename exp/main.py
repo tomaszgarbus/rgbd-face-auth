@@ -11,13 +11,13 @@ from keras.layers import Dense, Activation, Conv2D, AveragePooling2D, Flatten, M
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 import sys
+import tools
 
 from tools import image_size, TYPES
 from db_helper import DBHelper, SUBJECTS_COUNTS
 
 sys.setrecursionlimit(1000000)
 
-# TODO(tomek): fix folder subject010 and change 18->20
 TOTAL_SUBJECTS_COUNT = SUBJECTS_COUNTS['superface_dataset'] + SUBJECTS_COUNTS['www.vap.aau.dk'] + SUBJECTS_COUNTS['ias_lab_rgbd']
 
 print("Loading data..")
@@ -27,7 +27,7 @@ X_test = np.load('X_test.npy')
 Y_test = np.load('Y_test.npy')
 print("Loaded data")
 # If you want, display the first input image. It is already normalized to [0;1]
-# tools.show_image(X_train[0].reshape((TYPES * image_size, image_size)));
+tools.show_image(X_train[0].reshape((TYPES * image_size, image_size)));
 
 model = Sequential()
 model.add(Conv2D(20,
@@ -43,12 +43,12 @@ model.add(Conv2D(20,
                  kernel_size=(6, 6),
                  activation='relu'))
 model.add(Flatten())
-model.add(Dropout(0.5))
+model.add(Dropout(0.7))
 model.add(Dense(128, activation='relu'))
-model.add(Dropout(0.5))
+model.add(Dropout(0.7))
 model.add(Dense(TOTAL_SUBJECTS_COUNT, activation='softmax'))
 
-model.compile(optimizer='sgd',
+model.compile(optimizer='adam',
               loss='categorical_crossentropy',
               metrics=['categorical_accuracy'])
 

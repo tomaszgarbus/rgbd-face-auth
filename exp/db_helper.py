@@ -19,7 +19,7 @@ DB_NAMES = ['www.vap.aau.dk', 'ias_lab_rgbd', 'superface_dataset']
 SUBJECTS_COUNTS = {
     'www.vap.aau.dk': 31,
     'ias_lab_rgbd': 26,
-    'superface_dataset': 18 # TODO(tomek): fix folder subject010 and change 18->20
+    'superface_dataset': 20
 }
 
 def photo_to_face(color_photo, depth_photo):
@@ -69,9 +69,6 @@ def ias_load_train_subject(subject_no, img_no):
     return photo_to_face(color_photo, depth_photo)
 
 def superface_load_train_subject(subject_no, img_no):
-    # TODO(tomek): fix folder subject010 and remove this line
-    if subject_no == 9:
-        subject_no = 19
     path_color = 'superface_dataset/files/subject%03d/rgbFrame/frameRGB%d.png' % (subject_no+1, img_no+1)
     path_depth = 'superface_dataset/files/subject%03d/depthFrame/frameD%d.depth' % (subject_no+1, img_no+1)
     # Check if file exists. For some reason, this database lacks some files
@@ -100,9 +97,6 @@ class DBHelper:
         elif self.db_name == 'ias_lab_rgbd':
             return 13
         elif self.db_name == 'superface_dataset':
-            # TODO(tomek): fix folder subject010 and remove this line
-            if subject_no == 9:
-                subject_no = 19
             color_path = 'superface_dataset/files/subject%03d/rgbFrame' % (subject_no+1)
             depth_path = 'superface_dataset/files/subject%03d/depthFrame' % (subject_no+1)
             color_files = next(os.walk(color_path))[2]
@@ -127,6 +121,7 @@ class DBHelper:
         if grey_face is None or depth_face is None:
             return None
         tmp = np.zeros((TYPES * image_size, image_size))
+        # TODO(tomek): experiment with entropy map disk size
         entr_grey_face = entropy(grey_face, disk(5))
         entr_grey_face = entr_grey_face/np.max(entr_grey_face)
         entr_depth_face = entropy(depth_face, disk(5))
