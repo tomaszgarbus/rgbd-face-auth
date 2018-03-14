@@ -180,110 +180,112 @@ std::pair<size_t, size_t> fit_to_size(size_t width, size_t height, size_t max_wi
 
 class MyKinectDevice : public KinectDevice {
  public:
-   MainWindow *window = nullptr;
-
    explicit MyKinectDevice(int device_number) : KinectDevice(device_number) {}
 
-   void frame_handler(Picture const &picture) const override {
-      if (window == nullptr) {
-         return;
-      }
+   void frame_handler(Picture const &picture) const override;
 
-      Picture picture_copy(picture);
-
-      if (picture_copy.color_frame) {
-         auto frame_size = fit_to_size(picture_copy.color_frame->pixels->width,
-               picture_copy.color_frame->pixels->height, display_panel_width, display_panel_height);
-         size_t frame_width  = frame_size.first;
-         size_t frame_height = frame_size.second;
-
-         picture_copy.color_frame->resize(frame_width, frame_height);
-
-         for (size_t i = 0; i < frame_height; ++i) {
-            for (size_t j = 0; j < frame_width; ++j) {
-               window->m_display_color->bitmap[3 * (i * display_panel_width + j)] =
-                     (*picture_copy.color_frame->pixels)[i][j].red;
-               window->m_display_color->bitmap[3 * (i * display_panel_width + j) + 1] =
-                     (*picture_copy.color_frame->pixels)[i][j].green;
-               window->m_display_color->bitmap[3 * (i * display_panel_width + j) + 2] =
-                     (*picture_copy.color_frame->pixels)[i][j].blue;
-            }
-         }
-
-         wxPostEvent(window->m_display_color, wxCommandEvent(REFRESH_DISPLAY_EVENT));
-      }
-
-      if (picture_copy.depth_frame) {
-         auto frame_size = fit_to_size(picture_copy.depth_frame->pixels->width,
-               picture_copy.depth_frame->pixels->height, display_panel_width, display_panel_height);
-         size_t frame_width  = frame_size.first;
-         size_t frame_height = frame_size.second;
-
-         if (frame_width != picture_copy.depth_frame->pixels->width
-               || frame_height != picture_copy.depth_frame->pixels->height) {
-            picture_copy.depth_frame->resize(frame_width, frame_height);
-         }
-
-         float min_depth = window->m_settings->m_min_d->GetValue(), max_depth = window->m_settings->m_max_d->GetValue();
-         if (max_depth - min_depth < 1.0) {
-            max_depth = min_depth + 1.0f;
-         }
-
-         auto int_pixels = new uint8_t[frame_width * frame_height];
-         for (size_t i = 0; i < frame_width * frame_height; ++i) {
-            int_pixels[i] = uint8_t(std::max(0.0,
-                  std::min(255.0 * (picture_copy.depth_frame->pixels->data()[i] - min_depth) / (max_depth - min_depth),
-                                                   255.0)));
-         }
-
-         cv::Mat current_image(
-               cv::Size(static_cast<int>(frame_width), static_cast<int>(frame_height)), CV_8UC1, int_pixels);
-         cv::Mat destination_image(cv::Size(static_cast<int>(frame_width), static_cast<int>(frame_height)), CV_8UC3);
-         cv::applyColorMap(current_image, destination_image, cv::COLORMAP_RAINBOW);
-
-         for (size_t i = 0; i < frame_height; ++i) {
-            for (size_t j = 0; j < frame_width; ++j) {
-               auto pixel = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
-               window->m_display_depth->bitmap[3 * (i * display_panel_width + j)]     = pixel[2];
-               window->m_display_depth->bitmap[3 * (i * display_panel_width + j) + 1] = pixel[1];
-               window->m_display_depth->bitmap[3 * (i * display_panel_width + j) + 2] = pixel[0];
-            }
-         }
-
-         wxPostEvent(window->m_display_depth, wxCommandEvent(REFRESH_DISPLAY_EVENT));
-      }
-
-      if (picture_copy.ir_frame) {
-         auto frame_size = fit_to_size(picture_copy.ir_frame->pixels->width, picture_copy.ir_frame->pixels->height,
-               display_panel_width, display_panel_height);
-         size_t frame_width  = frame_size.first;
-         size_t frame_height = frame_size.second;
-
-         if (frame_width != picture_copy.ir_frame->pixels->width
-               || frame_height != picture_copy.ir_frame->pixels->height) {
-            picture_copy.ir_frame->resize(frame_width, frame_height);
-         }
-
-         float max_value;
-         if (which_kinect == 1) {
-            max_value = 1024.0;
-         } else {
-            max_value = 65535.0;
-         }
-
-         for (size_t i = 0; i < frame_height; ++i) {
-            for (size_t j = 0; j < frame_width; ++j) {
-               auto pixel_value = static_cast<uint8_t>(255.0 * (*picture_copy.ir_frame->pixels)[i][j] / max_value);
-               window->m_display_ir->bitmap[3 * (i * display_panel_width + j)]     = pixel_value;
-               window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
-               window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
-            }
-         }
-
-         wxPostEvent(window->m_display_ir, wxCommandEvent(REFRESH_DISPLAY_EVENT));
-      }
-   }
+   MainWindow *window = nullptr;
 };
+
+void MyKinectDevice::frame_handler(Picture const &picture) const {
+   if (window == nullptr) {
+      return;
+   }
+
+   Picture picture_copy(picture);
+
+   if (picture_copy.color_frame) {
+      auto frame_size = fit_to_size(picture_copy.color_frame->pixels->width,
+            picture_copy.color_frame->pixels->height, display_panel_width, display_panel_height);
+      size_t frame_width  = frame_size.first;
+      size_t frame_height = frame_size.second;
+
+      picture_copy.color_frame->resize(frame_width, frame_height);
+
+      for (size_t i = 0; i < frame_height; ++i) {
+         for (size_t j = 0; j < frame_width; ++j) {
+            window->m_display_color->bitmap[3 * (i * display_panel_width + j)] =
+                  (*picture_copy.color_frame->pixels)[i][j].red;
+            window->m_display_color->bitmap[3 * (i * display_panel_width + j) + 1] =
+                  (*picture_copy.color_frame->pixels)[i][j].green;
+            window->m_display_color->bitmap[3 * (i * display_panel_width + j) + 2] =
+                  (*picture_copy.color_frame->pixels)[i][j].blue;
+         }
+      }
+
+      wxPostEvent(window->m_display_color, wxCommandEvent(REFRESH_DISPLAY_EVENT));
+   }
+
+   if (picture_copy.depth_frame) {
+      auto frame_size = fit_to_size(picture_copy.depth_frame->pixels->width,
+            picture_copy.depth_frame->pixels->height, display_panel_width, display_panel_height);
+      size_t frame_width  = frame_size.first;
+      size_t frame_height = frame_size.second;
+
+      if (frame_width != picture_copy.depth_frame->pixels->width
+          || frame_height != picture_copy.depth_frame->pixels->height) {
+         picture_copy.depth_frame->resize(frame_width, frame_height);
+      }
+
+      float min_depth = window->m_settings->m_min_d->GetValue(), max_depth = window->m_settings->m_max_d->GetValue();
+      if (max_depth - min_depth < 1.0) {
+         max_depth = min_depth + 1.0f;
+      }
+
+      auto int_pixels = new uint8_t[frame_width * frame_height];
+      for (size_t i = 0; i < frame_width * frame_height; ++i) {
+         int_pixels[i] = uint8_t(std::max(0.0,
+               std::min(255.0 * (picture_copy.depth_frame->pixels->data()[i] - min_depth) / (max_depth - min_depth),
+                     255.0)));
+      }
+
+      cv::Mat current_image(
+            cv::Size(static_cast<int>(frame_width), static_cast<int>(frame_height)), CV_8UC1, int_pixels);
+      cv::Mat destination_image(cv::Size(static_cast<int>(frame_width), static_cast<int>(frame_height)), CV_8UC3);
+      cv::applyColorMap(current_image, destination_image, cv::COLORMAP_RAINBOW);
+
+      for (size_t i = 0; i < frame_height; ++i) {
+         for (size_t j = 0; j < frame_width; ++j) {
+            auto pixel = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
+            window->m_display_depth->bitmap[3 * (i * display_panel_width + j)]     = pixel[2];
+            window->m_display_depth->bitmap[3 * (i * display_panel_width + j) + 1] = pixel[1];
+            window->m_display_depth->bitmap[3 * (i * display_panel_width + j) + 2] = pixel[0];
+         }
+      }
+
+      wxPostEvent(window->m_display_depth, wxCommandEvent(REFRESH_DISPLAY_EVENT));
+   }
+
+   if (picture_copy.ir_frame) {
+      auto frame_size = fit_to_size(picture_copy.ir_frame->pixels->width, picture_copy.ir_frame->pixels->height,
+            display_panel_width, display_panel_height);
+      size_t frame_width  = frame_size.first;
+      size_t frame_height = frame_size.second;
+
+      if (frame_width != picture_copy.ir_frame->pixels->width
+          || frame_height != picture_copy.ir_frame->pixels->height) {
+         picture_copy.ir_frame->resize(frame_width, frame_height);
+      }
+
+      float max_value;
+      if (which_kinect == 1) {
+         max_value = 1024.0;
+      } else {
+         max_value = 65535.0;
+      }
+
+      for (size_t i = 0; i < frame_height; ++i) {
+         for (size_t j = 0; j < frame_width; ++j) {
+            auto pixel_value = static_cast<uint8_t>(255.0 * (*picture_copy.ir_frame->pixels)[i][j] / max_value);
+            window->m_display_ir->bitmap[3 * (i * display_panel_width + j)]     = pixel_value;
+            window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
+            window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
+         }
+      }
+
+      wxPostEvent(window->m_display_ir, wxCommandEvent(REFRESH_DISPLAY_EVENT));
+   }
+}
 
 // Main
 
