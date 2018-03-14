@@ -15,13 +15,14 @@
 // Constants
 
 enum {
-   ID_MIN_D         = 101,
-   ID_MAX_D         = 102,
-   ID_MIN_D_TEXT    = 103,
-   ID_MAX_D_TEXT    = 104,
-   ID_DISPLAY_COLOR = 105,
-   ID_DISPLAY_DEPTH = 106,
-   ID_DISPLAY_IR    = 107
+   ID_MIN_D          = 101,
+   ID_MAX_D          = 102,
+   ID_MIN_D_TEXT     = 103,
+   ID_MAX_D_TEXT     = 104,
+   ID_DISPLAY_COLOR  = 105,
+   ID_DISPLAY_DEPTH  = 106,
+   ID_DISPLAY_IR     = 107,
+   ID_DISPLAY_CUSTOM = 108
 };
 
 const size_t display_panel_width  = 512;
@@ -60,9 +61,10 @@ class MainWindow : public wxFrame {
    wxPanel *m_parent;
 
  public:
-   explicit MainWindow(const wxString &title, uint8_t *color_bitmap, uint8_t *depth_bitmap, uint8_t *ir_bitmap);
+   explicit MainWindow(const wxString &title, uint8_t *color_bitmap, uint8_t *depth_bitmap, uint8_t *ir_bitmap,
+         uint8_t *custom_bitmap);
 
-   DisplayPanel *m_display_color, *m_display_depth, *m_display_ir;
+   DisplayPanel *m_display_color, *m_display_depth, *m_display_ir, *m_display_custom;
    SettingsPanel *m_settings;
    Picture *picture;
 };
@@ -146,19 +148,24 @@ void DisplayPanel::refresh_display(wxCommandEvent &event) {
          wxBitmap(wxImage(display_panel_width, display_panel_height, bitmap, true)), wxDefaultPosition, wxDefaultSize);
 }
 
-MainWindow::MainWindow(const wxString &title, uint8_t *color_bitmap, uint8_t *depth_bitmap, uint8_t *ir_bitmap)
-      : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(1800, 600)),
+MainWindow::MainWindow(
+      const wxString &title, uint8_t *color_bitmap, uint8_t *depth_bitmap, uint8_t *ir_bitmap, uint8_t *custom_bitmap)
+      : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(1500, 1000)),
         picture(new Picture(nullptr, nullptr, nullptr)), m_parent(new wxPanel(this, wxID_ANY)),
         m_display_color(new DisplayPanel(m_parent, ID_DISPLAY_COLOR, color_bitmap)),
         m_display_depth(new DisplayPanel(m_parent, ID_DISPLAY_DEPTH, depth_bitmap)),
-        m_display_ir(new DisplayPanel(m_parent, ID_DISPLAY_IR, ir_bitmap)), m_settings(new SettingsPanel(m_parent)) {
+        m_display_ir(new DisplayPanel(m_parent, ID_DISPLAY_IR, ir_bitmap)),
+        m_display_custom(new DisplayPanel(m_parent, ID_DISPLAY_CUSTOM, custom_bitmap)),
+        m_settings(new SettingsPanel(m_parent)) {
+   auto hbox1 = new wxBoxSizer(wxHORIZONTAL), hbox2 = new wxBoxSizer(wxHORIZONTAL);
+   hbox1->Add(m_display_color);
+   hbox1->Add(m_display_depth);
+   hbox2->Add(m_display_ir);
+   hbox2->Add(m_display_custom);
 
-   auto vbox          = new wxBoxSizer(wxVERTICAL);
-   auto displays_hbox = new wxBoxSizer(wxHORIZONTAL);
-   displays_hbox->Add(m_display_color);
-   displays_hbox->Add(m_display_depth);
-   displays_hbox->Add(m_display_ir);
-   vbox->Add(displays_hbox, 1, wxEXPAND | wxALL, 5);
+   auto vbox = new wxBoxSizer(wxVERTICAL);
+   vbox->Add(hbox1, 1, wxEXPAND | wxALL, 5);
+   vbox->Add(hbox2, 1, wxEXPAND | wxALL, 5);
    vbox->Add(m_settings, 1, wxEXPAND | wxALL, 5);
 
    m_parent->SetSizer(vbox);
@@ -192,7 +199,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       return;
    }
 
-   if (picture.color_frame) {
+   if (picture.color_frame) {  // sorry
       delete window->picture->color_frame;
       window->picture->color_frame = new Picture::ColorFrame(*picture.color_frame);
 
@@ -295,6 +302,41 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
 
       wxPostEvent(window->m_display_ir, wxCommandEvent(REFRESH_DISPLAY_EVENT));
    }
+
+   if ((picture.depth_frame || picture.ir_frame) && window->picture->depth_frame && window->picture->ir_frame) {
+      assert(window->picture->depth_frame->pixels->width == window->picture->ir_frame->pixels->width);
+      assert(window->picture->depth_frame->pixels->height == window->picture->ir_frame->pixels->height);
+
+      auto frame_width  = window->picture->depth_frame->pixels->width,
+           frame_height = window->picture->depth_frame->pixels->height;
+
+      auto values      = new double[frame_width * frame_height];
+      double max_value = 0.0;
+
+      for (size_t i = 0; i < frame_height; ++i) {
+         for (size_t j = 0; j < frame_width; ++j) {
+            double distance             = (*window->picture->depth_frame->pixels)[i][j];
+            values[i * frame_width + j] = distance * distance * (*window->picture->ir_frame->pixels)[i][j];
+            max_value                   = std::max(max_value, values[i * frame_width + j]);
+         }
+      }
+
+//      std::cerr << max_value << '\n';
+      max_value = 4e10;
+
+      for (size_t i = 0; i < frame_height; ++i) {
+         for (size_t j = 0; j < frame_width; ++j) {
+            auto pixel_value = static_cast<uint8_t>(std::min(255.0, 255.0 * values[i * frame_width + j] / max_value));
+            window->m_display_custom->bitmap[3 * (i * display_panel_width + j)]     = pixel_value;
+            window->m_display_custom->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
+            window->m_display_custom->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
+         }
+      }
+
+      delete values;
+
+      wxPostEvent(window->m_display_custom, wxCommandEvent(REFRESH_DISPLAY_EVENT));
+   }
 }
 
 // Main
@@ -306,16 +348,19 @@ class AppMain : public wxApp {
 };
 
 bool AppMain::OnInit() {
-   auto *color_bitmap = new uint8_t[display_panel_width * display_panel_height * 3];
-   auto *depth_bitmap = new uint8_t[display_panel_width * display_panel_height * 3];
-   auto *ir_bitmap    = new uint8_t[display_panel_width * display_panel_height * 3];
+   auto *color_bitmap  = new uint8_t[display_panel_width * display_panel_height * 3];
+   auto *depth_bitmap  = new uint8_t[display_panel_width * display_panel_height * 3];
+   auto *ir_bitmap     = new uint8_t[display_panel_width * display_panel_height * 3];
+   auto *custom_bitmap = new uint8_t[display_panel_width * display_panel_height * 3];
    for (size_t i = 0; i < display_panel_width * display_panel_height * 3; ++i) {
-      color_bitmap[i] = 0;
-      depth_bitmap[i] = 0;
-      ir_bitmap[i]    = 0;
+      color_bitmap[i]  = 0;
+      depth_bitmap[i]  = 0;
+      ir_bitmap[i]     = 0;
+      custom_bitmap[i] = 0;
    }
 
-   MainWindow *window = new MainWindow(wxT("Live Kinect display"), color_bitmap, depth_bitmap, ir_bitmap);
+   MainWindow *window =
+         new MainWindow(wxT("Live Kinect display"), color_bitmap, depth_bitmap, ir_bitmap, custom_bitmap);
    window->Show(true);
 
    kinect_device->window = window;
