@@ -39,6 +39,7 @@ class Picture::ColorFrame {
 
    explicit ColorFrame(Matrix<ColorPixel> *pixels);
    explicit ColorFrame(std::string const &filename);
+   ColorFrame(const ColorFrame &src);
    ~ColorFrame();
 
    void save_to_file(std::string const &filename) const;
@@ -49,8 +50,9 @@ class Picture::ColorFrame {
 
 class Picture::DepthOrIrFrame {
  public:
-   explicit DepthOrIrFrame(Matrix<float> *pixels, bool is_depth);
+   DepthOrIrFrame(Matrix<float> *pixels, bool is_depth);
    explicit DepthOrIrFrame(std::string const &filename);
+   DepthOrIrFrame(const DepthOrIrFrame &src);
    ~DepthOrIrFrame();
 
    void save_to_file(std::string const &filename) const;
@@ -75,6 +77,9 @@ Picture::ColorFrame::ColorFrame(std::string const &filename) {
       }
    }
 }
+
+Picture::ColorFrame::ColorFrame(const Picture::ColorFrame &src)
+      : pixels(new Matrix<Picture::ColorFrame::ColorPixel>(*src.pixels)) {}
 
 Picture::ColorFrame::~ColorFrame() {
    delete pixels;
@@ -126,6 +131,9 @@ Picture::DepthOrIrFrame::DepthOrIrFrame(std::string const &filename) {
       throw std::runtime_error("Error reading file " + filename);
    }
 }
+
+Picture::DepthOrIrFrame::DepthOrIrFrame(const Picture::DepthOrIrFrame &src)
+      : pixels(new Matrix<float>(*src.pixels)), is_depth(src.is_depth) {}
 
 Picture::DepthOrIrFrame::~DepthOrIrFrame() {
    delete pixels;

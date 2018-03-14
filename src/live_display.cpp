@@ -57,7 +57,6 @@ class SettingsPanel : public wxPanel {
 };
 
 class MainWindow : public wxFrame {
-   Picture *picture;
    wxPanel *m_parent;
 
  public:
@@ -65,6 +64,7 @@ class MainWindow : public wxFrame {
 
    DisplayPanel *m_display_color, *m_display_depth, *m_display_ir;
    SettingsPanel *m_settings;
+   Picture *picture;
 };
 
 // Definitions
@@ -192,39 +192,46 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       return;
    }
 
-   Picture picture_copy(picture);
+   if (picture.color_frame) {
+      delete window->picture->color_frame;
+      window->picture->color_frame = new Picture::ColorFrame(*picture.color_frame);
 
-   if (picture_copy.color_frame) {
-      auto frame_size = fit_to_size(picture_copy.color_frame->pixels->width,
-            picture_copy.color_frame->pixels->height, display_panel_width, display_panel_height);
+      auto frame_size = fit_to_size(window->picture->color_frame->pixels->width,
+            window->picture->color_frame->pixels->height, display_panel_width, display_panel_height);
       size_t frame_width  = frame_size.first;
       size_t frame_height = frame_size.second;
 
-      picture_copy.color_frame->resize(frame_width, frame_height);
+      if (frame_width != window->picture->color_frame->pixels->width
+            || frame_height != window->picture->color_frame->pixels->height) {
+         window->picture->color_frame->resize(frame_width, frame_height);
+      }
 
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
             window->m_display_color->bitmap[3 * (i * display_panel_width + j)] =
-                  (*picture_copy.color_frame->pixels)[i][j].red;
+                  (*window->picture->color_frame->pixels)[i][j].red;
             window->m_display_color->bitmap[3 * (i * display_panel_width + j) + 1] =
-                  (*picture_copy.color_frame->pixels)[i][j].green;
+                  (*window->picture->color_frame->pixels)[i][j].green;
             window->m_display_color->bitmap[3 * (i * display_panel_width + j) + 2] =
-                  (*picture_copy.color_frame->pixels)[i][j].blue;
+                  (*window->picture->color_frame->pixels)[i][j].blue;
          }
       }
 
       wxPostEvent(window->m_display_color, wxCommandEvent(REFRESH_DISPLAY_EVENT));
    }
 
-   if (picture_copy.depth_frame) {
-      auto frame_size = fit_to_size(picture_copy.depth_frame->pixels->width,
-            picture_copy.depth_frame->pixels->height, display_panel_width, display_panel_height);
+   if (picture.depth_frame) {
+      delete window->picture->depth_frame;
+      window->picture->depth_frame = new Picture::DepthOrIrFrame(*picture.depth_frame);
+
+      auto frame_size = fit_to_size(window->picture->depth_frame->pixels->width,
+            window->picture->depth_frame->pixels->height, display_panel_width, display_panel_height);
       size_t frame_width  = frame_size.first;
       size_t frame_height = frame_size.second;
 
-      if (frame_width != picture_copy.depth_frame->pixels->width
-          || frame_height != picture_copy.depth_frame->pixels->height) {
-         picture_copy.depth_frame->resize(frame_width, frame_height);
+      if (frame_width != window->picture->depth_frame->pixels->width
+            || frame_height != window->picture->depth_frame->pixels->height) {
+         window->picture->depth_frame->resize(frame_width, frame_height);
       }
 
       float min_depth = window->m_settings->m_min_d->GetValue(), max_depth = window->m_settings->m_max_d->GetValue();
@@ -235,8 +242,8 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       auto int_pixels = new uint8_t[frame_width * frame_height];
       for (size_t i = 0; i < frame_width * frame_height; ++i) {
          int_pixels[i] = uint8_t(std::max(0.0,
-               std::min(255.0 * (picture_copy.depth_frame->pixels->data()[i] - min_depth) / (max_depth - min_depth),
-                     255.0)));
+               std::min(255.0 * (window->picture->depth_frame->pixels->data()[i] - min_depth) / (max_depth - min_depth),
+                                                255.0)));
       }
 
       cv::Mat current_image(
@@ -256,15 +263,18 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       wxPostEvent(window->m_display_depth, wxCommandEvent(REFRESH_DISPLAY_EVENT));
    }
 
-   if (picture_copy.ir_frame) {
-      auto frame_size = fit_to_size(picture_copy.ir_frame->pixels->width, picture_copy.ir_frame->pixels->height,
+   if (picture.ir_frame) {
+      delete window->picture->ir_frame;
+      window->picture->ir_frame = new Picture::DepthOrIrFrame(*picture.ir_frame);
+
+      auto frame_size = fit_to_size(window->picture->ir_frame->pixels->width, window->picture->ir_frame->pixels->height,
             display_panel_width, display_panel_height);
       size_t frame_width  = frame_size.first;
       size_t frame_height = frame_size.second;
 
-      if (frame_width != picture_copy.ir_frame->pixels->width
-          || frame_height != picture_copy.ir_frame->pixels->height) {
-         picture_copy.ir_frame->resize(frame_width, frame_height);
+      if (frame_width != window->picture->ir_frame->pixels->width
+            || frame_height != window->picture->ir_frame->pixels->height) {
+         window->picture->ir_frame->resize(frame_width, frame_height);
       }
 
       float max_value;
@@ -276,7 +286,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
 
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
-            auto pixel_value = static_cast<uint8_t>(255.0 * (*picture_copy.ir_frame->pixels)[i][j] / max_value);
+            auto pixel_value = static_cast<uint8_t>(255.0 * (*window->picture->ir_frame->pixels)[i][j] / max_value);
             window->m_display_ir->bitmap[3 * (i * display_panel_width + j)]     = pixel_value;
             window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
             window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
