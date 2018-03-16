@@ -9,6 +9,28 @@ from skimage.morphology import disk
 image_size=50
 TYPES = 4
 
+def rgb_skin_check(R, G, B):
+    '''
+        Based on "Human Skin Detection by Visible and Near-Infrared Imaging"
+        by Yusuke Kanzawa, Yoshikatsu Kimura, Takashi Naito
+
+        MVA2011 IAPR Conference on Machine Vision Applications, June 13-15, 2011, Nara, JAPAN
+    '''
+    '''
+        [ Y]   [ 16]   [ 0.257,  0.504,  0.098]   [R]
+        [Cb] = [128] + [-0.148, -0.291,  0.439] x [G]
+        [Cr]   [128]   [ 0.439, -0.368, -0.071]   [B]
+
+        skin_pixel implies: Cb in [77; 127] and Cr in [133; 173]
+    '''
+
+    _  =  16 +    0.257 * R +    0.504 * G +    0.098 * B
+    Cb = 128 + (-0.148) * R + (-0.291) * G +    0.439 * B
+    Cr = 128 +    0.439 * R + (-0.368) * G + (-0.071) * B
+
+    return 77 <= Cb and Cb <= 127 and 133 <= Cr and Cr <= 173
+
+
 def load_color_image_from_file(filename):
     return np.array(PIL.Image.open(filename))
 
