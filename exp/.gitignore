@@ -1,6 +1,4 @@
-www.vap.aau.dk/files
-ias_lab_rgbd/files
-superface_dataset/files
+database
 __pycache__
 X_test.npy
 X_train.npy

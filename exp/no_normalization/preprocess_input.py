@@ -1,13 +1,13 @@
 """
 Preprocessing the input images is very expensive, as we want to crop them to
-faces and calculate entropy and (TODO) saliency maps.
+faces and calculate entropy and (TODO) HOGs of entropy maps.
 Use this script to generate (X|Y)_(train|test).npy files and load them directly
 in main.py.
 """
 
-from db_helper import DBHelper, SUBJECTS_COUNTS
+from common.db_helper import DBHelper, SUBJECTS_COUNTS
 import numpy as np
-from tools import image_size, TYPES
+from common.tools import image_size, TYPES
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 
