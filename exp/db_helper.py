@@ -9,7 +9,6 @@ import face_recognition
 import numpy as np
 import os
 
-
 DB_NAMES = ['www.vap.aau.dk', 'ias_lab_rgbd', 'superface_dataset']
 SUBJECTS_COUNTS = {
     'www.vap.aau.dk': 31,
@@ -50,6 +49,7 @@ def vap_load_train_subject(subject_no, img_no):
     depth_photo = tools.load_depth_photo(path_depth)
     # Resize to common size
     color_photo = tools.change_image_mode('RGBA', 'RGB', color_photo)
+    # TODO: convert the database instead
     color_photo = tools.rgb_image_resize(color_photo, (depth_photo.shape[1], depth_photo.shape[0]))
     return photo_to_face(color_photo, depth_photo)
 
