@@ -3,16 +3,11 @@
 
 # Unified class for loading images from databases
 import tools
-from tools import image_size, TYPES
+from tools import image_size
 
 import face_recognition
-import matplotlib.pyplot as plt
 import numpy as np
-from array import array
-import sys
 import os
-from skimage.filters.rank import entropy
-from skimage.morphology import disk
 
 
 DB_NAMES = ['www.vap.aau.dk', 'ias_lab_rgbd', 'superface_dataset']
@@ -114,20 +109,3 @@ class DBHelper:
             return ias_load_train_subject(subject_no, img_no)
         if self.db_name == 'superface_dataset':
             return superface_load_train_subject(subject_no, img_no)
-
-    def build_input_vector(self, subject_no, img_no):
-        """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
-        (grey_face, depth_face) = self.load_greyd_face(subject_no, img_no)
-        if grey_face is None or depth_face is None:
-            return None
-        tmp = np.zeros((TYPES * image_size, image_size))
-        # TODO(tomek): experiment with entropy map disk size
-        entr_grey_face = entropy(grey_face, disk(5))
-        entr_grey_face = entr_grey_face/np.max(entr_grey_face)
-        entr_depth_face = entropy(depth_face, disk(5))
-        entr_depth_face = entr_depth_face/np.max(entr_depth_face)
-        tmp[0:image_size] = depth_face
-        tmp[image_size:image_size*2] = grey_face
-        tmp[image_size*2:image_size*3] = entr_grey_face
-        tmp[image_size*3:image_size*4] = entr_depth_face
-        return tmp
