@@ -59,9 +59,10 @@ def load_database(db_name, offset, train_split=2/3):
 
 
 if __name__ == '__main__':
-    load_database('superface_dataset', 0)
-    load_database('ias_lab_rgbd', SUBJECTS_COUNTS['superface_dataset'])
-    load_database('www.vap.aau.dk', SUBJECTS_COUNTS['superface_dataset'] + SUBJECTS_COUNTS['ias_lab_rgbd'])
+    load_database('www.vap.aau.dk', 0)
+    load_database('superface_dataset', SUBJECTS_COUNTS['www.vap.aau.dk'])
+    load_database('ias_lab_rgbd', SUBJECTS_COUNTS['superface_dataset'] + SUBJECTS_COUNTS['www.vap.aau.dk'])
+
 
     # Reshape input
     TRAIN_SIZE = len(x_train)
