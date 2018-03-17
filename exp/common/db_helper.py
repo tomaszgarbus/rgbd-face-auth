@@ -141,6 +141,8 @@ class DBHelper:
         assert os.path.isdir(DB_LOCATION), "Please create directory (or symlink) %s" % DB_LOCATION
         db_names = next(os.walk(DB_LOCATION))[1]
         for db_name in db_names:
+            if db_name == 'gen':
+                continue
             print("Found database %s" % db_name)
             self._databases.append(Database(db_name, load_png, load_depth, load_ir))
 
