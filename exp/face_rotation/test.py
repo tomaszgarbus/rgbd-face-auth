@@ -30,31 +30,50 @@ if __name__ == '__main__':
             photos += load_samples(database, limit=2)
 
     X = np.zeros((IMG_SIZE, IMG_SIZE, 4))
-    for i in range(64):
+    for i in range(IMG_SIZE):
         X[i, :, 0] = i
         X[:, i, 1] = i
         X[i, :, 2] = photos[0][1][i,:]
         X[i, :, 3] = photos[0][0][i,:]
 
     cX = X
-    for i in range(64):
-        for j in range(64):
+    for i in range(IMG_SIZE):
+        for j in range(IMG_SIZE):
             if cX[i,j,2] > 0.8 or cX[i,j,2] < 0.01:
-                cX[i,j,2] = np.median(cX[max(0, i-20):min(63, i+20),max(0, j-20):min(63, j+20),2])
+                D = IMG_SIZE
+                cX[i,j,2] = np.median(cX[max(0, i-D):min(IMG_SIZE-1, i+D),max(0, j-D):min(IMG_SIZE-1, j+D),2])
                 # TODO: take average of only closest pixels
-    cX[:, :, 0] /= 64
-    cX[:, :, 1] /= 64
+    cX[:, :, 0] /= IMG_SIZE
+    cX[:, :, 1] /= IMG_SIZE
     cX[:, :, 2] -= cX[:, :, 2].min()
     cX[:, :, 2] /= cX[:, :, 2].max()
     a3d = Axes3D(plt.figure())
     a3d.plot_surface(cX[:, :, 0], cX[:, :, 1], cX[:, :, 2], cmap=cm.coolwarm,)
     plt.show()
-    for i in range(64):
-        for j in range(64):
-            cX[i, j, :3] = rotate.rotate_x(cX[i,j,0], cX[i,j,1], cX[i,j,2], 0.70)
+    tools.show_image(cX[:, :, 3])
+    for i in range(IMG_SIZE):
+        for j in range(IMG_SIZE):
+            cX[i, j, :3] = rotate.rotate_x(cX[i,j,0], cX[i,j,1], cX[i,j,2], 0.2)
     cX = (cX-cX.min())
     cX /= cX.max()
-    print(cX)
     a3d = Axes3D(plt.figure())
     a3d.plot_surface(cX[:, :, 0], cX[:, :, 1], cX[:, :, 2], cmap=cm.coolwarm,)
     plt.show()
+    img = np.zeros((IMG_SIZE,IMG_SIZE))
+    cX[:, :, 0] -= cX[:, :, 0].min()
+    cX[:, :, 0] /= cX[:, :, 0].max()
+    cX[:, :, 1] -= cX[:, :, 1].min()
+    cX[:, :, 1] /= cX[:, :, 1].max()
+    for i in range(IMG_SIZE):
+        for j in range(IMG_SIZE):
+            x = int(cX[i,j,0]*(IMG_SIZE-1))
+            y = int(cX[i,j,1]*(IMG_SIZE-1))
+            print(x, y)
+            z = cX[i,j,2]
+            if z < 0.7:
+                img[x,y] = 1-z
+    for i in range(IMG_SIZE):
+        for j in range(IMG_SIZE):
+            if img[i,j] == 0:
+                img[i,j] = 0.7
+    tools.show_image(img)
