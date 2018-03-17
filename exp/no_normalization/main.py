@@ -16,10 +16,10 @@ if __name__ == '__main__':
     sys.setrecursionlimit(1000000)
 
     print("Loading data..")
-    X_train = np.load('no_normalization_X_train.npy')
-    Y_train = np.load('no_normalization_Y_train.npy')
-    X_test = np.load('no_normalization_X_test.npy')
-    Y_test = np.load('no_normalization_Y_test.npy')
+    X_train = np.load(DB_LOCATION + '/gen/no_normalization_X_train.npy')
+    Y_train = np.load(DB_LOCATION + '/gen/no_normalization_Y_train.npy')
+    X_test = np.load(DB_LOCATION + '/gen/no_normalization_X_test.npy')
+    Y_test = np.load(DB_LOCATION + '/gen/no_normalization_Y_test.npy')
     TOTAL_SUBJECTS_COUNT = Y_test[0].shape[0]
     print("Loaded data")
     # If you want, display the first input image. It is already scaled to [0;1]

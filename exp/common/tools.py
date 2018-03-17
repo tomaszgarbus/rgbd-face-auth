@@ -1,4 +1,3 @@
-from scipy import ndimage
 import face_recognition
 import PIL
 import numpy as np

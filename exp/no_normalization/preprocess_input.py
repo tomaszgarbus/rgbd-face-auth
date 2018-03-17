@@ -92,7 +92,7 @@ if __name__ == '__main__':
             X_train[i] = X_train[0]
             Y_train[i] = Y_train[0]
 
-    np.save('no_normalization_X_train', X_train)
-    np.save('no_normalization_Y_train', Y_train)
-    np.save('no_normalization_X_test', X_test)
-    np.save('no_normalization_Y_test', Y_test)
+    np.save(DB_LOCATION + '/gen/no_normalization_X_train', X_train)
+    np.save(DB_LOCATION + '/gen/no_normalization_Y_train', Y_train)
+    np.save(DB_LOCATION + '/gen/no_normalization_X_test', X_test)
+    np.save(DB_LOCATION + '/gen/no_normalization_Y_test', Y_test)
