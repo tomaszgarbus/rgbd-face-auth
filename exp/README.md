@@ -4,6 +4,10 @@ This directory contains experiments related to face detection, normalization and
 Most of the code in here assumes that you have a symbolic link under `/exp/database`, which
 links to the unzipped latest (`face_rgbd_data_light_v3.zip`) version of our database.
 
+Should you want to create any processed files in your experiments, please write them to
+`/exp/database/gen` and append the name of your experiment as a prefix (e.g.
+`/exp/database/gen/no_normalization_X_train.npy`).
+
 # Common
 Directory `common` contains code used by all experiments. You can write new functions to `tools.py`
 or `db_helper.py`, if they may be useful in more than one experiment. Be mindful not to change the
