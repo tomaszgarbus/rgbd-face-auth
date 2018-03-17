@@ -56,6 +56,7 @@ if __name__ == '__main__':
     tools.show_image(cX[:, :, 3])
 
     find_angle(cX)
+    exit(0)
 
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
