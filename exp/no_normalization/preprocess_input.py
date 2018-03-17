@@ -5,7 +5,7 @@ Use this script to generate (X|Y)_(train|test).npy files and load them directly
 in main.py.
 """
 
-from common.db_helper import DBHelper, Database
+from common.db_helper import DBHelper, Database, DB_LOCATION
 import numpy as np
 from common.tools import IMG_SIZE
 from skimage.filters.rank import entropy
@@ -17,28 +17,27 @@ def build_input_vector(greyd_face):
     (grey_face, depth_face) = greyd_face
     if grey_face is None or depth_face is None:
         return None
-    tmp = np.zeros((TYPES * image_size, image_size))
+    tmp = np.zeros((4 * IMG_SIZE, IMG_SIZE))
     entr_grey_face = entropy(grey_face, disk(5))
     entr_grey_face = entr_grey_face / np.max(entr_grey_face)
     entr_depth_face = entropy(depth_face, disk(5))
     entr_depth_face = entr_depth_face / np.max(entr_depth_face)
-    tmp[0:image_size] = depth_face
-    tmp[image_size:image_size * 2] = grey_face
-    tmp[image_size * 2:image_size * 3] = entr_grey_face
-    tmp[image_size * 3:image_size * 4] = entr_depth_face
+    tmp[0:IMG_SIZE] = depth_face
+    tmp[IMG_SIZE:IMG_SIZE * 2] = grey_face
+    tmp[IMG_SIZE * 2:IMG_SIZE * 3] = entr_grey_face
+    tmp[IMG_SIZE * 3:IMG_SIZE * 4] = entr_depth_face
     return tmp
 
-def load_database(db_name, offset, train_split=2/3):
+def load_database(database, offset, train_split=2/3):
     # train_split is a fraction of data used for training. e.g. train_split=2/3
     # means that out of 3 samples 2 are used for training and 1 for test
-    db_helper = DBHelper(db_name)
-    print('Loading database %s' % db_name)
-    for i in range(db_helper.subjects_count):
-        print('subject', i)
-        l = int(db_helper.imgs_per_subject(i) * train_split) # TRAIN/TEST split
-        for j in range(db_helper.imgs_per_subject(i)):
-            print(i, j)
-            x = build_input_vector(db_helper.load_greyd_face(i, j))
+    print('Loading database %s' % database.get_name())
+    for i in range(database.subjects_count()):
+        print('Subject', i)
+        l = int(database.imgs_per_subject(i) * train_split) # TRAIN/TEST split
+        for j in range(database.imgs_per_subject(i)):
+            print('Photo %d/%d' % (j, database.imgs_per_subject(i)))
+            x = build_input_vector(database.load_greyd_face(i, j))
             y = offset + i + 1
             if x is None or y is None:
                 continue
@@ -61,22 +60,23 @@ if __name__ == '__main__':
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     print(TOTAL_SUBJECTS_COUNT)
 
-    load_database('www.vap.aau.dk', 0)
-    load_database('superface_dataset', SUBJECTS_COUNTS['www.vap.aau.dk'])
-    load_database('ias_lab_rgbd', SUBJECTS_COUNTS['superface_dataset'] + SUBJECTS_COUNTS['www.vap.aau.dk'])
+    sum_offset = 0
+    for database in helper.get_databases():
+        load_database(database, sum_offset)
+        sum_offset += database.subjects_count()
 
     # Reshape input
     TRAIN_SIZE = len(x_train)
     TEST_SIZE = len(x_test)
-    X_train = np.zeros((TRAIN_SIZE, TYPES * image_size, image_size, 1))
+    X_train = np.zeros((TRAIN_SIZE, 4 * IMG_SIZE, IMG_SIZE, 1))
     Y_train = np.zeros((TRAIN_SIZE, TOTAL_SUBJECTS_COUNT))
-    X_test = np.zeros((TEST_SIZE, TYPES * image_size, image_size, 1))
+    X_test = np.zeros((TEST_SIZE, 4 * IMG_SIZE, IMG_SIZE, 1))
     Y_test = np.zeros((TEST_SIZE, TOTAL_SUBJECTS_COUNT))
     for i in range(TRAIN_SIZE):
-        X_train[i] = x_train[i].reshape((TYPES * image_size, image_size, 1))
+        X_train[i] = x_train[i].reshape((4 * IMG_SIZE, IMG_SIZE, 1))
         Y_train[i, y_train[i]-1] = 1
     for i in range(TEST_SIZE):
-        X_test[i] = x_test[i].reshape((TYPES * image_size, image_size, 1))
+        X_test[i] = x_test[i].reshape((4 * IMG_SIZE, IMG_SIZE, 1))
         Y_test[i, y_test[i]-1] = 1
     x_train = []
     y_train = []
@@ -92,7 +92,7 @@ if __name__ == '__main__':
             X_train[i] = X_train[0]
             Y_train[i] = Y_train[0]
 
-    np.save('X_train', X_train)
-    np.save('Y_train', Y_train)
-    np.save('X_test', X_test)
-    np.save('Y_test', Y_test)
+    np.save('no_normalization_X_train', X_train)
+    np.save('no_normalization_Y_train', Y_train)
+    np.save('no_normalization_X_test', X_test)
+    np.save('no_normalization_Y_test', Y_test)

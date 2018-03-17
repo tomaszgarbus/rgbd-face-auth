@@ -1,7 +1,3 @@
 database
 __pycache__
-X_test.npy
-X_train.npy
-Y_test.npy
-Y_train.npy
-
+**.pyc

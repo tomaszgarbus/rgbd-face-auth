@@ -8,24 +8,22 @@ from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 import sys
-from common import tools
+from common.db_helper import DB_LOCATION
 
 from common.tools import IMG_SIZE
-from common.db_helper import SUBJECTS_COUNTS
 
 if __name__ == '__main__':
     sys.setrecursionlimit(1000000)
 
-    TOTAL_SUBJECTS_COUNT = SUBJECTS_COUNTS['superface_dataset'] + SUBJECTS_COUNTS['www.vap.aau.dk'] + SUBJECTS_COUNTS['ias_lab_rgbd']
-
     print("Loading data..")
-    X_train = np.load('X_train.npy')
-    Y_train = np.load('Y_train.npy')
-    X_test = np.load('X_test.npy')
-    Y_test = np.load('Y_test.npy')
+    X_train = np.load('no_normalization_X_train.npy')
+    Y_train = np.load('no_normalization_Y_train.npy')
+    X_test = np.load('no_normalization_X_test.npy')
+    Y_test = np.load('no_normalization_Y_test.npy')
+    TOTAL_SUBJECTS_COUNT = Y_test[0].shape[0]
     print("Loaded data")
     # If you want, display the first input image. It is already scaled to [0;1]
-    #tools.show_image(X_train[0].reshape((TYPES * IMG_SIZE, IMG_SIZE)));
+    # tools.show_image(X_train[0].reshape((TYPES * IMG_SIZE, IMG_SIZE)));
 
     model = Sequential()
     model.add(Conv2D(20,

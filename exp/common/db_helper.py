@@ -71,7 +71,6 @@ class Database:
             return filenames
         self._imgs_of_subject = [[] for i in range(self.subjects_count())]
         for (subject, i) in zip(self._subject_dirs, range(self.subjects_count())):
-            print(i)
             path = '/'.join([DB_LOCATION, self._name, 'files', subject])
             all_files = next(os.walk(path))[2]
             sets = []
@@ -98,8 +97,15 @@ class Database:
         self._subject_dirs = list(np.array(self._subject_dirs)[indices])
         self._imgs_of_subject = list(np.array(self._imgs_of_subject)[indices])
 
+    def get_name(self):
+        return self._name
+
     def subjects_count(self):
         return len(self._subject_dirs)
+
+    def imgs_per_subject(self, subject_no):
+        assert 0 <= subject_no and subject_no < len(self._imgs_of_subject), "Invalid |subject_no|"
+        return len(self._imgs_of_subject[subject_no])
 
     def load_subject(self, subject_no, img_no):
         path = '/'.join([DB_LOCATION, self._name, 'files', self._subject_dirs[subject_no], self._imgs_of_subject[subject_no][img_no]])
