@@ -5,3 +5,5 @@
 build/
 cmake-build-debug/
 /photos/
+exp/.idea/
+
