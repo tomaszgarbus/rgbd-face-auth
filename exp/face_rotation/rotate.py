@@ -24,17 +24,6 @@ def _rz(theta):
                      [0, 0, 1]])
 
 
-def _smoothen(img):
-    """ smoothens the rotated image, i.e. fills each empty pixel with a median
-    of non-empty neighboring pixels """
-    for i in range(IMG_SIZE):
-        for j in range(IMG_SIZE):
-            if img[i, j] == 0:
-                img[i, j] = 0.7
-                # TODO(ludziej): apply median from non-empty neighbors
-    return img
-
-
 def _normalize(_points):
     """ scales each dimension into interval 0..1 """
     for i in range(_points.shape[-1]):
@@ -43,29 +32,38 @@ def _normalize(_points):
             _points[:, :, i] /= _points[:, :, i].max()
 
 
-def _median_depth(points, center, size, min_value, max_value):
+def _median_neighbors(points, center, size, min_value, max_value):
     """
     Find a median of those points which have depth in range
     |min_value|..|max_value|, only in the neighborhood of |center|
     of size |size|.
-    :param X: array of points, of size (IMG_SIZE, IMG_SIZE, 3)
+    :param X: array of points, of size (IMG_SIZE, IMG_SIZE)
     :param center: center - a tuple (x, y)
     :param size: maximum distance from the center
-    :param min_value: minimum value of depth to be considered
-    :param max_value: maximum value of depth to be considered
+    :param min_value: minimum value to be considered
+    :param max_value: maximum value to be considered
     :return: a single float value
     """
     min_x = max(0, center[0]-size)
     max_x = min(IMG_SIZE, center[0] + size)
     min_y = max(0, center[1] - size)
     max_y = min(IMG_SIZE, center[1] + size)
-    vals = points[min_x:max_x,min_y:max_y,2]
+    vals = points[min_x:max_x,min_y:max_y]
     vals = vals[vals >= min_value]
     vals = vals[vals <= max_value]
     if vals.size == 0:
         # Giving up, returning median of entire cloud of points
-        return np.median(points[:, :, 2])
+        return np.median(points)
     return np.median(vals)
+
+def _smoothen(img):
+    """ smoothens the rotated image, i.e. fills each empty pixel with a median
+    of non-empty neighboring pixels """
+    for i in range(IMG_SIZE):
+        for j in range(IMG_SIZE):
+            if img[i, j] == 0:
+                img[i, j] = _median_neighbors(img, (i, j), 4, 0.01, 0.9)
+    return img
 
 def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):
     """
@@ -94,7 +92,7 @@ def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):
             # Replace pixels beyond reasonable value range with median of closest
             # "good" pixels
             if points[i, j, 2] > UPPER_THRESHOLD or points[i, j, 2] < LOWER_THRESHOLD:
-                points[i, j, 2] = _median_depth(points, (i,j), IMG_SIZE//3, LOWER_THRESHOLD, UPPER_THRESHOLD)
+                points[i, j, 2] = _median_neighbors(points[:,:,2], (i,j), IMG_SIZE//3, LOWER_THRESHOLD, UPPER_THRESHOLD)
 
     # Scale each dimension into interval 0..1
     _normalize(points)
