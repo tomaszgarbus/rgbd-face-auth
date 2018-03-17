@@ -37,9 +37,11 @@ if __name__ == '__main__':
         X[i, :, 3] = photos[0][0][i,:]
 
     cX = X
+    cX[:, :, 2] -= cX[:, :, 2].min()
+    cX[:, :, 2] /= cX[:, :, 2].max()
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
-            if cX[i,j,2] > 0.8 or cX[i,j,2] < 0.01:
+            if cX[i,j,2] > 0.95 or cX[i,j,2] < 0.01:
                 D = IMG_SIZE
                 cX[i,j,2] = np.median(cX[max(0, i-D):min(IMG_SIZE-1, i+D),max(0, j-D):min(IMG_SIZE-1, j+D),2])
                 # TODO: take average of only closest pixels
