@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+from face_rotation.find_angle import find_angle
 
 if __name__ == '__main__':
     def load_samples(database, limit=10):
@@ -53,6 +54,9 @@ if __name__ == '__main__':
     a3d.plot_surface(cX[:, :, 0], cX[:, :, 1], cX[:, :, 2], cmap=cm.coolwarm,)
     plt.show()
     tools.show_image(cX[:, :, 3])
+
+    find_angle(cX)
+
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
             cX[i, j, :3] = rotate.rotate_x(cX[i,j,0], cX[i,j,1], cX[i,j,2], 0.2)
