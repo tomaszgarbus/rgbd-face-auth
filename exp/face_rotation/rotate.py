@@ -62,7 +62,7 @@ def _smoothen(img):
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
             if img[i, j] == 0:
-                img[i, j] = _median_neighbors(img, (i, j), 4, 0.01, 0.9)
+                img[i, j] = _median_neighbors(img, (i, j), 2, 0.01, 0.9)
     return img
 
 def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):

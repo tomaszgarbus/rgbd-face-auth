@@ -23,11 +23,14 @@ if __name__ == '__main__':
                                                                       theta_x=0.2,
                                                                       theta_y=0.0,
                                                                       theta_z=0.0)
+                tools.show_image(img_grey)
+                tools.show_image(rotated_grey)
         return samples
 
     # Load a random photo to rotate
     helper = DBHelper()
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     for database in helper.get_databases():
-        test_samples(database)
+        if database.get_name() == 'www.vap.aau.dk':
+            test_samples(database)
 
