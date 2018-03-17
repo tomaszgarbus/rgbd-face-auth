@@ -10,7 +10,7 @@ import numpy as np
 from common.tools import IMG_SIZE
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
-
+import os
 
 def build_input_vector(greyd_face):
     """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
@@ -91,6 +91,10 @@ if __name__ == '__main__':
             # The invalid images were: 2871, 2873, 2874
             X_train[i] = X_train[0]
             Y_train[i] = Y_train[0]
+
+    assert os.path.isdir(DB_LOCATION), "database directory not found"
+    if not os.path.isdir(DB_LOCATION + '/gen'):
+        os.makedirs(DB_LOCATION + '/gen')
 
     np.save(DB_LOCATION + '/gen/no_normalization_X_train', X_train)
     np.save(DB_LOCATION + '/gen/no_normalization_Y_train', Y_train)
