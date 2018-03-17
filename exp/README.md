@@ -24,6 +24,17 @@ as the paper - around 0.89 categorical accuracy.
 Thus, we found that running filters on the input images is not enough. Moving on to a smarter
 normalization.
 
+### Running
+To run this experiment, execute the following, in `/exp` directory:
+
+`python -m no_normalization.preprocess_input` This may take a **lot** of time. It will read the
+dataset, crop each image to face and store numpy arrays in files
+`database/gen/no_normalization_X_train.npy, database/gen/no_normalization_Y_train.npy,
+database/gen/no_normalization_X_test.npy, database/gen/no_normalization_Y_test.npy`.
+
+`python -m no_normalization.main` will read the preprocessed arrays from `database/gen`
+and test a simple CNN model on those.
+
 # Experiment 2: Face rotation
 **TODO** In this approach, we want to find landmarks on the face and use them to calculate the
 angle of the face. Then, we will rotate the face to a frontal position. Thanks to depth images,
