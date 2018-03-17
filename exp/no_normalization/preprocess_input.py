@@ -5,19 +5,11 @@ Use this script to generate (X|Y)_(train|test).npy files and load them directly
 in main.py.
 """
 
-from common.db_helper import DBHelper, SUBJECTS_COUNTS
+from common.db_helper import DBHelper, Database
 import numpy as np
-from common.tools import image_size, TYPES
+from common.tools import IMG_SIZE
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
-
-TOTAL_SUBJECTS_COUNT = SUBJECTS_COUNTS['superface_dataset'] + SUBJECTS_COUNTS['www.vap.aau.dk'] + SUBJECTS_COUNTS['ias_lab_rgbd']
-
-# Load data
-x_train = []
-y_train = []
-x_test = []
-y_test = []
 
 
 def build_input_vector(greyd_face):
@@ -59,10 +51,19 @@ def load_database(db_name, offset, train_split=2/3):
 
 
 if __name__ == '__main__':
+    # Load data
+    x_train = []
+    y_train = []
+    x_test = []
+    y_test = []
+
+    helper = DBHelper()
+    TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
+    print(TOTAL_SUBJECTS_COUNT)
+
     load_database('www.vap.aau.dk', 0)
     load_database('superface_dataset', SUBJECTS_COUNTS['www.vap.aau.dk'])
     load_database('ias_lab_rgbd', SUBJECTS_COUNTS['superface_dataset'] + SUBJECTS_COUNTS['www.vap.aau.dk'])
-
 
     # Reshape input
     TRAIN_SIZE = len(x_train)

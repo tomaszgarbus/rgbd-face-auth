@@ -10,7 +10,7 @@ import numpy as np
 import sys
 from common import tools
 
-from common.tools import image_size, TYPES
+from common.tools import IMG_SIZE
 from common.db_helper import SUBJECTS_COUNTS
 
 if __name__ == '__main__':
@@ -25,13 +25,13 @@ if __name__ == '__main__':
     Y_test = np.load('Y_test.npy')
     print("Loaded data")
     # If you want, display the first input image. It is already scaled to [0;1]
-    #tools.show_image(X_train[0].reshape((TYPES * image_size, image_size)));
+    #tools.show_image(X_train[0].reshape((TYPES * IMG_SIZE, IMG_SIZE)));
 
     model = Sequential()
     model.add(Conv2D(20,
                      kernel_size=(6, 6),
                      activation='relu',
-                     input_shape=(TYPES * image_size, image_size, 1)))
+                     input_shape=(4 * IMG_SIZE, IMG_SIZE, 1)))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Conv2D(20,
                      kernel_size=(6, 6),

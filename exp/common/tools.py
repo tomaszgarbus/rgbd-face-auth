@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 
-image_size = 64
-TYPES = 4
+IMG_SIZE = 64
 
 
 def rgb_skin_check(R, G, B):
