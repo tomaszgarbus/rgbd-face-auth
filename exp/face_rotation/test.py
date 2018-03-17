@@ -48,7 +48,7 @@ if __name__ == '__main__':
     cX[:, :, 2] /= cX[:, :, 2].max()
     a3d = Axes3D(plt.figure())
     a3d.plot_surface(cX[:, :, 0], cX[:, :, 1], cX[:, :, 2], cmap=cm.coolwarm,)
-    plt.show(a3d)
+    plt.show()
     for i in range(64):
         for j in range(64):
             cX[i, j, :3] = rotate.rotate_x(cX[i,j,0], cX[i,j,1], cX[i,j,2], 0.70)
@@ -57,4 +57,4 @@ if __name__ == '__main__':
     print(cX)
     a3d = Axes3D(plt.figure())
     a3d.plot_surface(cX[:, :, 0], cX[:, :, 1], cX[:, :, 2], cmap=cm.coolwarm,)
-    plt.show(a3d)
+    plt.show()
