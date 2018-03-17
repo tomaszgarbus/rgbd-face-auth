@@ -2,6 +2,8 @@ import face_recognition
 import PIL
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 
@@ -73,6 +75,13 @@ def color_image_to_face(img):
 
 def show_image(img):
     plt.imshow(img)
+    plt.show()
+
+
+def show_3d_plot(X):
+    assert np.dim(X) == 3 and np.shape[-1] >= 3
+    a3d = Axes3D(plt.figure())
+    a3d.plot_surface(X[:, :, 0], X[:, :, 1], X[:, :, 2], cmap=cm.coolwarm, )
     plt.show()
 
 

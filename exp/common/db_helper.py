@@ -143,7 +143,6 @@ class DBHelper:
         for db_name in db_names:
             if db_name == 'gen':
                 continue
-            print("Found database %s" % db_name)
             self._databases.append(Database(db_name, load_png, load_depth, load_ir))
 
     def get_databases(self):
