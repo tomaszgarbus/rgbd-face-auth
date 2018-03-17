@@ -12,6 +12,8 @@ DB_LOCATION = 'database'
 
 def photo_to_greyd_face(color_photo, depth_photo):
     """ Converts full photo to just face image """
+    # Resize to common size
+    color_photo = tools.rgb_image_resize(color_photo, (depth_photo.shape[1], depth_photo.shape[0]))
     # Locate face
     face_coords = face_recognition.face_locations(color_photo)
     # Process face detected by the library
@@ -129,8 +131,6 @@ class Database:
         combination. """
         assert self._load_png and self._load_depth and not self._load_ir, "Only for RGB+D use"
         (color_photo, depth_photo) = self.load_subject(subject_no, img_no)
-        # Resize to common size
-        color_photo = tools.rgb_image_resize(color_photo, (depth_photo.shape[1], depth_photo.shape[0]))
         return photo_to_greyd_face(color_photo, depth_photo)
 
 
