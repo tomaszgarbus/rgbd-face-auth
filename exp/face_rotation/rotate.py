@@ -45,6 +45,9 @@ def _normalize(_points):
 
 def _median_depth(points, center, size, min_value, max_value):
     """
+    Find a median of those points which have depth in range
+    |min_value|..|max_value|, only in the neighborhood of |center|
+    of size |size|.
     :param X: array of points, of size (IMG_SIZE, IMG_SIZE, 3)
     :param center: center - a tuple (x, y)
     :param size: maximum distance from the center
