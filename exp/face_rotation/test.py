@@ -69,9 +69,8 @@ if __name__ == '__main__':
             x = int(cX[i,j,0]*(IMG_SIZE-1))
             y = int(cX[i,j,1]*(IMG_SIZE-1))
             print(x, y)
-            z = cX[i,j,2]
-            if z < 0.7:
-                img[x,y] = 1-z
+            z = cX[i,j,3]
+            img[x,y] = z
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
             if img[i,j] == 0:
