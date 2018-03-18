@@ -25,28 +25,28 @@ def landmarks_take(landmarks):
     chin_left = landmarks["chin"][:7]
     chin_right = landmarks["chin"][12:]
 
-    rightbrew = avgl(landmarks["right_eyebrow"])
-    leftbrew = avgl(landmarks["left_eyebrow"])
-    forhead = avgl([rightbrew, leftbrew])
-    topchin = avgl(landmarks["bottom_lip"] + chin_bottom + chin_bottom)
+    right_brow = avgl(landmarks["right_eyebrow"])
+    left_brow = avgl(landmarks["left_eyebrow"])
+    forehead = avgl([right_brow, left_brow])
+    top_chin = avgl(landmarks["bottom_lip"] + chin_bottom + chin_bottom)
     left_cheek = avgl(chin_left + landmarks["left_eyebrow"] + landmarks["nose_tip"])
     right_cheek = avgl(chin_right + landmarks["right_eyebrow"] + landmarks["nose_tip"])
 
-    return {"rightbrew": [rightbrew], "leftbrew": [leftbrew], "forhead": [forhead], "topchin": [topchin]}
+    return {"right_brow": [right_brow], "left_brow": [left_brow], "forehead": [forehead], "top_chin": [top_chin]}
 
 
 def angle_from(landmarks, imaged, shape):
     to3d = lambda x: (x[0]/shape[0], x[1]/shape[1], imaged[x[1], x[0]])
 
-    rightbrew = to3d(landmarks["rightbrew"][0])
-    leftbrew = to3d(landmarks["leftbrew"][0])
-    forhead = to3d(landmarks["forhead"][0])
-    topchin = to3d(landmarks["topchin"][0])
+    right_brow = to3d(landmarks["right_brow"][0])
+    left_brow = to3d(landmarks["left_brow"][0])
+    forehead = to3d(landmarks["forehead"][0])
+    top_chin = to3d(landmarks["top_chin"][0])
 
-    print(str({"rightbrew": [rightbrew], "leftbrew": [leftbrew], "forhead": [forhead], "topchin": [topchin]}))
+    print(str({"right_brow": [right_brow], "left_brow": [left_brow], "forehead": [forehead], "top_chin": [top_chin]}))
 
-    x = angle_to_align(rightbrew, leftbrew)
-    y = angle_to_align(forhead, topchin)
+    x = angle_to_align(right_brow, left_brow)
+    y = angle_to_align(forehead, top_chin)
     z = 0
     print("angle " + str(x) + " " + str(y) + " " + str(z))
 
