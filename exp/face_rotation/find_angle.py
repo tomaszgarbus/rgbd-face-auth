@@ -12,7 +12,7 @@ def get_angle(x, y, z):
     cosine_angle = np.dot(yx, yz) / (np.linalg.norm(yx) * np.linalg.norm(yz))
     angle = np.arccos(cosine_angle)
 
-    return angle
+    return angle * (-1 if x[2] > y[2] else 1)
 
 
 def angle_to_align(x, y):
@@ -36,7 +36,7 @@ def landmarks_take(landmarks):
 
 
 def angle_from(landmarks, imaged, shape):
-    to3d = lambda x: (x[0]/shape[0], x[1]/shape[1], imaged[x[0], x[1]])
+    to3d = lambda x: (x[0]/shape[0], x[1]/shape[1], imaged[x[1], x[0]])
 
     rightbrew = to3d(landmarks["rightbrew"][0])
     leftbrew = to3d(landmarks["leftbrew"][0])
@@ -49,6 +49,8 @@ def angle_from(landmarks, imaged, shape):
     y = angle_to_align(forhead, topchin)
     z = 0
     print("angle " + str(x) + " " + str(y) + " " + str(z))
+
+    print("face rotated " + ("right" if x > 0 else "left") + " and " + ("down" if y > 0 else "up"))
 
     return x, y, z
 
@@ -73,7 +75,7 @@ def find_angle(image, imaged):
     face_landmarks_list = get_landmarks(image)
     if len(face_landmarks_list) > 0:
         landmarks = landmarks_take(face_landmarks_list[0])
-        show_with_landmarks(image, face_landmarks_list[0])
+        # show_with_landmarks(image, face_landmarks_list[0])
         show_with_landmarks(image, landmarks)
         return angle_from(landmarks, imaged, image.shape)
     print("Error, face not found, returning no rotation")
