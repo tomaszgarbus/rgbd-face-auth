@@ -38,9 +38,6 @@ if __name__ == '__main__':
     # find the angle
     theta_x, theta_y, theta_z = find_angle(img_grey, img_depth)
 
-    tools.show_image(img_grey)
-    tools.show_image(img_depth)
-
     # Apply rotation
     rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth),
                                                           theta_x=theta_x,

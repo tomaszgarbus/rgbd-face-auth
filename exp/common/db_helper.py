@@ -118,6 +118,8 @@ class Database:
         if self._load_png:
             assert os.path.isfile(path_color), "No such file %s " % path_color
             color_photo = tools.load_color_image_from_file(path_color)
+            if color_photo.shape[-1] == 4:  # meaning that mode is 'RGBA' instead of 'RGB'
+                color_photo = tools.change_image_mode('RGBA', 'RGB', color_photo)
             loaded_imgs.append(color_photo)
         if self._load_depth:
             assert os.path.isfile(path_color), "No such file %s " % path_depth
