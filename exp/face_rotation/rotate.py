@@ -2,7 +2,6 @@ import numpy as np
 import math
 from common.tools import IMG_SIZE
 
-
 def _rx(theta):
     """ returns rotation matrix for x axis """
     return np.array([[1, 0, 0],
@@ -104,6 +103,10 @@ def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):
         points[i, :, 2] = depth_img[i, :]
         points[i, :, 3] = grey_img[i, :]
 
+    # Normalize x an y dimensions of |points|
+    _normalize_one_dim(points[:, :, 0])
+    _normalize_one_dim(points[:, :, 1])
+
     # Rotate around each axis
     rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
     for i in range(IMG_SIZE):
@@ -132,7 +135,7 @@ def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):
     # tools.show_image(grey_rotated)
     # tools.show_image(depth_rotated)
     # Or:
-    # tools.show_3d_plot(X)
+    # tools.show_3d_plot(points)
     return (grey_rotated, depth_rotated)
 
 

@@ -79,7 +79,6 @@ def show_image(img):
 
 
 def show_3d_plot(X):
-    assert np.dim(X) == 3 and np.shape[-1] >= 3
     a3d = Axes3D(plt.figure())
     a3d.plot_surface(X[:, :, 0], X[:, :, 1], X[:, :, 2], cmap=cm.coolwarm, )
     plt.show()
