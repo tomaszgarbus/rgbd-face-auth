@@ -4,6 +4,7 @@
 from common.db_helper import DBHelper, Database
 from face_rotation import rotate
 from common import tools
+from face_rotation.find_angle import find_angle
 
 if __name__ == '__main__':
     def load_samples(database, limit=10):
@@ -28,14 +29,23 @@ if __name__ == '__main__':
             photos += load_samples(database, limit=1)
 
     img_grey, img_depth = photos[0]
+    rotate.preprocess_images(img_depth, img_grey)
+
     # Display the photo before rotation
     tools.show_image(img_grey)
     tools.show_image(img_depth)
+
+    # find the angle
+    theta_x, theta_y, theta_z = find_angle(img_grey, img_depth)
+
+    tools.show_image(img_grey)
+    tools.show_image(img_depth)
+
     # Apply rotation
     rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth),
-                                                          theta_x=0.2,
-                                                          theta_y=0.0,
-                                                          theta_z=0.0)
+                                                          theta_x=theta_x,
+                                                          theta_y=theta_y,
+                                                          theta_z=theta_z)
     # Display the results
     tools.show_image(rotated_grey)
     tools.show_image(rotated_depth)
