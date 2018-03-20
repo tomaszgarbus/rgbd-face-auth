@@ -32,9 +32,16 @@ def rgb_skin_check(R, G, B):
     return 77 <= Cb and Cb <= 127 and 133 <= Cr and Cr <= 173
 
 
-def load_color_image_from_file(filename):
-    return np.array(PIL.Image.open(filename))
+def load_color_image_from_file(filename, skin_only=False):
+    ret = np.array(PIL.Image.open(filename), dtype='uint8')
 
+    if skin_only:
+        for row in ret:
+            for pixel in row:
+                if not rgb_skin_check(pixel[0], pixel[1], pixel[2]):
+                    pixel *= 0
+
+    return ret
 
 def load_depth_photo(path):
     with open(path, 'rb') as f:
