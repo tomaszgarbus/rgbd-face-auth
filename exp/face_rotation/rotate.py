@@ -1,6 +1,9 @@
 import numpy as np
 import math
 from common.tools import IMG_SIZE
+import random
+
+SMOOTHEN_ITER = 6
 
 def _rx(theta):
     """ returns rotation matrix for x axis """
@@ -55,15 +58,19 @@ def _median_neighbors(points, center, size, min_value, max_value):
     vals = vals[vals >= min_value]
     vals = vals[vals <= max_value]
     if vals.size == 0:
-        # Giving up, returning median of entire cloud of points
-        return np.median(points)
+        # Giving up, returning 0 (to be handled in next iter)
+        return 0
     return np.median(vals)
 
 def _smoothen(img):
     """ smoothens the rotated image, i.e. fills each empty pixel with a median
     of non-empty neighboring pixels """
-    for i in range(IMG_SIZE):
-        for j in range(IMG_SIZE):
+    order_i = list(range(IMG_SIZE))
+    order_j = list(range(IMG_SIZE))
+    random.shuffle(order_i)
+    random.shuffle(order_j)
+    for i in order_i:
+        for j in order_j:
             if img[i, j] == 0:
                 img[i, j] = _median_neighbors(img, (i, j), 2, 0.01, 0.9)
     return img
@@ -125,11 +132,14 @@ def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):
             y = int(points[i, j, 1] * (IMG_SIZE - 1))
             g = points[i, j, 3]
             z = points[i, j, 2]
-            grey_rotated[x, y] = g
-            depth_rotated[x, y] = z
+            if depth_rotated[x, y] == 0 or z < depth_rotated[x, y]:
+                grey_rotated[x, y] = g
+                depth_rotated[x, y] = z
 
-    grey_rotated = _smoothen(grey_rotated)
-    depth_rotated = _smoothen(depth_rotated)
+    for i in range(SMOOTHEN_ITER):
+        grey_rotated = _smoothen(grey_rotated)
+        depth_rotated = _smoothen(depth_rotated)
+
 
     # If you want to view the rotated image, use the following:
     # tools.show_image(grey_rotated)
