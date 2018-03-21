@@ -15,6 +15,8 @@ from common.tools import IMG_SIZE
 def get_model(model_id):
     # TODO sensible creating models
     if model_id == 0:
+        print( "MODEL ZERO" )
+
         model = Sequential()
         model.add(Conv2D(20,
                      kernel_size=(6, 6),
@@ -37,34 +39,36 @@ def get_model(model_id):
         return model
 
     if model_id == 1:
+        print( "MODEL ONE" )
+
         model = Sequential()
 
         #
-        model.add(Conv2D(16, 8*2,
+        model.add(Conv2D(16, 16,
                      padding='same',
                      activation='relu',
                      input_shape=(4 * IMG_SIZE, IMG_SIZE, 1)))
-        model.add(Conv2D(16, 8*2,
+        model.add(Conv2D(16, 16,
                      padding='same',
                      activation='relu'))
         model.add(MaxPooling2D(2))
-        #model.add(Dropout(0.825))
+        model.add(Dropout(1./16.))
 
         #
-        model.add(Conv2D(32, 8,
+        model.add(Conv2D(32, 6,
                      padding='same',
                      activation='relu'))
-        model.add(Conv2D(32, 8,
+        model.add(Conv2D(32, 6,
                      padding='same',
                      activation='relu'))
-        model.add(MaxPooling2D(2, 2))
-        #model.add(Dropout(0.825))
+        model.add(MaxPooling2D(2))
+        model.add(Dropout(0.25))
 
         #
         model.add(Flatten())
 
-        model.add(Dense(256, activation='relu'))
-        model.add(Dropout(0.2))
+        model.add(Dense(128, activation='relu'))
+        model.add(Dropout(0.75))
         model.add(Dense(TOTAL_SUBJECTS_COUNT, activation='softmax'))
 
         return model
@@ -92,9 +96,9 @@ if __name__ == '__main__':
     # tools.show_image(X_train[0].reshape((TYPES * IMG_SIZE, IMG_SIZE)));
 
     model_id = 0
-    print(sys.argv)
     if len(sys.argv) > 1:
         model_id = int(sys.argv[1])
+
     model = get_model(model_id)
 
     model.compile(optimizer='adam',
