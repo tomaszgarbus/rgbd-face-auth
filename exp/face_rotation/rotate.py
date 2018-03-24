@@ -2,6 +2,7 @@ import numpy as np
 import math
 from common.tools import IMG_SIZE
 import random
+import logging
 
 SMOOTHEN_ITER = 6
 
@@ -128,6 +129,9 @@ def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):
     depth_rotated = np.zeros((IMG_SIZE, IMG_SIZE))
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
+            if np.isnan(points[i, j, 0]) or np.isnan(points[i, j, 1]):
+                logging.warning("Unexpected NaN in rotated image -- skipping invalid pixel")
+                continue
             x = int(points[i, j, 0] * (IMG_SIZE - 1))
             y = int(points[i, j, 1] * (IMG_SIZE - 1))
             g = points[i, j, 3]

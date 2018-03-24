@@ -25,8 +25,8 @@ if __name__ == '__main__':
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     photos = []
     for database in helper.get_databases():
-        if database.get_name() == 'ias_lab_rgbd':
-            photos += load_samples(database, limit=3)
+        if database.get_name() == 'eurecom':
+            photos += load_samples(database, limit=30)
 
     for img_grey, img_depth in photos:
 
@@ -42,6 +42,7 @@ if __name__ == '__main__':
         # Apply rotation
         rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth),
                                                               theta_x=theta_x,
+                                                              theta_y=theta_y,
                                                               theta_z=theta_z)
         # Display the results
         tools.show_image(rotated_grey)
