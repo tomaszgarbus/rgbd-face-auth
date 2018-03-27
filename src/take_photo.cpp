@@ -40,11 +40,15 @@ class MyKinectDevice : public KinectDevice {
       picture.save_all_to_files(filename);
       auto end_time = std::chrono::system_clock::now();
 
+      auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
       if (picture.color_frame) {
-         std::cout << "color" << std::endl;
+         std::cout << "color: " << ms << " ms\n";
       }
       if (picture.depth_frame) {
-         std::cout << "depth" << std::endl;
+         std::cout << "depth: " << ms << " ms\n";
+      }
+      if (picture.ir_frame) {
+         std::cout << "ir:    " << ms << " ms\n";
       }
       std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << std::endl;
    }

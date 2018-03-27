@@ -303,10 +303,9 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       wxPostEvent(window->m_display_ir, wxCommandEvent(REFRESH_DISPLAY_EVENT));
    }
 
-   if ((picture.depth_frame || picture.ir_frame) && window->picture->depth_frame && window->picture->ir_frame) {
-      assert(window->picture->depth_frame->pixels->width == window->picture->ir_frame->pixels->width);
-      assert(window->picture->depth_frame->pixels->height == window->picture->ir_frame->pixels->height);
-
+   if ((picture.depth_frame || picture.ir_frame) && window->picture->depth_frame && window->picture->ir_frame
+         && window->picture->depth_frame->pixels->width == window->picture->ir_frame->pixels->width
+         && window->picture->depth_frame->pixels->height == window->picture->ir_frame->pixels->height) {
       auto frame_width  = window->picture->depth_frame->pixels->width,
            frame_height = window->picture->depth_frame->pixels->height;
 
@@ -321,15 +320,23 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
          }
       }
 
-//      std::cerr << max_value << '\n';
+      // std::cerr << max_value << '\n';
       max_value = 4e10;
 
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
             auto pixel_value = static_cast<uint8_t>(std::min(255.0, 255.0 * values[i * frame_width + j] / max_value));
-            window->m_display_custom->bitmap[3 * (i * display_panel_width + j)]     = pixel_value;
-            window->m_display_custom->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
-            window->m_display_custom->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
+            float min_red    = 255.0f * static_cast<float>(window->m_settings->m_min_d->GetValue()) / 10000.0f;
+            float max_red    = 255.0f * static_cast<float>(window->m_settings->m_max_d->GetValue()) / 10000.0f;
+            if (pixel_value >= min_red && pixel_value <= max_red) {
+               window->m_display_custom->bitmap[3 * (i * display_panel_width + j)]     = 255;
+               window->m_display_custom->bitmap[3 * (i * display_panel_width + j) + 1] = 0;
+               window->m_display_custom->bitmap[3 * (i * display_panel_width + j) + 2] = 0;
+            } else {
+               window->m_display_custom->bitmap[3 * (i * display_panel_width + j)]     = pixel_value;
+               window->m_display_custom->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
+               window->m_display_custom->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
+            }
          }
       }
 
