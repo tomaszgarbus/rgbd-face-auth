@@ -29,3 +29,12 @@ target_link_libraries(live_display ${OpenCV_LIBS})
 target_link_libraries(live_display ${freenect2_LIBRARIES})
 target_link_libraries(live_display ${ZLIB_LIBRARIES})
 target_link_libraries(live_display ${wxWidgets_LIBRARIES})
+
+add_executable(file_display src/file_display.cpp ${BASIC_SOURCE_FILES})
+target_link_libraries(file_display ${OpenCV_LIBS})
+target_link_libraries(file_display ${ZLIB_LIBRARIES})
+target_link_libraries(file_display ${wxWidgets_LIBRARIES})
+
+add_executable(thumbnailer src/thumbnailer.cpp ${BASIC_SOURCE_FILES})
+target_link_libraries(thumbnailer ${OpenCV_LIBS})
+target_link_libraries(thumbnailer ${ZLIB_LIBRARIES})

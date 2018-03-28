@@ -1,0 +1,3 @@
+xdg-mime install depth-mime.xml
+sudo cp depth.thumbnailer /usr/share/thumbnailers/
+sudo cp ../cmake-build-debug/thumbnailer /usr/bin/depth-thumbnailer
