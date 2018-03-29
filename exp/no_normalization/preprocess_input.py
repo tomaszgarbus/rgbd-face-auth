@@ -28,20 +28,17 @@ def build_input_vector(greyd_face):
     tmp[IMG_SIZE * 3:IMG_SIZE * 4] = entr_depth_face
     return tmp
 
-def load_database(database, offset, train_split=2/3):
-    # train_split is a fraction of data used for training. e.g. train_split=2/3
-    # means that out of 3 samples 2 are used for training and 1 for test
+def load_database(database, offset, override_test_set=False):
     print('Loading database %s' % database.get_name())
     for i in range(database.subjects_count()):
         print('Subject', i)
-        l = int(database.imgs_per_subject(i) * train_split) # TRAIN/TEST split
         for j in range(database.imgs_per_subject(i)):
             print('Photo %d/%d' % (j, database.imgs_per_subject(i)))
             x = build_input_vector(database.load_greyd_face(i, j))
             y = offset + i + 1
             if x is None or y is None:
                 continue
-            if j > l:
+            if database.is_photo_in_test_set(i, j):
                 x_test.append(x)
                 y_test.append(y)
             else:
