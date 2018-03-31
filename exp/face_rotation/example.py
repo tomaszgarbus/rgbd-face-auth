@@ -34,10 +34,10 @@ if __name__ == '__main__':
 
         # Display the photo before rotation
         #tools.show_image(img_grey)
-        #tools.show_image(img_depth)
+        tools.show_image(img_depth)
 
         # find the angle
-        theta_x, theta_y, theta_z = find_angle(img_grey, img_depth)
+        theta_x, theta_y, theta_z, center = find_angle(img_grey, img_depth)
 
         # Apply rotation
         rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth),
@@ -45,9 +45,9 @@ if __name__ == '__main__':
                                                               theta_y=theta_y,
                                                               theta_z=theta_z)
 
-        tools.show_3d_plot(rotate.to_one_matrix(rotated_grey, rotated_depth))
+        #tools.show_3d_plot(rotate.to_one_matrix(rotated_grey, rotated_depth))
         # Display the results
         tools.show_image(rotated_grey)
-        #tools.show_image(rotated_depth)
+        tools.show_image(rotated_depth)
 
 

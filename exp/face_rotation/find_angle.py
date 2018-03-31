@@ -70,7 +70,7 @@ def angle_from(landmarks, imaged, shape):
 
     print("face rotated " + ("right" if x > 0 else "left") + " and " + ("down" if y > 0 else "up"))
 
-    return x, y, z
+    return x, y, z, forehead
 
 
 def show_with_landmarks(image, landmarks):
