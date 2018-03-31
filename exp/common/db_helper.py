@@ -7,8 +7,28 @@ from common.tools import IMG_SIZE
 import face_recognition
 import numpy as np
 import os
+import logging
+import json
 
 DB_LOCATION = 'database'
+"""
+    test_suffixes.json is a file containing suffixes of filenames chosen
+    for the test dataset. The format is as follows:
+    {
+        "database1": {
+            "global": ["suffix1", "suffix2", "suffix3"]
+            "overridden1": ["suffix4", "suffix5", "suffix6"]
+        }
+    }
+    where:
+    * "database1" is the name of directory containing the database
+    * "suffix1" is a suffix of the filename without extension. For instance,
+    if you wish to choose images 003_02.png and 003_02.depth for test set,
+    "003_02" is the suffix you want to add to test_suffixes.json.
+    * "overridden1" is the name of subdirectory for which you wish to override the
+    set of suffixes.
+"""
+TEST_SUF_FNAME = 'test_suffixes.json'
 
 def photo_to_greyd_face(color_photo, depth_photo):
     """ Converts full photo to just face image """
@@ -44,6 +64,7 @@ class Database:
     _load_ir = False
     _subject_dirs = []  # Lists subdirectories of subjects in the database
     _imgs_of_subject = []  # Lists images of each subject in the database
+    _test_suffixes = None # Lists filename suffixes corresponding to files from validation set
 
     def __init__(self, name, load_png=True, load_depth=True, load_ir=False):
         """
@@ -99,6 +120,17 @@ class Database:
         self._subject_dirs = list(np.array(self._subject_dirs)[indices])
         self._imgs_of_subject = list(np.array(self._imgs_of_subject)[indices])
 
+        # Initialize self._test_suffixes from test_suffixes.json
+        path = '/'.join([DB_LOCATION, TEST_SUF_FNAME])
+        if not os.path.isfile(path):
+            logging.warning("File %s not present in the database."
+                            "Make sure you have the latest version of database." % (TEST_SUF_FNAME))
+        else:
+            json_contents = json.load(open(path))
+            if self._name in json_contents:
+                self._test_suffixes = json_contents[self._name]
+
+
     def get_name(self):
         return self._name
 
@@ -108,6 +140,26 @@ class Database:
     def imgs_per_subject(self, subject_no):
         assert 0 <= subject_no and subject_no < len(self._imgs_of_subject), "Invalid |subject_no|"
         return len(self._imgs_of_subject[subject_no])
+
+    def global_test_suffixes(self):
+        """
+        :return: Lists filename suffixes corresponding to images in validation set, globally in the database. Can
+        be overridden for a specific subject.
+        """
+        if self._test_suffixes is None:
+            return []
+        else:
+            return self._test_suffixes['global']
+
+    def single_subject_test_suffixes(self, subject_no):
+        """
+        :return: Lists filename suffixes corresponding to images in validation set, for a specific subject.
+        """
+        if self._test_suffixes is None:
+            return []
+        if self._subject_dirs[subject_no] in self._test_suffixes:
+            return self._test_suffixes[self._subject_dirs[subject_no]]
+        return self.global_test_suffixes()
 
     def load_subject(self, subject_no, img_no):
         path = '/'.join([DB_LOCATION, self._name, 'files', self._subject_dirs[subject_no], self._imgs_of_subject[subject_no][img_no]])
@@ -127,6 +179,17 @@ class Database:
             loaded_imgs.append(depth_photo)
         # TODO: load IR photo too
         return tuple(loaded_imgs)
+
+    def is_photo_in_test_set(self, subject_no, img_no):
+        """
+        :return: True if given photo is listed in proper test_suffixes.txt file, False otherwise.
+        """
+        test_suffixes = self.single_subject_test_suffixes(subject_no)
+        filename = self._imgs_of_subject[subject_no][img_no]
+        for suf in test_suffixes:
+            if filename.endswith(suf):
+                return True
+        return False
 
     def load_greyd_face(self, subject_no, img_no):
         """ Loads an image of a subject and cuts out their face with external lib. Only supports png+depth
