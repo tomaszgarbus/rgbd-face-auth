@@ -26,7 +26,7 @@ if __name__ == '__main__':
     photos = []
     for database in helper.get_databases():
         if database.get_name() == 'ias_lab_rgbd':
-            photos += load_samples(database, limit=5)
+            photos += load_samples(database, limit=1)
 
     for img_grey, img_depth in photos:
 
@@ -44,6 +44,8 @@ if __name__ == '__main__':
                                                               theta_x=theta_x,
                                                               theta_y=theta_y,
                                                               theta_z=theta_z)
+
+        tools.show_3d_plot(rotate.to_one_matrix(rotated_grey, rotated_depth))
         # Display the results
         tools.show_image(rotated_grey)
         #tools.show_image(rotated_depth)

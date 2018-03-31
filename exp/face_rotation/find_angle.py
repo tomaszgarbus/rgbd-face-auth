@@ -23,14 +23,15 @@ def get_angle(x, y, z):
     print("Trojkat: " + str(yx) + "," + str(yz) + "," + str(xz))
     print("Kat: " + str(degrees(r)))
 
-    return r * (-1 if x[2] > y[2] else 1)
+    return r
 
 
 def angle_to_align_depth(x, y):
-    return get_angle(x, y, (x[0], x[1], y[2]))
+    return get_angle(x, y, (x[0], x[1], y[2])) * (-1 if x[2] > y[2] else 1)
+
 
 def angle_to_align_height(x, y):
-    return get_angle(x, y, (x[0], y[1], x[2]))
+    return get_angle(x, y, (x[0], y[1], x[2])) * (-1 if x[1] < y[1] else 1)
 
 
 def landmarks_take(landmarks):

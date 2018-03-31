@@ -93,6 +93,17 @@ def preprocess_images(dimage, image):
     _normalize_one_dim(dimage)
     _normalize_one_dim(image)
 
+
+def to_one_matrix(grey_img, depth_img):
+    points = np.zeros((IMG_SIZE, IMG_SIZE, 4))
+    for i in range(IMG_SIZE):
+        points[i, :, 0] = i
+        points[:, i, 1] = i
+        points[i, :, 2] = depth_img[i, :]
+        points[i, :, 3] = grey_img[i, :]
+    return points
+
+
 def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):
     """
     :param greyd_img: a tuple (grey_image, depth_image).
@@ -104,12 +115,7 @@ def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):
     """
     # First, we prepare the matrix X of points (x, y, z, Grey)
     (grey_img, depth_img) = (greyd_img)
-    points = np.zeros((IMG_SIZE, IMG_SIZE, 4))
-    for i in range(IMG_SIZE):
-        points[i, :, 0] = i
-        points[:, i, 1] = i
-        points[i, :, 2] = depth_img[i, :]
-        points[i, :, 3] = grey_img[i, :]
+    points = to_one_matrix(grey_img, depth_img)
 
     # Normalize x an y dimensions of |points|
     _normalize_one_dim(points[:, :, 0])
