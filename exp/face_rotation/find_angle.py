@@ -2,21 +2,35 @@ import numpy as np
 import math
 import face_recognition
 from common import tools
+import numpy.linalg
 import common.tools
+from math import acos, degrees
 
 
 def get_angle(x, y, z):
-    yx = np.array(x) - np.array(y)
-    yz = np.array(z) - np.array(y)
 
-    cosine_angle = np.dot(yx, yz) / (np.linalg.norm(yx) * np.linalg.norm(yz))
-    angle = np.arccos(cosine_angle)
+    print("Wspolrzedne:")
+    print("x:" + str(x))
+    print("y:" + str(y))
+    print("z:" + str(z))
 
-    return angle * (-1 if x[2] > y[2] else 1)
+    yx = np.linalg.norm(np.array(x) - np.array(y))
+    yz = np.linalg.norm(np.array(z) - np.array(y))
+    xz = np.linalg.norm(np.array(x) - np.array(z))
+
+    r = acos((yx * yx + yz * yz - xz * xz) / (2.0 * yx * yz))
+
+    print("Trojkat: " + str(yx) + "," + str(yz) + "," + str(xz))
+    print("Kat: " + str(degrees(r)))
+
+    return r * (-1 if x[2] > y[2] else 1)
 
 
-def angle_to_align(x, y):
+def angle_to_align_depth(x, y):
     return get_angle(x, y, (x[0], x[1], y[2]))
+
+def angle_to_align_height(x, y):
+    return get_angle(x, y, (x[0], y[1], x[2]))
 
 
 def landmarks_take(landmarks):
@@ -45,9 +59,12 @@ def angle_from(landmarks, imaged, shape):
 
     print(str({"right_brow": [right_brow], "left_brow": [left_brow], "forehead": [forehead], "top_chin": [top_chin]}))
 
-    x = angle_to_align(right_brow, left_brow)
-    y = angle_to_align(forehead, top_chin)
-    z = 0
+    print("boki")
+    x = angle_to_align_depth(right_brow, left_brow)
+    print("pion")
+    y = angle_to_align_depth(forehead, top_chin)
+    print("obrot")
+    z = angle_to_align_height(right_brow, left_brow)
     print("angle " + str(x) + " " + str(y) + " " + str(z))
 
     print("face rotated " + ("right" if x > 0 else "left") + " and " + ("down" if y > 0 else "up"))
@@ -72,6 +89,7 @@ def get_landmarks(image):
 
 
 def find_angle(image, imaged):
+    print("\n\nFIND ANGLE")
     face_landmarks_list = get_landmarks(image)
     if len(face_landmarks_list) > 0:
         landmarks = landmarks_take(face_landmarks_list[0])

@@ -25,8 +25,8 @@ if __name__ == '__main__':
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     photos = []
     for database in helper.get_databases():
-        if database.get_name() == 'eurecom':
-            photos += load_samples(database, limit=30)
+        if database.get_name() == 'ias_lab_rgbd':
+            photos += load_samples(database, limit=5)
 
     for img_grey, img_depth in photos:
 
@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
         # Display the photo before rotation
         #tools.show_image(img_grey)
-        tools.show_image(img_depth)
+        #tools.show_image(img_depth)
 
         # find the angle
         theta_x, theta_y, theta_z = find_angle(img_grey, img_depth)
@@ -46,6 +46,6 @@ if __name__ == '__main__':
                                                               theta_z=theta_z)
         # Display the results
         tools.show_image(rotated_grey)
-        tools.show_image(rotated_depth)
+        #tools.show_image(rotated_depth)
 
 
