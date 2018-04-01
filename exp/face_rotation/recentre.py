@@ -2,7 +2,7 @@ import numpy as np
 from common import tools
 from common.tools import IMG_SIZE
 
-CENTER_DEST = (1/2, 1/5) # where center should be
+CENTER_DEST = (1/2, 1/5)  # where center should be
 
 def show_with_center(image, center):
     img = np.copy(image)
@@ -27,7 +27,7 @@ def recentre(image, imaged, center):
     image = np.roll(image, move_y, axis=0)
     imaged = np.roll(imaged, move_x, axis=1)
     imaged = np.roll(imaged, move_y, axis=0)
-    show_with_center(imaged, center)
+    #show_with_center(imaged, center)
 
     return image, imaged
 
