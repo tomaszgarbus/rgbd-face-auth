@@ -5,6 +5,7 @@ from common.db_helper import DBHelper, Database
 from face_rotation import rotate
 from common import tools
 from face_rotation.find_angle import find_angle
+from face_rotation.recentre import recentre
 
 if __name__ == '__main__':
     def load_samples(database, limit=10):
@@ -44,6 +45,10 @@ if __name__ == '__main__':
                                                               theta_x=theta_x,
                                                               theta_y=theta_y,
                                                               theta_z=theta_z)
+
+        print("AFTER ROTATION")
+        theta_x, theta_y, theta_z, center = find_angle(rotated_grey, rotated_depth)
+        rotated_grey, rotated_depth = recentre(rotated_grey, rotated_depth, center)
 
         #tools.show_3d_plot(rotate.to_one_matrix(rotated_grey, rotated_depth))
         # Display the results

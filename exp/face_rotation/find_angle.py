@@ -98,4 +98,4 @@ def find_angle(image, imaged):
         show_with_landmarks(image, landmarks)
         return angle_from(landmarks, imaged, image.shape)
     print("Error, face not found, returning no rotation")
-    return 0, 0, 0
+    return 0, 0, 0, (1/2, 1/5)
