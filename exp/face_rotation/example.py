@@ -26,7 +26,7 @@ if __name__ == '__main__':
     photos = []
     for database in helper.get_databases():
         if database.get_name() == 'ias_lab_rgbd':
-            photos += load_samples(database, limit=1)
+            photos += load_samples(database, limit=10)
 
     for img_grey, img_depth in photos:
 
@@ -34,20 +34,21 @@ if __name__ == '__main__':
 
         # Display the photo before rotation
         #tools.show_image(img_grey)
-        tools.show_image(img_depth)
+        #tools.show_image(img_depth)
 
         # find the angle
-        theta_x, theta_y, theta_z, center = find_angle(img_grey, img_depth)
+        rotation, center = find_angle(img_grey, img_depth)
+
+        if center is None :
+            continue
 
         # Apply rotation
-        rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth),
-                                                              theta_x=theta_x,
-                                                              theta_y=theta_y,
-                                                              theta_z=theta_z)
+        rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth), rotation)
 
         #tools.show_3d_plot(rotate.to_one_matrix(rotated_grey, rotated_depth))
         # Display the results
         tools.show_image(rotated_grey)
-        tools.show_image(rotated_depth)
+        #tools.show_image(rotated_depth)
 
+        #exit(0)
 

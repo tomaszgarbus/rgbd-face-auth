@@ -73,7 +73,7 @@ def _smoothen(img):
     for i in order_i:
         for j in order_j:
             if img[i, j] == 0:
-                img[i, j] = _median_neighbors(img, (i, j), 2, 0.01, 0.9)
+                img[i, j] = _median_neighbors(img, (i, j), 1, 0.01, 0.9)
     return img
 
 def preprocess_images(dimage, image):
@@ -104,7 +104,7 @@ def to_one_matrix(grey_img, depth_img):
     return points
 
 
-def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):
+def rotate_greyd_img(greyd_img, rotation_matrix):
     """
     :param greyd_img: a tuple (grey_image, depth_image).
         images are required to be of size tools.IMG_SIZE
@@ -122,7 +122,7 @@ def rotate_greyd_img(greyd_img, theta_x=0, theta_y=0, theta_z=0):
     _normalize_one_dim(points[:, :, 1])
 
     # Rotate around each axis
-    rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
+    #rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
             points[i, j, :3] = np.dot(rotation_matrix, points[i, j, :3].reshape(3,1)).reshape(3)
