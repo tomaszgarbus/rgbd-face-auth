@@ -66,20 +66,23 @@ def landmarks_take(landmarks):
         landmarks[key] = list([(x, y) for (y, x) in landmarks[key]])
 
     avgl = lambda x: tuple([int(sum(y) / len(y)) for y in zip(*x)])
-    chin_bottom = landmarks["chin"][7:11]
-    chin_left = landmarks["chin"][:7]
-    chin_right = landmarks["chin"][12:]
+    chin_bottom = landmarks["chin"][6:11]
+    chin_left = landmarks["chin"][:6]
+    chin_right = landmarks["chin"][11:]
+    print("chin_bottom" + str(len(chin_bottom)))
+    print("chin_left" + str(len(chin_left)))
+    print("chin_right" + str(len(chin_right)))
 
     right_brow = avgl(landmarks["right_eyebrow"])
     left_brow = avgl(landmarks["left_eyebrow"])
     forehead = avgl([right_brow, left_brow])
-    top_chin = avgl(landmarks["bottom_lip"] + chin_bottom + chin_bottom)
+    top_chin = avgl(landmarks["bottom_lip"] + chin_bottom + chin_bottom + chin_bottom)
     left_cheek = avgl(chin_left + landmarks["left_eyebrow"] + landmarks["nose_tip"])
     right_cheek = avgl(chin_right + landmarks["right_eyebrow"] + landmarks["nose_tip"])
     face_center = avgl([right_brow] + [left_brow] + [top_chin])
 
     return {"right_brow": [right_brow], "left_brow": [left_brow], "forehead": [forehead],
-            "top_chin": [top_chin], "face_center": [face_center]}
+            "top_chin": [top_chin]}
 
 
 def angle_from(landmarks, imaged, shape):
@@ -88,13 +91,13 @@ def angle_from(landmarks, imaged, shape):
     right_brow = to3d(landmarks["right_brow"][0])
     left_brow = to3d(landmarks["left_brow"][0])
     top_chin = to3d(landmarks["top_chin"][0])
-    face_center = to3d(landmarks["face_center"][0])
+    forehead = to3d(landmarks["forehead"][0])
 
-    print(str({"right_brow": [right_brow], "left_brow": [left_brow],  "top_chin": [top_chin], "face_center": [face_center]}))
+    print(str({"right_brow": [right_brow], "left_brow": [left_brow],  "top_chin": [top_chin], "forehead": [forehead]}))
 
     rotation, azimuth = calculate_rotation_matrix(right_brow, top_chin, left_brow)
 
-    return rotation, face_center, azimuth
+    return rotation, forehead, azimuth
 
 
 def show_with_landmarks(image, landmarks, azimuth, face_center):
@@ -108,12 +111,12 @@ def show_with_landmarks(image, landmarks, azimuth, face_center):
 
     v = np.array([face_center[0]*(mxx + 1), face_center[1]*(mxy+1), face_center[2]])
     azimuth = azimuth[0]
-    for i in range(50):
+    for i in range(100):
         x = min(max(int(v[0]), 0), mxx)
         y = min(max(int(v[1]), 0), mxy)
         img[x,y] = ((100-i)/100)
-#        if i % 10 == 0:
-#            print("point on " + str(x) + "," +str(y))
+        if i % 10 == 0:
+            print("point on " + str(x) + "," +str(y))
         v -= azimuth
 
     tools.show_image(img)
@@ -126,12 +129,13 @@ def load_face_points(image):
 
 def find_angle(image, imaged):
     print("\n\nFIND ANGLE")
-    face_landmarks_list = load_face_points(image)
-    if len(face_landmarks_list) > 0:
-        landmarks = landmarks_take(face_landmarks_list[0])
-        # show_with_landmarks(image, face_landmarks_list[0])
+    face_points = load_face_points(image)
+    if len(face_points) > 0:
+        landmarks = landmarks_take(face_points[0])
         rotation, face_center, azimuth = angle_from(landmarks, imaged, image.shape)
         show_with_landmarks(image, landmarks, azimuth, face_center)
-        return rotation, face_center
+        center = np.dot(rotation, np.array(face_center)).reshape(3)
+        print("center = " +str(center))
+        return rotation, (center.item(1), center.item(0))
     print("Error, face not found, returning no rotation")
-    return None, None
+    return None, (1/2, 1/5)
