@@ -5,7 +5,7 @@ from common.db_helper import DBHelper, Database
 from face_rotation import rotate
 from common import tools
 from face_rotation.find_angle import find_angle
-from face_rotation.recentre import recentre
+from face_rotation.recentre import recentre, show_with_center
 
 if __name__ == '__main__':
     def load_samples(database, limit=10):
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     photos = []
     for database in helper.get_databases():
         if database.get_name() == 'ias_lab_rgbd':
-            photos += load_samples(database, limit=1)
+            photos += load_samples(database, limit=5)
 
     for img_grey, img_depth in photos:
 
@@ -38,21 +38,22 @@ if __name__ == '__main__':
         tools.show_image(img_depth)
 
         # find the angle
-        theta_x, theta_y, theta_z, center = find_angle(img_grey, img_depth)
+        rotation, center = find_angle(img_grey, img_depth)
+
+        if rotation is None :
+            continue
+        print("center = " + str(center))
 
         # Apply rotation
-        rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth),
-                                                              theta_x=theta_x,
-                                                              theta_y=theta_y,
-                                                              theta_z=theta_z)
-
-        print("AFTER ROTATION")
-        theta_x, theta_y, theta_z, center = find_angle(rotated_grey, rotated_depth)
+        rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth), rotation)
+        show_with_center(rotated_grey, center)
         rotated_grey, rotated_depth = recentre(rotated_grey, rotated_depth, center)
+        show_with_center(rotated_grey, (1/2, 1/5))
 
         #tools.show_3d_plot(rotate.to_one_matrix(rotated_grey, rotated_depth))
         # Display the results
-        tools.show_image(rotated_grey)
-        tools.show_image(rotated_depth)
+        #tools.show_image(rotated_depth)
+        #tools.show_image(rotated_grey)
 
+        exit(0)
 

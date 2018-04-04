@@ -6,8 +6,8 @@ CENTER_DEST = (1/2, 1/5)  # where center should be
 
 def show_with_center(image, center):
     img = np.copy(image)
-    x = int(CENTER_DEST[0] * IMG_SIZE)
-    y = int(CENTER_DEST[1] * IMG_SIZE)
+    x = int(center[0] * IMG_SIZE)
+    y = int(center[1] * IMG_SIZE)
     img[y, x] = 1
     tools.show_image(img)
 
