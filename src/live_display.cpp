@@ -316,12 +316,17 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
          for (size_t j = 0; j < frame_width; ++j) {
             double distance             = (*window->picture->depth_frame->pixels)[i][j];
             values[i * frame_width + j] = distance * distance * (*window->picture->ir_frame->pixels)[i][j];
-            max_value                   = std::max(max_value, values[i * frame_width + j]);
+            if (i > 0 && j > 0 && i < frame_height - 1 && j < frame_width - 1) {
+               double x1 = (*window->picture->depth_frame->pixels)[i-1][j+1] - (*window->picture->depth_frame->pixels)[i-1][j-1];
+               double x2 = (*window->picture->depth_frame->pixels)[i+1][j-1] - (*window->picture->depth_frame->pixels)[i-1][j-1];
+               values[i * frame_width + j] *= 1.0 / sqrt(x1 * x1 + x2 * x2 + 1);
+               max_value = std::max(max_value, values[i * frame_width + j]);
+            }
          }
       }
 
       // std::cerr << max_value << '\n';
-      max_value = 4e10;
+      max_value = 2e10;
 
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
