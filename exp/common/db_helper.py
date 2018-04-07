@@ -219,7 +219,7 @@ class Database:
         return False
 
     def is_photo_frontal(self, subject_no, img_no):
-        frontal_suffixes = self.single_subject_test_suffixes(subject_no)
+        frontal_suffixes = self.single_subject_frontal_suffixes(subject_no)
         filename = self._imgs_of_subject[subject_no][img_no]
         for suf in frontal_suffixes:
             if filename.endswith(suf):
