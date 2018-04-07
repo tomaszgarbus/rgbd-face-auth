@@ -103,16 +103,7 @@ def to_one_matrix(grey_img, depth_img):
         points[i, :, 3] = grey_img[i, :]
     return points
 
-
 def rotate_greyd_img(greyd_img, rotation_matrix):
-    """
-    :param greyd_img: a tuple (grey_image, depth_image).
-        images are required to be of size tools.IMG_SIZE
-    :param theta_x: angle of rotation around axis x
-    :param theta_y: angle of rotation around axis y
-    :param theta_z: angle of rotation around axis z
-    :return: tuple (grey_image, depth_image), rotated by requested angles
-    """
     # First, we prepare the matrix X of points (x, y, z, Grey)
     (grey_img, depth_img) = (greyd_img)
     points = to_one_matrix(grey_img, depth_img)
@@ -159,3 +150,15 @@ def rotate_greyd_img(greyd_img, rotation_matrix):
     return (grey_rotated, depth_rotated)
 
 
+
+def rotate_greyd_img_by_angle(greyd_img, theta_x=0, theta_y=0, theta_z=0):
+    """
+    :param greyd_img: a tuple (grey_image, depth_image).
+        images are required to be of size tools.IMG_SIZE
+    :param theta_x: angle of rotation around axis x
+    :param theta_y: angle of rotation around axis y
+    :param theta_z: angle of rotation around axis z
+    :return: tuple (grey_image, depth_image), rotated by requested angles
+    """
+    rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
+    return rotate_greyd_img(greyd_img, rotation_matrix)
