@@ -27,8 +27,11 @@ DB_LOCATION = 'database'
     "003_02" is the suffix you want to add to test_suffixes.json.
     * "overridden1" is the name of subdirectory for which you wish to override the
     set of suffixes.
+
+    Same rules apply to frontal_photo_suffixes.json
 """
 TEST_SUF_FNAME = 'test_suffixes.json'
+FRONT_SUF_FNAME = 'frontal_photo_suffixes.json'
 
 def photo_to_greyd_face(color_photo, depth_photo):
     """ Converts full photo to just face image """
@@ -64,7 +67,8 @@ class Database:
     _load_ir = False
     _subject_dirs = []  # Lists subdirectories of subjects in the database
     _imgs_of_subject = []  # Lists images of each subject in the database
-    _test_suffixes = None # Lists filename suffixes corresponding to files from validation set
+    _test_suffixes = None  # Lists filename suffixes corresponding to files from validation set
+    _frontal_suffixes = None  # Lists filename suffixes corresponding to files with faces facing frontally
 
     def __init__(self, name, load_png=True, load_depth=True, load_ir=False):
         """
@@ -130,6 +134,16 @@ class Database:
             if self._name in json_contents:
                 self._test_suffixes = json_contents[self._name]
 
+        # Initialize self._frontal_suffixes from frontal_photo_suffixes.json
+        path = '/'.join([DB_LOCATION, FRONT_SUF_FNAME])
+        if not os.path.isfile(path):
+            logging.warning("File %s not present in the database."
+                            "Make sure you have the latest version of database." % (FRONT_SUF_FNAME))
+        else:
+            json_contents = json.load(open(path))
+            if self._name in json_contents:
+                self._frontal_suffixes = json_contents[self._name]
+
 
     def get_name(self):
         return self._name
@@ -161,6 +175,19 @@ class Database:
             return self._test_suffixes[self._subject_dirs[subject_no]]
         return self.global_test_suffixes()
 
+    def global_frontal_suffixes(self):
+        if self._frontal_suffixes is None:
+            return []
+        else:
+            return self._frontal_suffixes['global']
+
+    def single_subject_frontal_suffixes(self, subject_no):
+        if self._frontal_suffixes is None:
+            return []
+        if self._subject_dirs[subject_no] in self._frontal_suffixes:
+            return self._frontal_suffixes[self._subject_dirs[subject_no]]
+        return self.global_frontal_suffixes()
+
     def load_subject(self, subject_no, img_no):
         path = '/'.join([DB_LOCATION, self._name, 'files', self._subject_dirs[subject_no], self._imgs_of_subject[subject_no][img_no]])
         path_color = path + '.png'
@@ -187,6 +214,14 @@ class Database:
         test_suffixes = self.single_subject_test_suffixes(subject_no)
         filename = self._imgs_of_subject[subject_no][img_no]
         for suf in test_suffixes:
+            if filename.endswith(suf):
+                return True
+        return False
+
+    def is_photo_frontal(self, subject_no, img_no):
+        frontal_suffixes = self.single_subject_test_suffixes(subject_no)
+        filename = self._imgs_of_subject[subject_no][img_no]
+        for suf in frontal_suffixes:
             if filename.endswith(suf):
                 return True
         return False
