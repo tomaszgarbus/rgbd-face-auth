@@ -84,7 +84,7 @@ class Database:
 
         # Initialize |_subject_dirs|
         path = '/'.join([DB_LOCATION, self._name, 'files'])
-        self._subject_dirs = next(os.walk(path))[1]
+        self._subject_dirs = sorted(next(os.walk(path))[1])
 
         # List images of each subject
         def filenames_of_type(all_files, type):
@@ -95,7 +95,7 @@ class Database:
         self._imgs_of_subject = [[] for i in range(self.subjects_count())]
         for (subject, i) in zip(self._subject_dirs, range(self.subjects_count())):
             path = '/'.join([DB_LOCATION, self._name, 'files', subject])
-            all_files = next(os.walk(path))[2]
+            all_files = sorted(next(os.walk(path))[2])
             sets = []
             if self._load_png:
                 sets.append(set(filenames_of_type(all_files, 'png')))
@@ -204,7 +204,7 @@ class DBHelper:
 
     def __init__(self, load_png=True, load_depth=True, load_ir=False):
         assert os.path.isdir(DB_LOCATION), "Please create directory (or symlink) %s" % DB_LOCATION
-        db_names = next(os.walk(DB_LOCATION))[1]
+        db_names = sorted(next(os.walk(DB_LOCATION))[1])
         for db_name in db_names:
             if db_name == 'gen':
                 continue
