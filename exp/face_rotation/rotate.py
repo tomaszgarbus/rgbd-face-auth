@@ -79,8 +79,8 @@ def _smoothen(img):
 def preprocess_images(dimage, image):
     # Erase those pixels which are too close or to far to be treated as
     # valuable data.
-    UPPER_THRESHOLD = 0.95
-    LOWER_THRESHOLD = 0.01
+    UPPER_THRESHOLD = 0.9
+    LOWER_THRESHOLD = 0.1
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
             # Replace pixels beyond reasonable value range with median of closest
@@ -111,6 +111,8 @@ def rotate_greyd_img(greyd_img, rotation_matrix):
     # Normalize x an y dimensions of |points|
     _normalize_one_dim(points[:, :, 0])
     _normalize_one_dim(points[:, :, 1])
+
+    preprocess_images(points[:, :, 0], points[:, :, 1])
 
     # Rotate around each axis
     #rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))

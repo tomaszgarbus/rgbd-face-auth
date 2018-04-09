@@ -31,9 +31,9 @@ def get_model(model_id):
                      kernel_size=(6, 6),
                      activation='relu'))
         model.add(Flatten())
-        model.add(Dropout(0.7))
+        model.add(Dropout(0.8))
         model.add(Dense(128, activation='relu'))
-        model.add(Dropout(0.7))
+        model.add(Dropout(0.8))
         model.add(Dense(TOTAL_SUBJECTS_COUNT, activation='softmax'))
 
         return model

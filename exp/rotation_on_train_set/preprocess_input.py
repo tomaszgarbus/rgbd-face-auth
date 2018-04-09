@@ -11,7 +11,7 @@ from common import tools
 from common.tools import IMG_SIZE
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
-from face_rotation.rotate import rotate_greyd_img_by_angle
+from face_rotation.rotate import rotate_greyd_img_by_angle, preprocess_images
 import os
 
 def build_input_vector(greyd_face):
@@ -34,6 +34,7 @@ total_rotated = 0
 
 def load_database(database, offset, override_test_set=False):
     global total_rotated
+    total_rotated_db = 0
     print('Loading database %s' % database.get_name())
     for i in range(database.subjects_count()):
         print('Subject', i)
@@ -46,20 +47,26 @@ def load_database(database, offset, override_test_set=False):
                 continue
             if database.is_photo_in_test_set(i, j):
                 x_test.append(x)
+                x = np.vectorize(np.absolute)(np.fft.fft2(x, s=x.shape))
                 y_test.append(y)
             else:
                 if database.is_photo_frontal(i, j):
-                    for theta_x in np.linspace(-0.3, 0.3, 10):
-                        for theta_y in np.linspace(-0.3, 0.3, 10):
-                            rotated_greyd_face = rotate_greyd_img_by_angle(greyd_face, theta_x, theta_y)
+                    for theta_x in np.linspace(-0.5, 0.5, 5):
+                        for theta_y in np.linspace(-0.5, 0.5, 5):
+                            img_grey = np.copy(greyd_face[0])
+                            img_depth = np.copy(greyd_face[1])
+                            rotated_greyd_face = rotate_greyd_img_by_angle((img_grey, img_depth), theta_x, theta_y)
                             x = build_input_vector(rotated_greyd_face)
+                            x = np.vectorize(np.absolute)(np.fft.fft2(x, s=x.shape))
                             x_train.append(x)
                             y_train.append(y)
                             total_rotated += 1
-                            print("Total rotated ", total_rotated)
+                            total_rotated_db += 1
                 else:
                     x_train.append(x)
+                    x = np.vectorize(np.absolute)(np.fft.fft2(x, s=x.shape))
                     y_train.append(y)
+    print("Total rotated ", total_rotated, total_rotated_db)
 
 
 if __name__ == '__main__':
