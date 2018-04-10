@@ -1,3 +1,4 @@
 xdg-mime install depth-mime.xml
-sudo cp depth.thumbnailer /usr/share/thumbnailers/
-sudo cp ../cmake-build-debug/thumbnailer /usr/bin/depth-thumbnailer
+xdg-mime install ir-mime.xml
+sudo cp depth-ir.thumbnailer /usr/share/thumbnailers/
+sudo cp ../build/thumbnailer /usr/bin/depth-ir-thumbnailer

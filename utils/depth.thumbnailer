@@ -1,5 +1,0 @@
-[Thumbnailer Entry]
-Exec=/usr/bin/depth-thumbnailer %i %o %s
-MimeType=application/depth;
-
-
