@@ -1,0 +1,3 @@
+[Thumbnailer Entry]
+Exec=/usr/bin/depth-ir-thumbnailer %i %o %s
+MimeType=application/depth;application/ir;
