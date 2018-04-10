@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
     <mime-type type="application/ir">
-        <comment>IR image</comment>
+        <comment xml:lang="en">IR image</comment>
+        <comment xml:lang="pl">Obraz IR</comment>
         <glob pattern="*.ir"/>
     </mime-type>
 </mime-info>

@@ -144,13 +144,13 @@ void DisplayPanel::refresh_display(wxCommandEvent &event) {
    if (max_depth - min_depth < 1.0) {
       max_depth = min_depth + 1.0f;
    }
-   size_t width = frame->pixels->width;
-   size_t height = frame->pixels->height;
+   size_t width    = frame->pixels->width;
+   size_t height   = frame->pixels->height;
    auto int_pixels = new uint8_t[width * height];
    for (size_t i = 0; i < width * height; ++i) {
-      float val = 255.0f * (frame->pixels->data()[i] - min_depth) / (max_depth - min_depth);
-      val = std::min(val, 255.0f);
-      val = std::max(val, 0.0f);
+      float val     = 255.0f * (frame->pixels->data()[i] - min_depth) / (max_depth - min_depth);
+      val           = std::min(val, 255.0f);
+      val           = std::max(val, 0.0f);
       int_pixels[i] = static_cast<uint8_t>(val);
    }
    cv::Mat current_image(cv::Size(static_cast<int>(width), static_cast<int>(height)), CV_8UC1, int_pixels);
@@ -158,15 +158,15 @@ void DisplayPanel::refresh_display(wxCommandEvent &event) {
    cv::applyColorMap(current_image, destination_image, cv::COLORMAP_RAINBOW);
    for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
-         auto pixel = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
-         bitmap[3 * (i *  width + j)] = pixel[2];
-         bitmap[3 * (i *  width + j) + 1] = pixel[1];
-         bitmap[3 * (i *  width + j) + 2] = pixel[0];
+         auto pixel                      = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
+         bitmap[3 * (i * width + j)]     = pixel[2];
+         bitmap[3 * (i * width + j) + 1] = pixel[1];
+         bitmap[3 * (i * width + j) + 2] = pixel[0];
       }
    }
-   m_picture = new wxStaticBitmap(this, wxID_ANY, wxBitmap(wxImage(static_cast<int>(width),
-                                                        static_cast<int>(height), bitmap, true)),
-         wxDefaultPosition, wxDefaultSize);
+   m_picture = new wxStaticBitmap(this, wxID_ANY,
+         wxBitmap(wxImage(static_cast<int>(width), static_cast<int>(height), bitmap, true)), wxDefaultPosition,
+         wxDefaultSize);
 }
 
 MainWindow::MainWindow(const wxString &title, Picture::DepthOrIrFrame *frame)

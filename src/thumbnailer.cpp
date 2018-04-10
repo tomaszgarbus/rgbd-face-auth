@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
    // argv[3] - thumbnail size
    Picture::DepthOrIrFrame frame(argv[1]);
    auto thumb_max_size = static_cast<size_t>(std::stoi(argv[3]));
-   size_t thumb_width = thumb_max_size;
+   size_t thumb_width  = thumb_max_size;
    size_t thumb_height = thumb_max_size;
    if (frame.pixels->width > frame.pixels->height) {
       thumb_height = thumb_max_size * frame.pixels->height / frame.pixels->width;
@@ -24,14 +24,14 @@ int main(int argc, char **argv) {
    }
    frame.resize(thumb_width, thumb_height);
    auto int_pixels = new uint8_t[thumb_width * thumb_height];
-   float max_ir = 0.0;
+   float max_ir    = 0.0;
    if (!frame.is_depth) {
       for (size_t i = 0; i < thumb_width * thumb_height; ++i) {
          max_ir = std::max(max_ir, frame.pixels->data()[i]);
       }
-      if (max_ir <= 1024.0) { // Kinect v1
+      if (max_ir <= 1024.0) {  // Kinect v1
          max_ir = max_ir_v1;
-      } else { // Kinect v2
+      } else {  // Kinect v2
          max_ir = std::max(max_ir, max_ir_v2);
       }
    }
@@ -42,8 +42,8 @@ int main(int argc, char **argv) {
       } else {
          val = 255.0f * frame.pixels->data()[i] / max_ir;
       }
-      val = std::min(val, 255.0f);
-      val = std::max(val, 0.0f);
+      val           = std::min(val, 255.0f);
+      val           = std::max(val, 0.0f);
       int_pixels[i] = static_cast<uint8_t>(val);
    }
    cv::Mat current_image(cv::Size(static_cast<int>(thumb_width), static_cast<int>(thumb_height)), CV_8UC1, int_pixels);
