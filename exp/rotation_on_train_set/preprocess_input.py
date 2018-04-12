@@ -12,6 +12,7 @@ from common.tools import IMG_SIZE
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 from face_rotation.rotate import rotate_greyd_img_by_angle, preprocess_images
+from face_rotation import trim_face
 import os
 
 def build_input_vector(greyd_face):
@@ -41,12 +42,16 @@ def load_database(database, offset, override_test_set=False):
         for j in range(database.imgs_per_subject(i)):
             print('Photo %d/%d' % (j, database.imgs_per_subject(i)))
             greyd_face = database.load_greyd_face(i, j)
+            if greyd_face[0] is not None and greyd_face[1] is not None:
+                a, b, _ = trim_face.trim_greyd(greyd_face[0], greyd_face[1])
+                greyd_face = (a, b)
             x = build_input_vector(greyd_face)
             y = offset + i + 1
             if x is None or y is None:
                 continue
             if database.is_photo_in_test_set(i, j):
                 x_test.append(x)
+                # tools.show_image(x)
                 y_test.append(y)
             else:
                 if database.is_photo_frontal(i, j):
@@ -57,11 +62,13 @@ def load_database(database, offset, override_test_set=False):
                             rotated_greyd_face = rotate_greyd_img_by_angle((img_grey, img_depth), theta_x, theta_y)
                             x = build_input_vector(rotated_greyd_face)
                             x_train.append(x)
+                            # tools.show_image(x)
                             y_train.append(y)
                             total_rotated += 1
                             total_rotated_db += 1
                 else:
                     x_train.append(x)
+                    # tools.show_image(x)
                     y_train.append(y)
     print("Total rotated ", total_rotated, total_rotated_db)
 

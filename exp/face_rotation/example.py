@@ -28,7 +28,7 @@ if __name__ == '__main__':
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     photos = []
     for database in helper.get_databases():
-        photos += load_samples(database, limit=3)
+        photos += load_samples(database, limit=2)
 
     for img_grey, img_depth in photos:
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         print("center = " + str(center))
 
         # Trim face
-        img_grey, img_depth = trim_face.trim_greyd(img_grey, img_depth)
+        img_grey, img_depth, convex_hull_vertices = trim_face.trim_greyd(img_grey, img_depth)
 
         for theta_x in np.linspace(-0.2, 0.2, 3):
             for theta_y in np.linspace(-0.2, 0.2, 3):
