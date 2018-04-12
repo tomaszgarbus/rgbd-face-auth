@@ -7,6 +7,7 @@ from common import tools
 from face_rotation.find_angle import find_angle
 from face_rotation.recentre import recentre, show_with_center
 from face_rotation import trim_face
+import numpy as np
 
 if __name__ == '__main__':
     def load_samples(database, limit=10):
@@ -27,8 +28,7 @@ if __name__ == '__main__':
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     photos = []
     for database in helper.get_databases():
-        if database.get_name() == 'ias_lab_rgbd':
-            photos += load_samples(database, limit=5)
+        photos += load_samples(database, limit=3)
 
     for img_grey, img_depth in photos:
 
@@ -48,6 +48,11 @@ if __name__ == '__main__':
         # Trim face
         img_grey, img_depth = trim_face.trim_greyd(img_grey, img_depth)
 
+        for theta_x in np.linspace(-0.2, 0.2, 3):
+            for theta_y in np.linspace(-0.2, 0.2, 3):
+                rotated_grey, rotated_depth = rotate.rotate_greyd_img_by_angle((img_grey, img_depth), theta_x, theta_y)
+                tools.show_image(rotated_grey)
+                tools.show_image(rotated_depth)
         # Apply rotation
         rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth), rotation)
         show_with_center(rotated_grey, center)
@@ -56,8 +61,8 @@ if __name__ == '__main__':
 
         #tools.show_3d_plot(rotate.to_one_matrix(rotated_grey, rotated_depth))
         # Display the results
-        #tools.show_image(rotated_depth)
-        #tools.show_image(rotated_grey)
+        tools.show_image(rotated_depth)
+        tools.show_image(rotated_grey)
 
         # exit(0)
 

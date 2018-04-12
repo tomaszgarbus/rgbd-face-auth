@@ -79,7 +79,7 @@ def _smoothen(img):
 def preprocess_images(dimage, image):
     # Erase those pixels which are too close or to far to be treated as
     # valuable data.
-    UPPER_THRESHOLD = 0.9
+    UPPER_THRESHOLD = 0.99
     LOWER_THRESHOLD = 0.1
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):

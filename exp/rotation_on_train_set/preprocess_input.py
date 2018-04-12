@@ -50,8 +50,8 @@ def load_database(database, offset, override_test_set=False):
                 y_test.append(y)
             else:
                 if database.is_photo_frontal(i, j):
-                    for theta_x in np.linspace(-0.5, 0.5, 5):
-                        for theta_y in np.linspace(-0.5, 0.5, 5):
+                    for theta_x in np.linspace(-0.2, 0.2, 3):
+                        for theta_y in np.linspace(-0.2, 0.2, 3):
                             img_grey = np.copy(greyd_face[0])
                             img_depth = np.copy(greyd_face[1])
                             rotated_greyd_face = rotate_greyd_img_by_angle((img_grey, img_depth), theta_x, theta_y)
