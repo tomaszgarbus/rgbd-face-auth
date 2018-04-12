@@ -87,7 +87,7 @@ def landmarks_take(landmarks):
 
 def angle_from(landmarks, imaged, shape):
     get_pixl = lambda x0, x1: imaged[max(0, min(shape[1]-1, x0)), max(0, min(shape[0]-1, x1))]
-    to3d = lambda x: (x[0]/shape[0], x[1]/shape[1], get_pixl(x[1], x[0]))
+    to3d = lambda x: (x[0]/shape[0], x[1]/shape[1], get_pixl(x[0], x[1]))
 
     right_brow = to3d(landmarks["right_brow"][0])
     left_brow = to3d(landmarks["left_brow"][0])
