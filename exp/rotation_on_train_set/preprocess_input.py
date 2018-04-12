@@ -47,7 +47,6 @@ def load_database(database, offset, override_test_set=False):
                 continue
             if database.is_photo_in_test_set(i, j):
                 x_test.append(x)
-                x = np.vectorize(np.absolute)(np.fft.fft2(x, s=x.shape))
                 y_test.append(y)
             else:
                 if database.is_photo_frontal(i, j):
@@ -57,14 +56,12 @@ def load_database(database, offset, override_test_set=False):
                             img_depth = np.copy(greyd_face[1])
                             rotated_greyd_face = rotate_greyd_img_by_angle((img_grey, img_depth), theta_x, theta_y)
                             x = build_input_vector(rotated_greyd_face)
-                            x = np.vectorize(np.absolute)(np.fft.fft2(x, s=x.shape))
                             x_train.append(x)
                             y_train.append(y)
                             total_rotated += 1
                             total_rotated_db += 1
                 else:
                     x_train.append(x)
-                    x = np.vectorize(np.absolute)(np.fft.fft2(x, s=x.shape))
                     y_train.append(y)
     print("Total rotated ", total_rotated, total_rotated_db)
 
