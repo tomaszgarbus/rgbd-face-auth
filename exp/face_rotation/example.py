@@ -6,6 +6,7 @@ from face_rotation import rotate
 from common import tools
 from face_rotation.find_angle import find_angle
 from face_rotation.recentre import recentre, show_with_center
+from face_rotation import trim_face
 
 if __name__ == '__main__':
     def load_samples(database, limit=10):
@@ -44,6 +45,9 @@ if __name__ == '__main__':
             continue
         print("center = " + str(center))
 
+        # Trim face
+        img_grey, img_depth = trim_face.trim_greyd(img_grey, img_depth)
+
         # Apply rotation
         rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth), rotation)
         show_with_center(rotated_grey, center)
@@ -55,5 +59,5 @@ if __name__ == '__main__':
         #tools.show_image(rotated_depth)
         #tools.show_image(rotated_grey)
 
-        exit(0)
+        # exit(0)
 
