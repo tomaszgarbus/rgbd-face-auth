@@ -32,6 +32,9 @@ if __name__ == '__main__':
 
     for img_grey, img_depth in photos:
 
+        # Trim face
+        img_grey, img_depth, convex_hull_vertices = trim_face.trim_greyd(img_grey, img_depth)
+
         rotate.preprocess_images(img_depth, img_grey)
 
         # Display the photo before rotation
@@ -44,9 +47,6 @@ if __name__ == '__main__':
         if rotation is None :
             continue
         print("center = " + str(center))
-
-        # Trim face
-        img_grey, img_depth, convex_hull_vertices = trim_face.trim_greyd(img_grey, img_depth)
 
         # Apply rotation
         rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth), rotation)
