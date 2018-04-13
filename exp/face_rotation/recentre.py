@@ -23,10 +23,23 @@ def recentre(image, imaged, center):
     move_x = int((CENTER_DEST[0] - center[0]) * IMG_SIZE)
     move_y = int((CENTER_DEST[1] - center[1]) * IMG_SIZE)
 
+    print("MOVE X MOVE Y %d %d" % (move_x, move_y))
     image = np.roll(image, move_x, axis=1)
     image = np.roll(image, move_y, axis=0)
     imaged = np.roll(imaged, move_x, axis=1)
     imaged = np.roll(imaged, move_y, axis=0)
+    if move_x >= 0:
+        image[:, move_x] = 0
+        imaged[:, move_x] = 0
+    else:
+        image[:, move_x:] = 0
+        imaged[:, move_x:] = 0
+    if move_y >= 0:
+        image[:move_y, :] = 0
+        imaged[:move_y, :] = 0
+    else:
+        image[move_y:, :] = 0
+        imaged[move_y:, :] = 0
     #show_with_center(imaged, center)
 
     return image, imaged

@@ -48,11 +48,6 @@ if __name__ == '__main__':
         # Trim face
         img_grey, img_depth, convex_hull_vertices = trim_face.trim_greyd(img_grey, img_depth)
 
-        for theta_x in np.linspace(-0.2, 0.2, 3):
-            for theta_y in np.linspace(-0.2, 0.2, 3):
-                rotated_grey, rotated_depth = rotate.rotate_greyd_img_by_angle((img_grey, img_depth), theta_x, theta_y)
-                tools.show_image(rotated_grey)
-                tools.show_image(rotated_depth)
         # Apply rotation
         rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth), rotation)
         show_with_center(rotated_grey, center)
