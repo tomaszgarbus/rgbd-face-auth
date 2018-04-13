@@ -33,6 +33,8 @@ DB_LOCATION = 'database'
 TEST_SUF_FNAME = 'test_suffixes.json'
 FRONT_SUF_FNAME = 'frontal_photo_suffixes.json'
 
+MARGIN_COEF = 0.1
+
 def photo_to_greyd_face(color_photo, depth_photo):
     """ Converts full photo to just face image """
     # Resize to common size
@@ -42,9 +44,10 @@ def photo_to_greyd_face(color_photo, depth_photo):
     # Process face detected by the library
     if len(face_coords) == 1:
         (x1,y1,x2,y2) = face_coords[0]
+        margin = int(abs(x2-x1) * MARGIN_COEF)
         # Cut out RGB & D face images
-        depth_face = depth_photo[x1:x2,y2:y1]
-        color_face = color_photo[x1:x2,y2:y1]
+        depth_face = depth_photo[x1-margin:x2+margin,y2-margin:y1+margin]
+        color_face = color_photo[x1-margin:x2+margin,y2-margin:y1+margin]
         depth_face = tools.gray_image_resize(depth_face, (IMG_SIZE, IMG_SIZE))
         depth_face = depth_face/np.max(depth_face)
         color_face = tools.rgb_image_resize(color_face, (IMG_SIZE, IMG_SIZE))
