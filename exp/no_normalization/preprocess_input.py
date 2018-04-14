@@ -7,10 +7,11 @@ in main.py.
 
 from common.db_helper import DBHelper, Database, DB_LOCATION
 import numpy as np
-from common.tools import IMG_SIZE
+from common.constants import IMG_SIZE
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 import os
+
 
 def build_input_vector(greyd_face):
     """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
@@ -27,6 +28,7 @@ def build_input_vector(greyd_face):
     tmp[IMG_SIZE * 2:IMG_SIZE * 3] = entr_grey_face
     tmp[IMG_SIZE * 3:IMG_SIZE * 4] = entr_depth_face
     return tmp
+
 
 def load_database(database, offset, override_test_set=False):
     print('Loading database %s' % database.get_name())

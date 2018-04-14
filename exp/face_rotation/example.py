@@ -10,6 +10,7 @@ from face_rotation import trim_face
 import face_rotation.find_angle
 import numpy as np
 
+
 if __name__ == '__main__':
     def load_samples(database, limit=10):
         samples = []
@@ -19,7 +20,7 @@ if __name__ == '__main__':
                 if len(samples) >= limit:
                     return samples
                 x = database.load_greyd_face(i, j)
-                if x[0] is None or x[1] is None:
+                if x.grey_img is None or x.depth_img is None:
                     continue
                 samples.append(x)
         return samples
@@ -29,20 +30,25 @@ if __name__ == '__main__':
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     photos = []
     for database in helper.get_databases():
-        photos += load_samples(database, limit=1)
+        if database.get_name() == 'eurecom':
+            photos += load_samples(database, limit=5)
 
-    for img_grey, img_depth in photos:
+    for face in photos:
 
         # Trim face
-        img_grey, img_depth, convex_hull_vertices = trim_face.trim_greyd(img_grey, img_depth)
+        face, convex_hull_vertices = trim_face.trim_greyd(face)
+        img_grey, img_depth = face
 
-        rotate.preprocess_images(img_depth, img_grey)
+        face.show_grey()
+        face.show_depth()
+
+        rotate.preprocess_images(face)
 
         # Display the photo before rotation
-        #tools.show_image(img_grey)
-        #tools.show_image(img_depth)
+        face.show_grey()
+        face.show_depth()
 
-        # find the angle
+        # Find the angle
         rotation, face_points = find_angle(img_grey, img_depth)
         if rotation is None:
             continue
@@ -50,17 +56,20 @@ if __name__ == '__main__':
         print("center = " + str(center))
 
         # Apply rotation
-        rotated_grey, rotated_depth, face_points = rotate.rotate_greyd_img((img_grey, img_depth), rotation, face_points)
-        face_rotation.find_angle.show_with_landmarks_normalized(rotated_grey, face_points)
+        rotated_face, face_points = rotate.rotate_greyd_img(face, rotation, face_points)
 
-        #show_with_center(rotated_grey, center)
-        rotated_grey, rotated_depth = recentre(rotated_grey, rotated_depth, face_points["forehead"])
- #       show_with_center(rotated_grey, (1/2, 1/5))
+        rotated_face.show_grey()
+        rotated_face.show_depth()
+        #face_rotation.find_angle.show_with_landmarks_normalized(rotated_face.grey_img, face_points)
 
-        #tools.show_3d_plot(rotate.to_one_matrix(rotated_grey, rotated_depth))
+        # show_with_center(rotated_grey, center)
+        # rotated_grey, rotated_depth = recentre(rotated_grey, rotated_depth, face_points["forehead"])
+        # show_with_center(rotated_grey, (1/2, 1/5))
+
+        # tools.show_3d_plot(rotate.to_one_matrix(rotated_face))
         # Display the results
-        #tools.show_image(rotated_depth)
-#        tools.show_image(rotated_grey)
+        # tools.show_image(rotated_depth)
+        # tools.show_image(rotated_grey)
 
         # exit(0)
 

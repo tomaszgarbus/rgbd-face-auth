@@ -10,7 +10,7 @@ import numpy as np
 import sys
 from common.db_helper import DB_LOCATION
 
-from common.tools import IMG_SIZE
+from common.constants import IMG_SIZE
 
 def get_model(model_id):
     # TODO sensible creating models

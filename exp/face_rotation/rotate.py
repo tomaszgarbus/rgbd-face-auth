@@ -1,46 +1,53 @@
 import numpy as np
 import math
-from common.tools import IMG_SIZE
+from common.constants import IMG_SIZE, BGCOLOR
 import random
 import logging
 
+from model.face import Face
+
 SMOOTHEN_ITER = 15
 
-def _rx(theta):
+
+def _rx(theta: float) -> np.ndarray:
     """ returns rotation matrix for x axis """
     return np.array([[1, 0, 0],
                      [0, math.cos(theta), -math.sin(theta)],
                      [0, math.sin(theta), math.cos(theta)]])
 
 
-def _ry(theta):
+def _ry(theta: float) -> np.ndarray:
     """ returns rotation matrix for y axis """
     return np.array([[math.cos(theta), 0, math.sin(theta)],
                      [0, 1, 0],
                      [-math.sin(theta), 0, math.cos(theta)]])
 
 
-def _rz(theta):
+def _rz(theta: float) -> np.ndarray:
     """ returns rotation matrix for z axis """
     return np.array([[math.cos(theta), -math.sin(theta), 0],
                      [math.sin(theta), math.cos(theta), 0],
                      [0, 0, 1]])
 
 
-def _normalize_one_dim(_points):
+def _normalize_one_dim(_points: np.ndarray) -> None:
     """ scales one dimension into interval 0..1 """
-    _points -= _points.min()
+    #med = np.median(_points)
+    #var = np.var(_points)
+    #_points -= med
+    #_points /= math.sqrt(var)
+    #_points -= _points.min()
     if _points.max() > 0:
         _points /= _points.max()
 
 
-def _normalize(_points):
+def _normalize(_points: np.ndarray) -> None:
     """ scales each dimension into interval 0..1 """
     for i in range(_points.shape[-1]):
         _normalize_one_dim(_points[:, :, i])
 
 
-def normalize_face_points(_points, face_points, rotation_matrix):
+def normalize_face_points(_points: np.ndarray, face_points: dict, rotation_matrix: np.ndarray((3, 3))) -> dict:
     face_points = {k: np.dot(rotation_matrix, np.asarray(v)) for k, v in face_points.items()}
     face_points = {k: (v.item(0), v.item(1), v.item(2)) for k, v in face_points.items()}
     for i in range(_points.shape[-1] - 1):
@@ -58,7 +65,11 @@ def normalize_face_points(_points, face_points, rotation_matrix):
     return face_points
 
 
-def _median_neighbors(points, center, size, min_value, max_value):
+def _median_neighbors(points: np.ndarray,
+                      center: tuple((int, int)),
+                      size: int,
+                      min_value: float,
+                      max_value: float) -> float:
     """
     Find a median of those points which have depth in range
     |min_value|..|max_value|, only in the neighborhood of |center|
@@ -84,7 +95,8 @@ def _median_neighbors(points, center, size, min_value, max_value):
         return 0
     return np.median(vals)
 
-def _smoothen(img):
+
+def _smoothen(img: np.ndarray) -> np.ndarray:
     """ smoothens the rotated image, i.e. fills each empty pixel with a median
     of non-empty neighboring pixels """
     order_i = list(range(IMG_SIZE))
@@ -97,11 +109,13 @@ def _smoothen(img):
                 img[i, j] = _median_neighbors(img, (i, j), 1, 0.01, 0.9)
     return img
 
-def preprocess_images(dimage, image):
+
+def preprocess_images(face: Face) -> None:
     # Erase those pixels which are too close or to far to be treated as
     # valuable data.
     UPPER_THRESHOLD = 0.98
     LOWER_THRESHOLD = 0.1
+    (image, dimage) = face
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
             # Replace pixels beyond reasonable value range with median of closest
@@ -118,33 +132,32 @@ def preprocess_images(dimage, image):
     _normalize_one_dim(image)
 
 
-def to_one_matrix(grey_img, depth_img):
+def to_one_matrix(face: Face) -> np.ndarray:
     points = np.zeros((IMG_SIZE, IMG_SIZE, 4))
     for i in range(IMG_SIZE):
         points[i, :, 0] = i
         points[:, i, 1] = i
-        points[i, :, 2] = depth_img[i, :]
-        points[i, :, 3] = grey_img[i, :]
+        points[i, :, 2] = face.depth_img[i, :]
+        points[i, :, 3] = face.grey_img[i, :]
     return points
 
 
-def rotate_greyd_img(greyd_img, rotation_matrix, face_points):
+def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray, face_points):
     # First, we prepare the matrix X of points (x, y, z, Grey)
-    (grey_img, depth_img) = (greyd_img)
-    points = to_one_matrix(grey_img, depth_img)
+    (grey_img, depth_img) = (face)
+    points = to_one_matrix(face)
+
+    preprocess_images(face)
 
     # Normalize x an y dimensions of |points|
     _normalize_one_dim(points[:, :, 0])
     _normalize_one_dim(points[:, :, 1])
 
-    preprocess_images(points[:, :, 2], points[:, :, 3])
-
     # Rotate around each axis
-    #rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
+    # rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
             points[i, j, :3] = np.dot(rotation_matrix, points[i, j, :3].reshape(3, 1)).reshape(3)
-
 
     # Normalize once more after rotation
     face_points = normalize_face_points(points, face_points, rotation_matrix)
@@ -160,6 +173,8 @@ def rotate_greyd_img(greyd_img, rotation_matrix, face_points):
                 continue
             x = int(points[i, j, 0] * (IMG_SIZE - 1))
             y = int(points[i, j, 1] * (IMG_SIZE - 1))
+            if x < 0 or y < 0 or x >= IMG_SIZE or y >= IMG_SIZE:
+                continue
             g = points[i, j, 3]
             z = points[i, j, 2]
             if depth_rotated[x, y] < z:
@@ -170,13 +185,12 @@ def rotate_greyd_img(greyd_img, rotation_matrix, face_points):
         grey_rotated = _smoothen(grey_rotated)
         depth_rotated = _smoothen(depth_rotated)
 
-
     # If you want to view the rotated image, use the following:
     # tools.show_image(grey_rotated)
     # tools.show_image(depth_rotated)
     # Or:
     # tools.show_3d_plot(points)
-    return (grey_rotated, depth_rotated, face_points)
+    return (Face(grey_rotated, depth_rotated), face_points)
 
 
 def rotate_greyd_img_by_angle(greyd_img, theta_x=0, theta_y=0, theta_z=0):

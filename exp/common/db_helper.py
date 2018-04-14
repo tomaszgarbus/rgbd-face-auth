@@ -1,8 +1,11 @@
-# TODO(tomek): implement loading IR photos
+"""
+    Unified class for loading images from databases
+"""
 
-# Unified class for loading images from databases
-import common.tools as tools
-from common.tools import IMG_SIZE
+from common import tools
+from common.constants import IMG_SIZE, MARGIN_COEF
+from common.constants import DB_LOCATION, TEST_SUF_FNAME, FRONT_SUF_FNAME
+from model.face import Face
 
 import face_recognition
 import numpy as np
@@ -10,32 +13,8 @@ import os
 import logging
 import json
 
-DB_LOCATION = 'database'
-"""
-    test_suffixes.json is a file containing suffixes of filenames chosen
-    for the test dataset. The format is as follows:
-    {
-        "database1": {
-            "global": ["suffix1", "suffix2", "suffix3"]
-            "overridden1": ["suffix4", "suffix5", "suffix6"]
-        }
-    }
-    where:
-    * "database1" is the name of directory containing the database
-    * "suffix1" is a suffix of the filename without extension. For instance,
-    if you wish to choose images 003_02.png and 003_02.depth for test set,
-    "003_02" is the suffix you want to add to test_suffixes.json.
-    * "overridden1" is the name of subdirectory for which you wish to override the
-    set of suffixes.
 
-    Same rules apply to frontal_photo_suffixes.json
-"""
-TEST_SUF_FNAME = 'test_suffixes.json'
-FRONT_SUF_FNAME = 'frontal_photo_suffixes.json'
-
-MARGIN_COEF = 0.1
-
-def photo_to_greyd_face(color_photo, depth_photo):
+def photo_to_greyd_face(color_photo: np.ndarray, depth_photo: np.ndarray) -> Face:
     """ Converts full photo to just face image """
     # Resize to common size
     color_photo = tools.rgb_image_resize(color_photo, (depth_photo.shape[1], depth_photo.shape[0]))
@@ -55,14 +34,14 @@ def photo_to_greyd_face(color_photo, depth_photo):
         grey_face = tools.change_image_mode('RGB', 'L', color_face)
         grey_face = grey_face/np.max(grey_face)
 
-        return grey_face, depth_face
+        return Face(grey_face, depth_face)
     else:
         # Face couldn't be detected
-        return None, None
+        return Face(None, None)
 
 class Database:
     """
-    Class Database corresponds to a single valid database directory.
+        Class Database corresponds to a single valid database directory.
     """
     _name = None
     _load_png = True
@@ -80,7 +59,7 @@ class Database:
         :param load_depth: True if only images which come in .depth format should be loaded
         :param load_ir: True if only images which come in .ir format should be loaded
 
-        Only the intersection over selected formats of images will be loaded.
+            Only the intersection over selected formats of images will be loaded.
         """
         assert not load_ir, "Loading IR photos not implemented"
         assert os.path.isdir('/'.join([DB_LOCATION, name, 'files'])), "No such database %s" % name

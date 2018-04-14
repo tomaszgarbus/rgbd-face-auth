@@ -1,15 +1,14 @@
 import face_recognition
 import numpy as np
-from common import tools
-from common.tools import IMG_SIZE
 import logging
 from scipy.spatial import ConvexHull
 import sys
 
-BGCOLOR = 0
+from common.constants import IMG_SIZE, BGCOLOR
+from model.face import Face
 
 
-def paint_bucket(image, posx=0, posy=0, color=BGCOLOR):
+def paint_bucket(image: np.ndarray, posx: int = 0, posy: int = 0, color: float = BGCOLOR) -> np.ndarray:
     """
         Fills image with color |color| if pixel has different color and
         propagates to neighboring pixels
@@ -28,7 +27,7 @@ def paint_bucket(image, posx=0, posy=0, color=BGCOLOR):
     return image
 
 
-def find_convex_hull_vertices(grey_img):
+def find_convex_hull_vertices(grey_img: np.ndarray) -> list:
     """
         :param grey_img:
         :return: A list of 2-D points denoting positions of vertices
@@ -52,7 +51,7 @@ def find_convex_hull_vertices(grey_img):
     return ch_vertices
 
 
-def connect_convex_hull_vertices(depth_img, ch_vertices):
+def connect_convex_hull_vertices(depth_img: np.ndarray, ch_vertices: list) -> list:
     all_points = []
 
     for point1, point2 in zip(ch_vertices, np.roll(ch_vertices, 1, axis=0)):
@@ -74,57 +73,55 @@ def connect_convex_hull_vertices(depth_img, ch_vertices):
     return all_points
 
 
-def find_convex_hull(grey_img, depth_img):
+def find_convex_hull(face: Face) -> list:
     """
         Finds all points lying on the convex hull of the face. Applies
         depth to each point so that it can be rotated the same way as the face
-        :param grey_img:
-        :param depth_img:
+        :param face:
         :return: A list of 3-D points (x,y,depth)
     """
-    ch_vertices = find_convex_hull_vertices(grey_img)
+    ch_vertices = find_convex_hull_vertices(face.grey_img)
     if ch_vertices == []:
         return []
 
-    return connect_convex_hull_vertices(depth_img, ch_vertices)
+    return connect_convex_hull_vertices(face.depth_img, ch_vertices)
 
 
-def cut_around_points(grey_img, depth_img, points, color=BGCOLOR):
+def cut_around_points(face, points, color=BGCOLOR):
     """
         Erases contents of original image around |points|.
-        :param grey_img:
-        :param depth_img:
+        :param face:
         :param points: list of 3D points, must be isolating a face perfectly
         :return: modified grey_img, depth_img
     """
     for (xs, ys, _) in points:
-        depth_img[int(xs), int(ys)] = color
-        grey_img[int(xs), int(ys)] = color
+        face.depth_img[int(xs), int(ys)] = color
+        face.grey_img[int(xs), int(ys)] = color
 
     sys.setrecursionlimit(100000)
     for posx in [0,IMG_SIZE-1]:
         for posy in [0,IMG_SIZE-1]:
-            grey_img = paint_bucket(grey_img, posx=posx, posy=posy, color=color)
-            depth_img = paint_bucket(depth_img, posx=posx, posy=posy, color=color)
+            grey_img = paint_bucket(face.grey_img, posx=posx, posy=posy, color=color)
+            depth_img = paint_bucket(face.depth_img, posx=posx, posy=posy, color=color)
     return grey_img, depth_img
 
 
-def trim_greyd(grey_img, depth_img):
+def trim_greyd(face: Face) -> (Face, list):
     """
-        :param grey_img:
-        :param depth_img:
-        :return: (trimmed grey_img, trimmed depth_img, list of 2D points)
+        :param face
+        :return: (trimmed Face, list of 2D points)
     """
+    grey_img, depth_img = face
     ch_vertices = find_convex_hull_vertices(grey_img)
 
     if ch_vertices == []:
-        return grey_img, depth_img, []
+        return face, []
 
-    all_points = find_convex_hull(grey_img, depth_img)
+    all_points = find_convex_hull(face)
 
-    grey_img, depth_img = cut_around_points(grey_img, depth_img, all_points)
+    grey_img, depth_img = cut_around_points(face, all_points)
 
     #tools.show_image(grey_img)
     #tools.show_image(depth_img)
 
-    return grey_img, depth_img, ch_vertices
+    return Face(grey_img, depth_img), ch_vertices

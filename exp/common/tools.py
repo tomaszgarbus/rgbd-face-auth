@@ -7,10 +7,8 @@ from matplotlib import cm
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 
-IMG_SIZE = 128
 
-
-def rgb_skin_check(R, G, B):
+def rgb_skin_check(R: float, G: float, B: float) -> bool:
     """
         Based on "Human Skin Detection by Visible and Near-Infrared Imaging"
         by Yusuke Kanzawa, Yoshikatsu Kimura, Takashi Naito
@@ -32,7 +30,7 @@ def rgb_skin_check(R, G, B):
     return 77 <= Cb and Cb <= 127 and 133 <= Cr and Cr <= 173
 
 
-def load_color_image_from_file(filename, skin_only=False):
+def load_color_image_from_file(filename: str, skin_only: bool = False):
     ret = np.array(PIL.Image.open(filename), dtype='uint8')
 
     if skin_only:
@@ -43,7 +41,8 @@ def load_color_image_from_file(filename, skin_only=False):
 
     return ret
 
-def load_depth_photo(path):
+
+def load_depth_photo(path: str) -> np.ndarray:
     with open(path, 'rb') as f:
         format_arr = np.fromfile(f, dtype='i1', count=4)
         assert ''.join(map(chr, format_arr)) == 'PHDE'
@@ -55,23 +54,23 @@ def load_depth_photo(path):
         return photo
 
 
-def change_image_mode(source_mode, output_mode, img):
+def change_image_mode(source_mode: str, output_mode: str, img: np.ndarray) -> np.ndarray:
     return np.array(PIL.Image.fromarray(img, mode=source_mode).convert(output_mode))
 
 
-def rgb_image_resize(img, size):
+def rgb_image_resize(img: np.ndarray, size: tuple) -> np.ndarray:
     tmp = PIL.Image.fromarray(img, mode='RGB')
     tmp = tmp.resize(size)
     return np.array(tmp)
 
 
-def gray_image_resize(img, size):
+def gray_image_resize(img: np.ndarray, size: tuple) -> None:
     tmp = PIL.Image.fromarray(img, mode='F')
     tmp = tmp.resize(size)
     return np.array(tmp)
 
 
-def color_image_to_face(img):
+def color_image_to_face(img: np.ndarray) -> None:
     coords = face_recognition.face_locations(img)
     if len(coords) == 1:
         (x1,y1,x2,y2) = coords[0]
@@ -80,24 +79,24 @@ def color_image_to_face(img):
         return img  # TODO: handle it
 
 
-def show_image(img):
+def show_image(img: np.ndarray) -> None:
     plt.imshow(img)
     plt.show()
 
 
-def show_3d_plot(X):
+def show_3d_plot(X: np.ndarray) -> None:
     a3d = Axes3D(plt.figure())
     a3d.plot_surface(X[:, :, 0], X[:, :, 1], X[:, :, 2], cmap=cm.coolwarm, )
     plt.show()
 
 
-def show_gray_image(img):
+def show_gray_image(img: np.ndarray) -> None:
     plt.gray()
     plt.imshow(img)
     plt.show()
 
 
-def rgb_image_to_gray_entropy(img):
+def rgb_image_to_gray_entropy(img: np.ndarray) -> np.ndarray:
     img = change_image_mode('RGBA', 'L', img)
     img_shape = img.shape
     ret = entropy(img.reshape(img_shape), disk(10)).reshape(img_shape[0], img_shape[1], 1)

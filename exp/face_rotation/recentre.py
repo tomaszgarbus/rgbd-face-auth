@@ -1,6 +1,6 @@
 import numpy as np
 from common import tools
-from common.tools import IMG_SIZE
+from common.constants import IMG_SIZE
 
 CENTER_DEST = (1/2, 1/5)  # where center should be
 
