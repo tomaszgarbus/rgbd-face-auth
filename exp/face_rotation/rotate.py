@@ -30,24 +30,27 @@ def _rz(theta: float) -> np.ndarray:
                      [0, 0, 1]])
 
 
-def _normalize_one_dim(_points: np.ndarray) -> None:
-    """ scales one dimension into interval 0..1 """
-    #med = np.median(_points)
-    #var = np.var(_points)
-    #_points -= med
-    #_points /= math.sqrt(var)
-    #_points -= _points.min()
+def _rescale_one_dim(_points: np.ndarray) -> None:
+    """
+        Scales one dimension into interval 0..1
+    """
+    _points -= _points.min()
     if _points.max() > 0:
         _points /= _points.max()
 
 
-def _normalize(_points: np.ndarray) -> None:
-    """ scales each dimension into interval 0..1 """
+def _rescale(_points: np.ndarray) -> None:
+    """
+        Scales each dimension into interval 0..1
+    """
     for i in range(_points.shape[-1]):
-        _normalize_one_dim(_points[:, :, i])
+        _rescale_one_dim(_points[:, :, i])
 
 
 def normalize_face_points(_points: np.ndarray, face_points: dict, rotation_matrix: np.ndarray((3, 3))) -> dict:
+    """
+        Scales face points into interval 0..1
+    """
     face_points = {k: np.dot(rotation_matrix, np.asarray(v)) for k, v in face_points.items()}
     face_points = {k: (v.item(0), v.item(1), v.item(2)) for k, v in face_points.items()}
     for i in range(_points.shape[-1] - 1):
@@ -71,15 +74,15 @@ def _median_neighbors(points: np.ndarray,
                       min_value: float,
                       max_value: float) -> float:
     """
-    Find a median of those points which have depth in range
-    |min_value|..|max_value|, only in the neighborhood of |center|
-    of size |size|.
-    :param X: array of points, of size (IMG_SIZE, IMG_SIZE)
-    :param center: center - a tuple (x, y)
-    :param size: maximum distance from the center
-    :param min_value: minimum value to be considered
-    :param max_value: maximum value to be considered
-    :return: a single float value
+        Find a median of those points which have depth in range
+        |min_value|..|max_value|, only in the neighborhood of |center|
+        of size |size|.
+        :param X: array of points, of size (IMG_SIZE, IMG_SIZE)
+        :param center: center - a tuple (x, y)
+        :param size: maximum distance from the center
+        :param min_value: minimum value to be considered
+        :param max_value: maximum value to be considered
+        :return: a single float value
     """
     min_x = max(0, center[0]-size)
     max_x = min(IMG_SIZE, center[0] + size)
@@ -110,26 +113,28 @@ def _smoothen(img: np.ndarray) -> np.ndarray:
     return img
 
 
-def preprocess_images(face: Face) -> None:
-    # Erase those pixels which are too close or to far to be treated as
-    # valuable data.
-    UPPER_THRESHOLD = 0.98
-    LOWER_THRESHOLD = 0.1
-    (image, dimage) = face
+def drop_corner_values(dimage: np.ndarray,
+                       image: np.ndarray,
+                       lower_threshold : float = 0.1,
+                       upper_threshold : float = 0.98) -> None:
+    """
+        Erase those pixels which are too close or to far to be treated as
+        valuable data.
+    """
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
             # Replace pixels beyond reasonable value range with median of closest
             # "good" pixels
-            if dimage[i, j] > UPPER_THRESHOLD or dimage[i, j] < LOWER_THRESHOLD:
-                new_value = _median_neighbors(dimage[:, :], (i, j), IMG_SIZE // 3, LOWER_THRESHOLD,
-                                                    UPPER_THRESHOLD)
-                if new_value > UPPER_THRESHOLD or new_value < LOWER_THRESHOLD:
+            if dimage[i, j] > upper_threshold or dimage[i, j] < lower_threshold:
+                new_value = _median_neighbors(dimage[:, :], (i, j), IMG_SIZE // 3, lower_threshold,
+                                                    upper_threshold)
+                if new_value > upper_threshold or new_value < lower_threshold:
                     new_value = 0.5
                 dimage[i, j] = new_value
 
     # Scale each dimension into interval 0..1
-    _normalize_one_dim(dimage)
-    _normalize_one_dim(image)
+    _rescale_one_dim(dimage)
+    _rescale_one_dim(image)
 
 
 def to_one_matrix(face: Face) -> np.ndarray:
@@ -147,11 +152,11 @@ def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray, face_points):
     (grey_img, depth_img) = (face)
     points = to_one_matrix(face)
 
-    preprocess_images(face)
+    drop_corner_values(points[:, :, 2], points[:, :, 3])
 
     # Normalize x an y dimensions of |points|
-    _normalize_one_dim(points[:, :, 0])
-    _normalize_one_dim(points[:, :, 1])
+    _rescale_one_dim(points[:, :, 0])
+    _rescale_one_dim(points[:, :, 1])
 
     # Rotate around each axis
     # rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
@@ -161,7 +166,7 @@ def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray, face_points):
 
     # Normalize once more after rotation
     face_points = normalize_face_points(points, face_points, rotation_matrix)
-    _normalize(points)
+    _rescale(points)
 
     # Apply rotated image to grey and depth photo
     grey_rotated = np.zeros((IMG_SIZE, IMG_SIZE))
@@ -193,14 +198,10 @@ def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray, face_points):
     return (Face(grey_rotated, depth_rotated), face_points)
 
 
-def rotate_greyd_img_by_angle(greyd_img, theta_x=0, theta_y=0, theta_z=0):
-    """
-    :param greyd_img: a tuple (grey_image, depth_image).
-        images are required to be of size tools.IMG_SIZE
-    :param theta_x: angle of rotation around axis x
-    :param theta_y: angle of rotation around axis y
-    :param theta_z: angle of rotation around axis z
-    :return: tuple (grey_image, depth_image), rotated by requested angles
-    """
+def rotate_greyd_img_by_angle(face: Face,
+                              face_points,
+                              theta_x : float = 0,
+                              theta_y : float = 0,
+                              theta_z : float = 0,):
     rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
-    return rotate_greyd_img(greyd_img, rotation_matrix)
+    return rotate_greyd_img(face, rotation_matrix, face_points)

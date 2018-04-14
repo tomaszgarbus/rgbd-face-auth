@@ -43,12 +43,16 @@ def load_color_image_from_file(filename: str, skin_only: bool = False):
 
 
 def load_depth_photo(path: str) -> np.ndarray:
+    """
+        :param path:
+        :return: 2D np.ndarray of floats
+    """
     with open(path, 'rb') as f:
-        format_arr = np.fromfile(f, dtype='i1', count=4)
+        format_arr = np.fromfile(f, dtype=np.int8, count=4)
         assert ''.join(map(chr, format_arr)) == 'PHDE'
-        size_arr = np.fromfile(f, dtype='i4', count=2)
+        size_arr = np.fromfile(f, dtype=np.int32, count=2)
         width, height = size_arr
-        data_arr = np.fromfile(f, dtype='f', count=height * width)
+        data_arr = np.fromfile(f, dtype=np.float32, count=height * width)
         photo = np.asarray(data_arr)
         photo = photo.reshape(height, width)
         return photo
@@ -58,7 +62,12 @@ def change_image_mode(source_mode: str, output_mode: str, img: np.ndarray) -> np
     return np.array(PIL.Image.fromarray(img, mode=source_mode).convert(output_mode))
 
 
-def rgb_image_resize(img: np.ndarray, size: tuple) -> np.ndarray:
+def rgb_image_resize(img: np.ndarray, size: tuple((int, int))) -> np.ndarray:
+    """
+        :param img: 3D numpy array of shape (img_width, img_height, 3)
+        :param size: (new_width, new_height)
+        :return: resized image in RGB move
+    """
     tmp = PIL.Image.fromarray(img, mode='RGB')
     tmp = tmp.resize(size)
     return np.array(tmp)
@@ -85,14 +94,12 @@ def show_image(img: np.ndarray) -> None:
 
 
 def show_3d_plot(X: np.ndarray) -> None:
+    """
+        :param X: must be 3 dimensional numpy array, with last dimension
+        of size >= 3
+    """
     a3d = Axes3D(plt.figure())
     a3d.plot_surface(X[:, :, 0], X[:, :, 1], X[:, :, 2], cmap=cm.coolwarm, )
-    plt.show()
-
-
-def show_gray_image(img: np.ndarray) -> None:
-    plt.gray()
-    plt.imshow(img)
     plt.show()
 
 

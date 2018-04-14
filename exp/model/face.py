@@ -11,6 +11,8 @@ class Face:
     def __init__(self, grey_img: np.array, depth_img: np.array):
         self.grey_img = grey_img
         self.depth_img = depth_img
+        if self.grey_img is not None and self.depth_img is not None:
+            assert self.depth_img.shape == self.grey_img.shape
 
     _iter_rq = 0
 
