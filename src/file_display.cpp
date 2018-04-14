@@ -36,7 +36,8 @@ class DisplayPanel : public wxPanel {
 
 class SettingsPanel : public wxPanel {
  public:
-   explicit SettingsPanel(wxPanel *parent, MainWindow *window, int min_slider_default, int max_slider_default, int slider_max);
+   explicit SettingsPanel(
+         wxPanel *parent, MainWindow *window, int min_slider_default, int max_slider_default, int slider_max);
 
    void on_min_slider_change(wxCommandEvent &event);
    void on_max_slider_change(wxCommandEvent &event);
@@ -61,12 +62,15 @@ class MainWindow : public wxFrame {
 
 // Definitions
 
-SettingsPanel::SettingsPanel(wxPanel *parent, MainWindow *window, int min_slider_default, int max_slider_default, int slider_max)
+SettingsPanel::SettingsPanel(
+      wxPanel *parent, MainWindow *window, int min_slider_default, int max_slider_default, int slider_max)
       : wxPanel(parent, -1, wxPoint(-1, -1), wxSize(-1, -1), wxBORDER_SUNKEN), m_parent(parent), window(window),
         m_min_d(new wxSlider(this, ID_MIN_D, min_slider_default, 0, slider_max, wxPoint(80, 10), wxSize(500, 15))),
         m_max_d(new wxSlider(this, ID_MAX_D, max_slider_default, 0, slider_max, wxPoint(80, 40), wxSize(500, 15))),
-        m_min_d_text(new wxTextCtrl(this, ID_MIN_D_TEXT, std::to_string(min_slider_default), wxPoint(10, 10), wxSize(60, 15))),
-        m_max_d_text(new wxTextCtrl(this, ID_MAX_D_TEXT, std::to_string(max_slider_default), wxPoint(10, 40), wxSize(60, 15))) {
+        m_min_d_text(
+              new wxTextCtrl(this, ID_MIN_D_TEXT, std::to_string(min_slider_default), wxPoint(10, 10), wxSize(60, 15))),
+        m_max_d_text(new wxTextCtrl(
+              this, ID_MAX_D_TEXT, std::to_string(max_slider_default), wxPoint(10, 40), wxSize(60, 15))) {
    m_min_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_min_slider_change, this);
    m_min_d->Bind(wxEVT_SCROLL_THUMBTRACK, &SettingsPanel::on_min_slider_change, this);
    m_max_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_max_slider_change, this);
@@ -153,7 +157,7 @@ void DisplayPanel::refresh_display(wxCommandEvent &event) {
       val           = std::max(val, 0.0f);
       int_pixels[i] = static_cast<uint8_t>(val);
       if (!frame->is_depth) {
-         bitmap[3 * i] = int_pixels[i];
+         bitmap[3 * i]     = int_pixels[i];
          bitmap[3 * i + 1] = int_pixels[i];
          bitmap[3 * i + 2] = int_pixels[i];
       }
@@ -164,8 +168,8 @@ void DisplayPanel::refresh_display(wxCommandEvent &event) {
       cv::applyColorMap(current_image, destination_image, cv::COLORMAP_RAINBOW);
       for (size_t i = 0; i < height; ++i) {
          for (size_t j = 0; j < width; ++j) {
-            auto pixel = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
-            bitmap[3 * (i * width + j)] = pixel[2];
+            auto pixel                      = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
+            bitmap[3 * (i * width + j)]     = pixel[2];
             bitmap[3 * (i * width + j) + 1] = pixel[1];
             bitmap[3 * (i * width + j) + 2] = pixel[0];
          }
@@ -187,15 +191,15 @@ MainWindow::MainWindow(const wxString &title, Picture::DepthOrIrFrame *frame)
    }
    if (frame->is_depth) {
       min_slider_default = 500;
-      slider_max = static_cast<int>(max_value);
+      slider_max         = static_cast<int>(max_value);
       max_slider_default = std::min(1500, slider_max);
    } else {
       min_slider_default = 0;
       max_slider_default = static_cast<int>(max_value);
-      slider_max = max_slider_default;
+      slider_max         = max_slider_default;
    }
    m_settings = new SettingsPanel(m_parent, this, min_slider_default, max_slider_default, slider_max);
-   auto vbox = new wxBoxSizer(wxVERTICAL);
+   auto vbox  = new wxBoxSizer(wxVERTICAL);
    vbox->Add(m_display, 1, wxEXPAND | wxALL, 5);
    vbox->Add(m_settings, 1, wxEXPAND | wxALL, 5);
    m_parent->SetSizer(vbox);
