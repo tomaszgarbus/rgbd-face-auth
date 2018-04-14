@@ -4,7 +4,7 @@ from common.tools import IMG_SIZE
 import random
 import logging
 
-SMOOTHEN_ITER = 6
+SMOOTHEN_ITER = 1
 
 def _rx(theta):
     """ returns rotation matrix for x axis """
@@ -79,15 +79,18 @@ def _smoothen(img):
 def preprocess_images(dimage, image):
     # Erase those pixels which are too close or to far to be treated as
     # valuable data.
-    UPPER_THRESHOLD = 0.9
+    UPPER_THRESHOLD = 0.98
     LOWER_THRESHOLD = 0.1
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
             # Replace pixels beyond reasonable value range with median of closest
             # "good" pixels
             if dimage[i, j] > UPPER_THRESHOLD or dimage[i, j] < LOWER_THRESHOLD:
-                dimage[i, j] = _median_neighbors(dimage[:, :], (i, j), IMG_SIZE // 3, LOWER_THRESHOLD,
+                new_value = _median_neighbors(dimage[:, :], (i, j), IMG_SIZE // 3, LOWER_THRESHOLD,
                                                     UPPER_THRESHOLD)
+                if new_value > UPPER_THRESHOLD or new_value < LOWER_THRESHOLD:
+                    new_value = 0.5
+                dimage[i, j] = new_value
 
     # Scale each dimension into interval 0..1
     _normalize_one_dim(dimage)
@@ -112,7 +115,7 @@ def rotate_greyd_img(greyd_img, rotation_matrix):
     _normalize_one_dim(points[:, :, 0])
     _normalize_one_dim(points[:, :, 1])
 
-    preprocess_images(points[:, :, 0], points[:, :, 1])
+    preprocess_images(points[:, :, 2], points[:, :, 3])
 
     # Rotate around each axis
     #rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
@@ -135,7 +138,7 @@ def rotate_greyd_img(greyd_img, rotation_matrix):
             y = int(points[i, j, 1] * (IMG_SIZE - 1))
             g = points[i, j, 3]
             z = points[i, j, 2]
-            if depth_rotated[x, y] == 0 or z < depth_rotated[x, y]:
+            if depth_rotated[x, y] < z:
                 grey_rotated[x, y] = g
                 depth_rotated[x, y] = z
 

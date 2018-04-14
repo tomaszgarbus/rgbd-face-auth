@@ -12,6 +12,7 @@ from common.tools import IMG_SIZE
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 from face_rotation.rotate import rotate_greyd_img_by_angle, preprocess_images
+from face_rotation import trim_face
 import os
 
 def build_input_vector(greyd_face):
@@ -19,6 +20,7 @@ def build_input_vector(greyd_face):
     (grey_face, depth_face) = greyd_face
     if grey_face is None or depth_face is None:
         return None
+    grey_face, depth_face, _ = trim_face.trim_greyd(greyd_face[0], greyd_face[1])
     tmp = np.zeros((4 * IMG_SIZE, IMG_SIZE))
     entr_grey_face = entropy(grey_face, disk(5))
     entr_grey_face = entr_grey_face / np.max(entr_grey_face)
@@ -47,22 +49,25 @@ def load_database(database, offset, override_test_set=False):
                 continue
             if database.is_photo_in_test_set(i, j):
                 x_test.append(x)
+                # tools.show_image(x)
                 y_test.append(y)
             else:
-                if database.is_photo_frontal(i, j):
-                    for theta_x in np.linspace(-0.5, 0.5, 5):
-                        for theta_y in np.linspace(-0.5, 0.5, 5):
+                """if database.is_photo_frontal(i, j):
+                    for theta_x in np.linspace(-0.2, 0.2, 3):
+                        for theta_y in np.linspace(-0.2, 0.2, 3):
                             img_grey = np.copy(greyd_face[0])
                             img_depth = np.copy(greyd_face[1])
                             rotated_greyd_face = rotate_greyd_img_by_angle((img_grey, img_depth), theta_x, theta_y)
                             x = build_input_vector(rotated_greyd_face)
                             x_train.append(x)
+                            # tools.show_image(x)
                             y_train.append(y)
                             total_rotated += 1
                             total_rotated_db += 1
-                else:
-                    x_train.append(x)
-                    y_train.append(y)
+                else:"""
+                x_train.append(x)
+                tools.show_image(x)
+                y_train.append(y)
     print("Total rotated ", total_rotated, total_rotated_db)
 
 
