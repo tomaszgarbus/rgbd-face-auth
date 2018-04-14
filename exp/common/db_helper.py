@@ -115,7 +115,7 @@ class Database:
             self._imgs_of_subject[i] = sets[0]
             for s in sets[1:]:
                 self._imgs_of_subject[i] = self._imgs_of_subject[i].intersection(s)
-            self._imgs_of_subject[i] = list(self._imgs_of_subject[i])
+            self._imgs_of_subject[i] = sorted(list(self._imgs_of_subject[i]))
 
         # Filter out only those subjects which have some images
         i = 0
@@ -124,8 +124,9 @@ class Database:
             if self._imgs_of_subject[i] != []:
                 indices.append(i)
             i += 1
-        self._subject_dirs = list(np.array(self._subject_dirs)[indices])
+        self._subject_dirs = sorted(list(np.array(self._subject_dirs)[indices]))
         self._imgs_of_subject = list(np.array(self._imgs_of_subject)[indices])
+        self._imgs_of_subject = list(map(lambda a: np.sort(a), self._imgs_of_subject))
 
         # Initialize self._test_suffixes from test_suffixes.json
         path = '/'.join([DB_LOCATION, TEST_SUF_FNAME])
