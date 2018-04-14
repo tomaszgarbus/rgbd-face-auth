@@ -29,7 +29,7 @@ if __name__ == '__main__':
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     photos = []
     for database in helper.get_databases():
-        photos += load_samples(database, limit=2)
+        photos += load_samples(database, limit=1)
 
     for img_grey, img_depth in photos:
 
@@ -43,24 +43,24 @@ if __name__ == '__main__':
         #tools.show_image(img_depth)
 
         # find the angle
-        rotation, center, face_points = find_angle(img_grey, img_depth)
-
-        if rotation is None :
+        rotation, face_points = find_angle(img_grey, img_depth)
+        if rotation is None:
             continue
+        center = face_points["forehead"]
         print("center = " + str(center))
 
         # Apply rotation
-        rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth), rotation)
-        face_rotation.find_angle.show_with_landmarks_zeroone(rotated_grey, face_points)
+        rotated_grey, rotated_depth, face_points = rotate.rotate_greyd_img((img_grey, img_depth), rotation, face_points)
+        face_rotation.find_angle.show_with_landmarks_normalized(rotated_grey, face_points)
 
         #show_with_center(rotated_grey, center)
-        rotated_grey, rotated_depth = recentre(rotated_grey, rotated_depth, center)
-        show_with_center(rotated_grey, (1/2, 1/5))
+        rotated_grey, rotated_depth = recentre(rotated_grey, rotated_depth, face_points["forehead"])
+ #       show_with_center(rotated_grey, (1/2, 1/5))
 
         #tools.show_3d_plot(rotate.to_one_matrix(rotated_grey, rotated_depth))
         # Display the results
-        tools.show_image(rotated_depth)
-        tools.show_image(rotated_grey)
+        #tools.show_image(rotated_depth)
+#        tools.show_image(rotated_grey)
 
         # exit(0)
 

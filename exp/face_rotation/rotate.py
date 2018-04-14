@@ -4,7 +4,7 @@ from common.tools import IMG_SIZE
 import random
 import logging
 
-SMOOTHEN_ITER = 1
+SMOOTHEN_ITER = 15
 
 def _rx(theta):
     """ returns rotation matrix for x axis """
@@ -33,10 +33,29 @@ def _normalize_one_dim(_points):
     if _points.max() > 0:
         _points /= _points.max()
 
+
 def _normalize(_points):
     """ scales each dimension into interval 0..1 """
     for i in range(_points.shape[-1]):
         _normalize_one_dim(_points[:, :, i])
+
+
+def normalize_face_points(_points, face_points, rotation_matrix):
+    face_points = {k: np.dot(rotation_matrix, np.asarray(v)) for k, v in face_points.items()}
+    face_points = {k: (v.item(0), v.item(1), v.item(2)) for k, v in face_points.items()}
+    for i in range(_points.shape[-1] - 1):
+        min = _points[:, :, i].min()
+        for k, v in face_points.items():
+            v = list(v)
+            v[i] -= min
+            face_points[k] = tuple(v)
+        max = _points[:, :, i].max()
+        if _points.max() > 0:
+            for k, v in face_points.items():
+                v = list(v)
+                v[i] /= max
+                face_points[k] = tuple(v)
+    return face_points
 
 
 def _median_neighbors(points, center, size, min_value, max_value):
@@ -55,10 +74,12 @@ def _median_neighbors(points, center, size, min_value, max_value):
     max_x = min(IMG_SIZE, center[0] + size)
     min_y = max(0, center[1] - size)
     max_y = min(IMG_SIZE, center[1] + size)
+    possible_ok_points = (max_x - min_x)*(max_y - min_y)
+
     vals = points[min_x:max_x,min_y:max_y]
     vals = vals[vals >= min_value]
     vals = vals[vals <= max_value]
-    if vals.size == 0:
+    if vals.size == 0 or vals.size <= (1/2)*possible_ok_points:
         # Giving up, returning 0 (to be handled in next iter)
         return 0
     return np.median(vals)
@@ -106,7 +127,8 @@ def to_one_matrix(grey_img, depth_img):
         points[i, :, 3] = grey_img[i, :]
     return points
 
-def rotate_greyd_img(greyd_img, rotation_matrix):
+
+def rotate_greyd_img(greyd_img, rotation_matrix, face_points):
     # First, we prepare the matrix X of points (x, y, z, Grey)
     (grey_img, depth_img) = (greyd_img)
     points = to_one_matrix(grey_img, depth_img)
@@ -121,9 +143,11 @@ def rotate_greyd_img(greyd_img, rotation_matrix):
     #rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
-            points[i, j, :3] = np.dot(rotation_matrix, points[i, j, :3].reshape(3,1)).reshape(3)
+            points[i, j, :3] = np.dot(rotation_matrix, points[i, j, :3].reshape(3, 1)).reshape(3)
+
 
     # Normalize once more after rotation
+    face_points = normalize_face_points(points, face_points, rotation_matrix)
     _normalize(points)
 
     # Apply rotated image to grey and depth photo
@@ -152,8 +176,7 @@ def rotate_greyd_img(greyd_img, rotation_matrix):
     # tools.show_image(depth_rotated)
     # Or:
     # tools.show_3d_plot(points)
-    return (grey_rotated, depth_rotated)
-
+    return (grey_rotated, depth_rotated, face_points)
 
 
 def rotate_greyd_img_by_angle(greyd_img, theta_x=0, theta_y=0, theta_z=0):

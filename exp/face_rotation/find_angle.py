@@ -104,7 +104,7 @@ def angle_from(landmarks, imaged, shape):
     return rotation, forehead, azimuth, face_points
 
 
-def show_with_landmarks_zeroone(image, landmarks):
+def show_with_landmarks_normalized(image, landmarks):
     img = np.copy(image)
     mxx = img.shape[0] - 1
     mxy = img.shape[1] - 1
@@ -150,8 +150,6 @@ def find_angle(image, imaged):
         landmarks = landmarks_take(face_points[0])
         rotation, face_center, azimuth, face_points = angle_from(landmarks, imaged, image.shape)
         show_with_landmarks(image, landmarks, azimuth, face_center)
-        center = face_points["forehead"]
-        print("center = " + str(center))
-        return rotation, center, face_points
+        return rotation, face_points
     print("Error, face not found, returning no rotation")
-    return None, (1/2, 1/5), None
+    return None, None
