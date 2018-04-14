@@ -20,6 +20,7 @@ def build_input_vector(greyd_face):
     (grey_face, depth_face) = greyd_face
     if grey_face is None or depth_face is None:
         return None
+    grey_face, depth_face, _ = trim_face.trim_greyd(greyd_face[0], greyd_face[1])
     tmp = np.zeros((4 * IMG_SIZE, IMG_SIZE))
     entr_grey_face = entropy(grey_face, disk(5))
     entr_grey_face = entr_grey_face / np.max(entr_grey_face)
@@ -42,9 +43,6 @@ def load_database(database, offset, override_test_set=False):
         for j in range(database.imgs_per_subject(i)):
             print('Photo %d/%d' % (j, database.imgs_per_subject(i)))
             greyd_face = database.load_greyd_face(i, j)
-            if greyd_face[0] is not None and greyd_face[1] is not None:
-                a, b, _ = trim_face.trim_greyd(greyd_face[0], greyd_face[1])
-                greyd_face = (a, b)
             x = build_input_vector(greyd_face)
             y = offset + i + 1
             if x is None or y is None:
@@ -54,7 +52,7 @@ def load_database(database, offset, override_test_set=False):
                 # tools.show_image(x)
                 y_test.append(y)
             else:
-                if database.is_photo_frontal(i, j):
+                """if database.is_photo_frontal(i, j):
                     for theta_x in np.linspace(-0.2, 0.2, 3):
                         for theta_y in np.linspace(-0.2, 0.2, 3):
                             img_grey = np.copy(greyd_face[0])
@@ -66,10 +64,10 @@ def load_database(database, offset, override_test_set=False):
                             y_train.append(y)
                             total_rotated += 1
                             total_rotated_db += 1
-                else:
-                    x_train.append(x)
-                    # tools.show_image(x)
-                    y_train.append(y)
+                else:"""
+                x_train.append(x)
+                tools.show_image(x)
+                y_train.append(y)
     print("Total rotated ", total_rotated, total_rotated_db)
 
 
