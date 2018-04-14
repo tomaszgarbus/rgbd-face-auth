@@ -86,7 +86,7 @@ def landmarks_take(landmarks):
 
 
 def angle_from(landmarks, imaged, shape):
-    get_pixl = lambda x0, x1: imaged[max(0, min(shape[1]-1, x0)), max(0, min(shape[0]-1, x1))]
+    get_pixl = lambda x0, x1: imaged[max(0, min(shape[0]-1, x0)), max(0, min(shape[1]-1, x1))]
     to3d = lambda x: (x[0]/shape[0], x[1]/shape[1], get_pixl(x[0], x[1]))
 
     right_brow = to3d(landmarks["right_brow"][0])
@@ -94,11 +94,26 @@ def angle_from(landmarks, imaged, shape):
     top_chin = to3d(landmarks["top_chin"][0])
     forehead = to3d(landmarks["forehead"][0])
 
-    print(str({"right_brow": [right_brow], "left_brow": [left_brow],  "top_chin": [top_chin], "forehead": [forehead]}))
+    face_points = {"right_brow": right_brow, "left_brow": left_brow,  "top_chin": top_chin, "forehead": forehead}
+    print(str(face_points))
 
     rotation, azimuth = calculate_rotation_matrix(right_brow, top_chin, left_brow)
 
-    return rotation, forehead, azimuth
+    #print("after rotation face points = " + str(face_points))
+
+    return rotation, forehead, azimuth, face_points
+
+
+def show_with_landmarks_zeroone(image, landmarks):
+    img = np.copy(image)
+    mxx = img.shape[0] - 1
+    mxy = img.shape[1] - 1
+    print(str(landmarks))
+    for key, q in landmarks.items():
+        x = int(q[0] * mxx)
+        y = int(q[1] * mxy)
+        img[min(max(x, 0), mxx), min(max(y, 0), mxy)] = 1
+    tools.show_image(img)
 
 
 def show_with_landmarks(image, landmarks, azimuth, face_center):
@@ -111,7 +126,7 @@ def show_with_landmarks(image, landmarks, azimuth, face_center):
             img[min(max(x, 0), mxx), min(max(y, 0), mxy)] = 1
 
     v = np.array([face_center[0]*(mxx + 1), face_center[1]*(mxy+1), face_center[2]])
-    azimuth = azimuth[0]
+    azimuth = np.array([azimuth.item(0), azimuth.item(1), azimuth.item(2)])
     for i in range(100):
         x = min(max(int(v[0]), 0), mxx)
         y = min(max(int(v[1]), 0), mxy)
@@ -133,10 +148,10 @@ def find_angle(image, imaged):
     face_points = load_face_points(image)
     if len(face_points) > 0:
         landmarks = landmarks_take(face_points[0])
-        rotation, face_center, azimuth = angle_from(landmarks, imaged, image.shape)
+        rotation, face_center, azimuth, face_points = angle_from(landmarks, imaged, image.shape)
         show_with_landmarks(image, landmarks, azimuth, face_center)
-        center = np.dot(rotation, np.array(face_center)).reshape(3)
-        print("center = " +str(center))
-        return rotation, (center.item(1), center.item(0))
+        center = face_points["forehead"]
+        print("center = " + str(center))
+        return rotation, center, face_points
     print("Error, face not found, returning no rotation")
-    return None, (1/2, 1/5)
+    return None, (1/2, 1/5), None

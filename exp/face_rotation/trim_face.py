@@ -71,7 +71,7 @@ def trim_greyd(grey_img, depth_img):
             grey_img = paint_bucket(grey_img, posx=posx, posy=posy)
             depth_img = paint_bucket(depth_img, posx=posx, posy=posy)
 
-    tools.show_image(grey_img)
-    tools.show_image(depth_img)
+    #tools.show_image(grey_img)
+    #tools.show_image(depth_img)
 
     return (grey_img, depth_img)

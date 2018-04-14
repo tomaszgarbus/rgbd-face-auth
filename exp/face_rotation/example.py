@@ -7,6 +7,7 @@ from common import tools
 from face_rotation.find_angle import find_angle
 from face_rotation.recentre import recentre, show_with_center
 from face_rotation import trim_face
+import face_rotation.find_angle
 
 if __name__ == '__main__':
     def load_samples(database, limit=10):
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     photos = []
     for database in helper.get_databases():
         if database.get_name() == 'ias_lab_rgbd':
-            photos += load_samples(database, limit=5)
+            photos += load_samples(database, limit=1)
 
     for img_grey, img_depth in photos:
 
@@ -36,10 +37,10 @@ if __name__ == '__main__':
 
         # Display the photo before rotation
         #tools.show_image(img_grey)
-        tools.show_image(img_depth)
+        #tools.show_image(img_depth)
 
         # find the angle
-        rotation, center = find_angle(img_grey, img_depth)
+        rotation, center, face_points = find_angle(img_grey, img_depth)
 
         if rotation is None :
             continue
@@ -50,7 +51,9 @@ if __name__ == '__main__':
 
         # Apply rotation
         rotated_grey, rotated_depth = rotate.rotate_greyd_img((img_grey, img_depth), rotation)
-        show_with_center(rotated_grey, center)
+        face_rotation.find_angle.show_with_landmarks_zeroone(rotated_grey, face_points)
+
+        #show_with_center(rotated_grey, center)
         rotated_grey, rotated_depth = recentre(rotated_grey, rotated_depth, center)
         show_with_center(rotated_grey, (1/2, 1/5))
 
