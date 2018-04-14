@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 
+#include <libfreenect2/libfreenect2.hpp>
 #include <opencv/cv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -60,6 +61,8 @@ class Picture::DepthOrIrFrame {
 
    Matrix<float> *pixels = nullptr;
    bool is_depth;  // false means that it's an IR photo
+
+   libfreenect2::Frame *freenect2_frame = nullptr;
 };
 
 // Definitions - ColorFrame
@@ -137,6 +140,7 @@ Picture::DepthOrIrFrame::DepthOrIrFrame(const Picture::DepthOrIrFrame &src)
 
 Picture::DepthOrIrFrame::~DepthOrIrFrame() {
    delete pixels;
+   delete freenect2_frame;
 }
 
 void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {

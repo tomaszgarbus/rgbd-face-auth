@@ -9,6 +9,9 @@
 #include <wx/wx.h>
 #include <wx/wxprec.h>
 
+#include <libfreenect2/libfreenect2.hpp>
+#include <libfreenect2/registration.h>
+
 #include "libkinect.hpp"
 #include "picture.hpp"
 
@@ -31,6 +34,10 @@ const size_t display_panel_height = 424;
 wxDEFINE_EVENT(REFRESH_DISPLAY_EVENT, wxCommandEvent);
 
 // Declarations
+
+struct Point3d {
+   float x, y, z;
+};
 
 class DisplayPanel : public wxPanel {
    wxStaticBitmap *m_picture = nullptr;
@@ -312,22 +319,37 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       auto values      = new double[frame_width * frame_height];
       double max_value = 0.0;
 
+      libfreenect2::Registration registration(
+            freenect2_device->getIrCameraParams(), freenect2_device->getColorCameraParams());
+      // TODO: need to double check the impact of undistortDepth on the depth frame.
+      libfreenect2::Frame undistorted(frame_width, frame_height, 4);
+      registration.undistortDepth(window->picture->depth_frame->freenect2_frame, &undistorted);
+      auto points = new Point3d[frame_width * frame_height];
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
-            double distance             = (*window->picture->depth_frame->pixels)[i][j];
+            registration.getPointXYZ(&undistorted, static_cast<int>(i), static_cast<int>(j),
+                  points[i * frame_width + j].x, points[i * frame_width + j].y, points[i * frame_width + j].z);
+         }
+      }
+
+      for (size_t i = 0; i < frame_height; ++i) {
+         for (size_t j = 0; j < frame_width; ++j) {
+            double distance             = undistorted.data[i * frame_width + j];
             values[i * frame_width + j] = distance * distance * (*window->picture->ir_frame->pixels)[i][j];
             if (i > 0 && j > 0 && i < frame_height - 1 && j < frame_width - 1) {
-               double x1 = (*window->picture->depth_frame->pixels)[i - 1][j + 1]
-                           - (*window->picture->depth_frame->pixels)[i - 1][j - 1];
-               double x2 = (*window->picture->depth_frame->pixels)[i + 1][j - 1]
-                           - (*window->picture->depth_frame->pixels)[i - 1][j - 1];
-               values[i * frame_width + j] *= 1.0 / sqrt(x1 * x1 + x2 * x2 + 1);
+               float cos = 1.0;
+               // TODO (Dominik): try to calculate the angles here.
+               // Use points[] for 3D point coordinates, or undistorted.data[] for depth values if needed.
+               values[i * frame_width + j] *= cos;
+
                max_value = std::max(max_value, values[i * frame_width + j]);
             }
          }
       }
 
       // std::cerr << max_value << '\n';
+      // This is a constant because otherwise the display flickers depending on the actual max value.
+      // Uncoment the cerr above if you need to determine a new one after changing how it's calculated.
       max_value = 2e10;
 
       for (size_t i = 0; i < frame_height; ++i) {

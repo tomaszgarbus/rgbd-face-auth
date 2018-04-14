@@ -293,15 +293,17 @@ bool KinectDevice::Kinect2DepthAndIrListener::onNewFrame(libfreenect2::Frame::Ty
    memcpy(pixels->data(), frame->data, bytes);
    Picture picture;
    if (type == libfreenect2::Frame::Type::Depth) {
-      picture.depth_frame = new Picture::DepthOrIrFrame(pixels, true);
+      picture.depth_frame                  = new Picture::DepthOrIrFrame(pixels, true);
+      picture.depth_frame->freenect2_frame = frame;
    } else if (type == libfreenect2::Frame::Type::Ir) {
-      picture.ir_frame = new Picture::DepthOrIrFrame(pixels, false);
+      picture.ir_frame                  = new Picture::DepthOrIrFrame(pixels, false);
+      picture.ir_frame->freenect2_frame = frame;
    } else {
       std::cerr << "Kinect2DepthAndIrListener::onNewFrame() received an unexcepted video format.\n";
       return false;
    }
    kinect_device->frame_handler(picture);
-   return false;
+   return true;
 }
 
 KinectDevice::Kinect2ColorListener::Kinect2ColorListener(KinectDevice *kinect_device) : kinect_device(kinect_device) {}
