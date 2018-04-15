@@ -260,7 +260,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       return;
    }
 
-   if (picture.color_frame) {  // sorry
+   if (picture.color_frame) {
       delete window->picture->color_frame;
       window->picture->color_frame = new Picture::ColorFrame(*picture.color_frame);
 

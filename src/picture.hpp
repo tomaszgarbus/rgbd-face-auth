@@ -136,11 +136,11 @@ Picture::DepthOrIrFrame::DepthOrIrFrame(std::string const &filename) {
 }
 
 Picture::DepthOrIrFrame::DepthOrIrFrame(const Picture::DepthOrIrFrame &src)
-      : pixels(new Matrix<float>(*src.pixels)), is_depth(src.is_depth) {}
+      : pixels(new Matrix<float>(*src.pixels)), is_depth(src.is_depth), freenect2_frame(src.freenect2_frame) {}
 
 Picture::DepthOrIrFrame::~DepthOrIrFrame() {
    delete pixels;
-   delete freenect2_frame;
+//   delete freenect2_frame;
 }
 
 void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {
