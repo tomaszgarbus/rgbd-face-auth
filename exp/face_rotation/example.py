@@ -26,8 +26,8 @@ if __name__ == '__main__':
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     photos = []
     for database in helper.get_databases():
-        if database.get_name != 'www.vap.aau.dk':
-            photos += load_samples(database, limit=4)
+        if database.get_name() != 'www.vap.aau.dk':
+            photos += load_samples(database, limit=6)
 
     for face in photos:
 

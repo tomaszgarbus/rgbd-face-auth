@@ -22,7 +22,7 @@ def find_convex_hull_vertices(grey_img: np.ndarray) -> list:
     all_points = []
     for key in landmarks:
         for point in landmarks[key]:
-            y, x = point
+            x, y = point
             try:
                 all_points.append((y, x))
             except IndexError:
@@ -36,8 +36,8 @@ def connect_convex_hull_vertices(depth_img: np.ndarray, ch_vertices: list) -> li
     all_points = []
 
     for point1, point2 in zip(ch_vertices, np.roll(ch_vertices, 1, axis=0)):
-        ys, xs = point1
-        ye, xe = point2
+        xs, ys = point1
+        xe, ye = point2
         difx = xe - xs
         dify = ye - ys
         steps = int(max(abs(difx), abs(dify)))
@@ -63,6 +63,7 @@ def find_convex_hull(face: Face) -> list:
     """
     ch_vertices = find_convex_hull_vertices(face.grey_img)
     if ch_vertices == []:
+        logging.warning("Face was not found")
         return []
 
     return connect_convex_hull_vertices(face.depth_img, ch_vertices)
@@ -111,12 +112,6 @@ def trim_greyd(face: Face) -> None:
         :param face
         :return: trimmed Face
     """
-    grey_img, depth_img = face
-    ch_vertices = find_convex_hull_vertices(grey_img)
-
-    if ch_vertices == []:
-        logging.warning("Face was not trimmed'")
-        return
 
     all_points = find_convex_hull(face)
 
