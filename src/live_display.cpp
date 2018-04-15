@@ -14,6 +14,7 @@
 
 #include "libkinect.hpp"
 #include "picture.hpp"
+#include "basic_types.hpp"
 
 // Constants
 
@@ -190,6 +191,11 @@ std::pair<size_t, size_t> fit_to_size(size_t width, size_t height, size_t max_wi
    }
 }
 
+// TODO: Move to other file
+double calculate_reflectiveness_for_surface(std::array<std::array<Point3d, 3>, 3> const square) {
+    return 1.0;
+}
+
 // Kinect handling
 
 class MyKinectDevice : public KinectDevice {
@@ -316,7 +322,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       auto frame_width  = window->picture->depth_frame->pixels->width,
            frame_height = window->picture->depth_frame->pixels->height;
 
-      auto values      = new double[frame_width * frame_height];
+      Matrix<double> values(frame_height, frame_width);
       double max_value = 0.0;
 
       libfreenect2::Registration registration(
@@ -324,25 +330,29 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       // TODO: need to double check the impact of undistortDepth on the depth frame.
       libfreenect2::Frame undistorted(frame_width, frame_height, 4);
       registration.undistortDepth(window->picture->depth_frame->freenect2_frame, &undistorted);
-      auto points = new Point3d[frame_width * frame_height];
+      Matrix<Point3d> points(frame_height, frame_width);
+
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
             registration.getPointXYZ(&undistorted, static_cast<int>(i), static_cast<int>(j),
-                  points[i * frame_width + j].x, points[i * frame_width + j].y, points[i * frame_width + j].z);
+                  points[i][j].x, points[i][j].y, points[i][j].z);
          }
       }
 
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
             double distance             = undistorted.data[i * frame_width + j];
-            values[i * frame_width + j] = distance * distance * (*window->picture->ir_frame->pixels)[i][j];
-            if (i > 0 && j > 0 && i < frame_height - 1 && j < frame_width - 1) {
-               float cos = 1.0;
-               // TODO (Dominik): try to calculate the angles here.
-               // Use points[] for 3D point coordinates, or undistorted.data[] for depth values if needed.
-               values[i * frame_width + j] *= cos;
+            values[i][j] = distance * distance * (*window->picture->ir_frame->pixels)[i][j];
 
-               max_value = std::max(max_value, values[i * frame_width + j]);
+            if (i > 0 && j > 0 && i+1 < frame_height && j+1 < frame_width) {
+               double reflectiveness = calculate_reflectiveness_for_surface({{
+                  {points[i-1][j-1], points[i-1][j], points[i-1][j+1]},
+                  {points[i+0][j-1], points[i+0][j], points[i+0][j+1]},
+                  {points[i+1][j-1], points[i+1][j], points[i+1][j+1]}
+               }});
+               values[i][j] *= reflectiveness;
+
+               max_value = std::max(max_value, values[i][j]);
             }
          }
       }
@@ -354,7 +364,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
 
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
-            auto pixel_value = static_cast<uint8_t>(std::min(255.0, 255.0 * values[i * frame_width + j] / max_value));
+            auto pixel_value = static_cast<uint8_t>(std::min(255.0, 255.0 * values[i][j] / max_value));
             float min_red    = 255.0f * static_cast<float>(window->m_settings->m_min_d->GetValue()) / 10000.0f;
             float max_red    = 255.0f * static_cast<float>(window->m_settings->m_max_d->GetValue()) / 10000.0f;
             if (pixel_value >= min_red && pixel_value <= max_red) {
@@ -368,8 +378,6 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
             }
          }
       }
-
-      delete values;
 
       wxPostEvent(window->m_display_custom, wxCommandEvent(REFRESH_DISPLAY_EVENT));
    }
