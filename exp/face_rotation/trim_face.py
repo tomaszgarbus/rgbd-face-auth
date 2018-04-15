@@ -8,27 +8,6 @@ from common.constants import IMG_SIZE, BGCOLOR
 from model.face import Face
 
 
-def paint_bucket(image: np.ndarray,
-                 posx: int = 0,
-                 posy: int = 0,
-                 color: float = BGCOLOR) -> None:
-    """
-        Fills image with color |color| if pixel has different color and
-        propagates to neighboring pixels
-    """
-    def _helper(px, py):
-        if px < 0 or py < 0 or px >= image.shape[0] or py >= image.shape[1]:
-            return
-        if image[px, py] == color:
-            return
-        image[px, py] = color
-        _helper(px-1, py)
-        _helper(px+1, py)
-        _helper(px, py-1)
-        _helper(px, py+1)
-    _helper(posx, posy)
-
-
 def find_convex_hull_vertices(grey_img: np.ndarray) -> list:
     """
         :param grey_img:
@@ -95,6 +74,8 @@ def generate_mask(face: Face, points: list((float, float, float))) -> None:
         mask[int(xs), int(ys)] = True
     starting_point = (IMG_SIZE//2, IMG_SIZE//2)  # TODO: maybe some specific landmark (like nose)
 
+    sys.setrecursionlimit(100000)
+
     def _helper(px, py):
         if min(px, py) < 0 or max(px, py) >= IMG_SIZE:
             return
@@ -107,26 +88,22 @@ def generate_mask(face: Face, points: list((float, float, float))) -> None:
         _helper(px, py+1)
     _helper(starting_point[0], starting_point[1])
     face.mask = mask
-    tools.show_image(mask)
 
-def cut_around_points(face: Face,
-                      points: list((float, float, float)),
+    # Display the mask if you want
+    # tools.show_image(mask)
+
+def cut_around_mask(face: Face,
                       color: float = BGCOLOR) -> None:
     """
-        Erases contents of original image around |points|.
+        Erases contents of original image around mask.
         :param face:
-        :param points: list of 3D points, must be isolating a face perfectly
-        :param color to fill around points
+        :param color to fill around mask
     """
-    for (xs, ys, _) in points:
-        face.depth_img[int(xs), int(ys)] = color
-        face.grey_img[int(xs), int(ys)] = color
-
-    sys.setrecursionlimit(100000)
-    for posx in [0, IMG_SIZE-1]:
-        for posy in [0, IMG_SIZE-1]:
-            paint_bucket(face.grey_img, posx=posx, posy=posy, color=color)
-            paint_bucket(face.depth_img, posx=posx, posy=posy, color=color)
+    for x in range(IMG_SIZE):
+        for y in range(IMG_SIZE):
+            if not face.mask[x, y]:
+                face.depth_img[x, y] = BGCOLOR
+                face.grey_img[x, y] = BGCOLOR
 
 
 def trim_greyd(face: Face) -> None:
@@ -143,8 +120,8 @@ def trim_greyd(face: Face) -> None:
 
     all_points = find_convex_hull(face)
 
-    cut_around_points(face, all_points)
     generate_mask(face, all_points)
+    cut_around_mask(face)
 
     #tools.show_image(grey_img)
     #tools.show_image(depth_img)

@@ -111,28 +111,27 @@ def _smoothen(img: np.ndarray) -> np.ndarray:
     return img
 
 
-def drop_corner_values(dimage: np.ndarray,
-                       image: np.ndarray,
+def drop_corner_values(face: Face,
                        lower_threshold : float = 0.1,
                        upper_threshold : float = 0.98) -> None:
     """
         Erase those pixels which are too close or to far to be treated as
         valuable data.
     """
+    depth_median = np.median(face.depth_img[face.mask])
+    face.depth_img[face.mask] -= depth_median
+    depth_stdev = np.std(face.depth_img[face.mask])
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
-            # Replace pixels beyond reasonable value range with median of closest
-            # "good" pixels
-            if dimage[i, j] > upper_threshold or dimage[i, j] < lower_threshold:
-                new_value = _median_neighbors(dimage[:, :], (i, j), IMG_SIZE // 3, lower_threshold,
-                                                    upper_threshold)
-                if new_value > upper_threshold or new_value < lower_threshold:
-                    new_value = 0.5
-                dimage[i, j] = new_value
+            if abs(face.depth_img[i, j]) >= depth_stdev:
+                face.depth_img[i, j] = 0
+
+    face.depth_img /= depth_stdev
+
 
     # Scale each dimension into interval 0..1
-    _rescale_one_dim(dimage)
-    _rescale_one_dim(image)
+    _rescale_one_dim(face.depth_img)
+    _rescale_one_dim(face.grey_img)
 
 
 def _to_one_matrix(face: Face) -> np.ndarray:
@@ -150,10 +149,10 @@ def _to_one_matrix(face: Face) -> np.ndarray:
 
 
 def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray, face_points):
+    drop_corner_values(face)
+
     # First, we prepare the matrix X of points (x, y, z, Grey)
     points = _to_one_matrix(face)
-
-    drop_corner_values(points[:, :, 2], points[:, :, 3])
 
     # Normalize x an y dimensions of |points|
     _rescale_one_dim(points[:, :, 0])

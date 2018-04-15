@@ -26,10 +26,14 @@ if __name__ == '__main__':
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     photos = []
     for database in helper.get_databases():
-        if database.get_name() != 'ias_lab_rgbd':
-            photos += load_samples(database, limit=5)
+        if database.get_name != 'www.vap.aau.dk':
+            photos += load_samples(database, limit=4)
 
     for face in photos:
+
+        # Display the original photo
+        face.show_grey()
+        face.show_depth()
 
         # Trim face
         trim_face.trim_greyd(face)
@@ -39,11 +43,15 @@ if __name__ == '__main__':
         face.show_grey()
         face.show_depth()
 
-        rotate.drop_corner_values(face.depth_img, face.grey_img)
+        # Drop corner values and rescale to 0...1
+        rotate.drop_corner_values(face)
 
         # Display the photo after normalizing mean
         face.show_grey()
         face.show_depth()
+
+        # TODO: delete when find_angle code below works
+        continue
 
         # Find the angle
         rotation, face_points = find_angle(face)
