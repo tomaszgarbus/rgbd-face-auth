@@ -9,7 +9,6 @@ from scipy import linalg, matrix
 from common.constants import FACE_AZIMUTH
 import scipy
 from model.face import Face
-from face_rotation.face_points import construct_face_points
 
 
 def matrix_null(A: matrix, eps=1e-15):

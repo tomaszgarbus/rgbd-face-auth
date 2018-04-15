@@ -59,3 +59,29 @@ class Face:
     """ shows face with face points and azimuth"""
     def show_position(self) -> None:
         tools.show_position(self.grey_img, self.face_points, self.azimuth, self.face_center)
+
+    def normalization(self):
+        # Trim face
+        trim_face.trim_greyd(face)
+        img_grey, img_depth = face
+
+        # Display trimmed photo
+        face.show_grey()
+        face.show_depth()
+
+        rotate.drop_corner_values(face.depth_img, face.grey_img)
+
+        # Display the photo after normalizing mean
+        face.show_grey()
+        face.show_depth()
+
+        # Find the angle
+        rotation, face_points = find_angle(face)
+        if rotation is None:
+            continue
+        center = face_points["forehead"]
+        print("center = " + str(center))
+
+        # Apply rotation
+        rotated_face, face_points = rotate.rotate_greyd_img(face, rotation, face_points)
+

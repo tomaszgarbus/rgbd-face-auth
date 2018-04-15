@@ -30,33 +30,9 @@ if __name__ == '__main__':
             photos += load_samples(database, limit=5)
 
     for face in photos:
-
-        # Trim face
-        trim_face.trim_greyd(face)
-        img_grey, img_depth = face
-
-        # Display trimmed photo
+        face = face.normalization()
         face.show_grey()
         face.show_depth()
-
-        rotate.drop_corner_values(face.depth_img, face.grey_img)
-
-        # Display the photo after normalizing mean
-        face.show_grey()
-        face.show_depth()
-
-        # Find the angle
-        rotation, face_points = find_angle(face)
-        if rotation is None:
-            continue
-        center = face_points["forehead"]
-        print("center = " + str(center))
-
-        # Apply rotation
-        rotated_face, face_points = rotate.rotate_greyd_img(face, rotation, face_points)
-
-        rotated_face.show_grey()
-        rotated_face.show_depth()
         #face_rotation.find_angle.show_with_landmarks_normalized(rotated_face.grey_img, face_points)
 
         # show_with_center(rotated_grey, center)
