@@ -248,9 +248,9 @@ double calculate_reflectiveness_for_surface(std::array<std::array<Point3d const,
       return 2.0;
    }
 
-   double const ang = (std::acos(cos1) + std::acos(cos2)) / 2.0;
+   double const ang = (std::acos(cos1) + std::acos(cos2)) / 3.14;
 
-   return ang < 0.5 ? 0.5 : ang;
+   return ang < 0.25 ? 0.5 : 2*ang;
 }
 
 // Kinect handling
