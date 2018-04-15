@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from scipy.spatial import ConvexHull
 import sys
-
+from common import tools
 from common.constants import IMG_SIZE, BGCOLOR
 from model.face import Face
 
@@ -86,6 +86,26 @@ def find_convex_hull(face: Face) -> list:
 
     return connect_convex_hull_vertices(face.depth_img, ch_vertices)
 
+
+def generate_mask(face: Face, points: list((float, float, float))) -> None:
+    mask = np.zeros((IMG_SIZE, IMG_SIZE), dtype=np.bool)
+    for (xs, ys, _) in points:
+        mask[int(xs), int(ys)] = True
+    starting_point = (IMG_SIZE//2, IMG_SIZE//2)  # TODO: maybe some specific landmark (like nose)
+
+    def _helper(px, py):
+        if mask(px, py):
+            return
+        if min(px, py) < 0 or max(px, py) >= IMG_SIZE:
+            return
+        mask[px, py] = True
+        _helper(px-1, py)
+        _helper(px+1, py)
+        _helper(px, py-1)
+        _helper(px, py+1)
+    _helper(starting_point[0], starting_point[1])
+    face.mask = mask
+    tools.show_image(mask)
 
 def cut_around_points(face, points, color=BGCOLOR):
     """

@@ -69,7 +69,9 @@ def angle_from(face: Face) -> np.ndarray:
         face.face_points["left_brow"])
     face.azimuth = azimuth
     return rotation
-def find_angle(face: Face) -> np.ndarray:
+
+
+def find_angle(face: Face) -> np.ndarray((3, 3)):
     if len(face.landmarks) > 0:
         rotation = angle_from(face)
         face.show_position()

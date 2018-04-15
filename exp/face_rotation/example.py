@@ -39,17 +39,18 @@ if __name__ == '__main__':
         face, convex_hull_vertices = trim_face.trim_greyd(face)
         img_grey, img_depth = face
 
+        # Display trimmed photo
         face.show_grey()
         face.show_depth()
 
         rotate.drop_corner_values(face.depth_img, face.grey_img)
 
-        # Display the photo before rotation
+        # Display the photo after normalizing mean
         face.show_grey()
         face.show_depth()
 
         # Find the angle
-        rotation, face_points = find_angle(img_grey, img_depth)
+        rotation, face_points = find_angle(face)
         if rotation is None:
             continue
         center = face_points["forehead"]

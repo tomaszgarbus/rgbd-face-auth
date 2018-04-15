@@ -1,12 +1,13 @@
 import numpy as np
 import face_recognition
 
+from common.constants import IMG_SIZE
 from common import tools
 
 
 class Face:
-    grey_img = None
-    depth_img = None
+    grey_img: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
+    depth_img: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
     landmarks = None
 
     """ list of points defining the face surface"""
@@ -20,7 +21,7 @@ class Face:
         self.grey_img = grey_img
         self.depth_img = depth_img
         if self.grey_img is not None and self.depth_img is not None:
-            assert self.depth_img.shape == self.grey_img.shape
+            assert self.depth_img.shape == self.grey_img.shape == (IMG_SIZE, IMG_SIZE)
 
     _iter_rq = 0
 
@@ -38,7 +39,7 @@ class Face:
             self._iter_rq = 0
             raise StopIteration
 
-    def _find_landmarks(self):
+    def _find_landmarks(self) -> None:
         tmp = face_recognition.face_landmarks(self.grey_img)
         if not tmp:
             return
