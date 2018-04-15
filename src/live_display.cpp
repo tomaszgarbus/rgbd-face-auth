@@ -192,8 +192,56 @@ std::pair<size_t, size_t> fit_to_size(size_t width, size_t height, size_t max_wi
 }
 
 // TODO: Move to other file
-double calculate_reflectiveness_for_surface(std::array<std::array<Point3d, 3>, 3> const square) {
-    return 1.0;
+
+#include <cmath>
+
+template<typename VectorT, typename ElementT=double>
+ElementT euclidian_norm(VectorT const vector) {
+   size_t length = 0;
+   ElementT ret = 0;
+
+   for(auto const &x : vector) {
+      ret += x*x;
+   }
+
+   return std::sqrt(ret);
+}
+
+#include <stdexcept>
+
+template<typename VectorT, typename ElementT=double>
+ElementT vector_dot(VectorT const &v, VectorT const &w) {
+   if(v.size() != w.size()) {
+      throw std::invalid_argument("v.size != w.szie // TODO explanation?");
+   }
+
+   ElementT ret = 0;
+   for(size_t i = 0; i < v.size(); ++i) {
+      ret += v[i]*w[i];
+   }
+
+   return ret;
+}
+
+double calculate_reflectiveness_for_surface(std::array<std::array<Point3d const, 3>, 3> const square) {
+   /*std::cerr << "square" << std::endl;
+   for(auto row : square) {
+      for(auto x : row)
+        std::cerr << "(" << x.x << ", " << x.y << ", " << x.z <<"),  ";
+      std::cerr << std::endl;
+   }*/
+
+   std::array<double, 3> v{{square[1][0].x-square[1][1].x, square[1][0].y-square[1][1].y,
+    square[1][0].z-square[1][1].z}}, w{{square[1][2].x-square[1][2].x, square[1][2].y-square[1][2].y,
+    square[1][2].z-square[1][1].z}};
+
+   double ret = vector_dot(v, w) / (euclidian_norm(v) * euclidian_norm(w));
+
+   if(ret != ret) {
+      return 0.5;
+   }
+
+   return ret;
 }
 
 // Kinect handling
