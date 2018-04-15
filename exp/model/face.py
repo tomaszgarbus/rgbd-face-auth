@@ -61,6 +61,10 @@ class Face:
         tools.show_position(self.grey_img, self.face_points, self.azimuth, self.face_center)
 
     def normalization(self):
+        # Display the original photo
+        face.show_grey()
+        face.show_depth()
+
         # Trim face
         trim_face.trim_greyd(face)
         img_grey, img_depth = face
@@ -69,11 +73,15 @@ class Face:
         face.show_grey()
         face.show_depth()
 
-        rotate.drop_corner_values(face.depth_img, face.grey_img)
+        # Drop corner values and rescale to 0...1
+        rotate.drop_corner_values(face)
 
         # Display the photo after normalizing mean
         face.show_grey()
         face.show_depth()
+
+        # TODO: delete when find_angle code below works
+        continue
 
         # Find the angle
         rotation, face_points = find_angle(face)
@@ -84,4 +92,20 @@ class Face:
 
         # Apply rotation
         rotated_face, face_points = rotate.rotate_greyd_img(face, rotation, face_points)
+
+        rotated_face.show_grey()
+        rotated_face.show_depth()
+
+        # face_rotation.find_angle.show_with_landmarks_normalized(rotated_face.grey_img, face_points)
+
+        # show_with_center(rotated_grey, center)
+        # rotated_grey, rotated_depth = recentre(rotated_grey, rotated_depth, face_points["forehead"])
+        # show_with_center(rotated_grey, (1/2, 1/5))
+
+        # tools.show_3d_plot(rotate.to_one_matrix(rotated_face))
+        # Display the results
+        # tools.show_image(rotated_depth)
+        # tools.show_image(rotated_grey)
+
+        # exit(0)
 

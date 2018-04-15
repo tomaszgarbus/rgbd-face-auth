@@ -26,23 +26,13 @@ if __name__ == '__main__':
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
     photos = []
     for database in helper.get_databases():
-        if database.get_name() != 'ias_lab_rgbd':
-            photos += load_samples(database, limit=5)
+        if database.get_name() != 'www.vap.aau.dk':
+            photos += load_samples(database, limit=4)
 
-    for face in photos:
+    for face in photos[:4]:
         face = face.normalization()
         face.show_grey()
         face.show_depth()
-        #face_rotation.find_angle.show_with_landmarks_normalized(rotated_face.grey_img, face_points)
 
-        # show_with_center(rotated_grey, center)
-        # rotated_grey, rotated_depth = recentre(rotated_grey, rotated_depth, face_points["forehead"])
-        # show_with_center(rotated_grey, (1/2, 1/5))
 
-        # tools.show_3d_plot(rotate.to_one_matrix(rotated_face))
-        # Display the results
-        # tools.show_image(rotated_depth)
-        # tools.show_image(rotated_grey)
-
-        # exit(0)
 
