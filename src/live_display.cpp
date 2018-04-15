@@ -239,10 +239,8 @@ double calculate_reflectiveness_for_surface(std::array<std::array<Point3d const,
          {square[0][1].x - square[1][1].x, square[0][1].y - square[1][1].y, square[0][1].z - square[1][1].z}},
          w2{{square[2][1].x - square[1][1].x, square[2][1].y - square[1][1].y, square[2][1].z - square[1][1].z}};
 
-
    double const cos1 = vector_dot(v1, w1) / (euclidian_norm(v1) * euclidian_norm(w1));
    double const cos2 = vector_dot(v2, w2) / (euclidian_norm(v2) * euclidian_norm(w2));
-
 
    if (cos1 != cos1 || cos2 != cos2) {
       return 2.0;
@@ -250,7 +248,7 @@ double calculate_reflectiveness_for_surface(std::array<std::array<Point3d const,
 
    double const ang = (std::acos(cos1) + std::acos(cos2)) / 3.14;
 
-   return ang < 0.25 ? 0.5 : 2*ang;
+   return ang < 0.25 ? 0.5 : 2 * ang;
 }
 
 // Kinect handling
