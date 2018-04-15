@@ -45,3 +45,9 @@ DB_LOCATION = 'database'
 """
 TEST_SUF_FNAME = 'test_suffixes.json'
 FRONT_SUF_FNAME = 'frontal_photo_suffixes.json'
+
+""" vector to which face surface should be orthogonal after rotation """
+FACE_AZIMUTH = [0, 0, 1]
+
+""" smoothing iterations after rotation """
+SMOOTHEN_ITER = 15

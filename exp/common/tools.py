@@ -93,6 +93,28 @@ def show_image(img: np.ndarray) -> None:
     plt.show()
 
 
+def show_position(image: np.ndarray, landmarks : dict, azimuth : tuple, face_center :tuple):
+    img = np.copy(image)
+    mxx = img.shape[0] - 1
+    mxy = img.shape[1] - 1
+    print(str(landmarks))
+    for key in landmarks.keys():
+        for (x, y) in landmarks[key]:
+            img[min(max(x, 0), mxx), min(max(y, 0), mxy)] = 1
+
+    v = np.array([face_center[0]*(mxx + 1), face_center[1]*(mxy+1), face_center[2]])
+    azimuth = np.array([azimuth.item(0), azimuth.item(1), azimuth.item(2)])
+    for i in range(100):
+        x = min(max(int(v[0]), 0), mxx)
+        y = min(max(int(v[1]), 0), mxy)
+        img[x, y] = ((100-i)/100)
+        if i % 10 == 0:
+            print("point on " + str(x) + "," +str(y))
+        v -= azimuth
+
+    show_image(img)
+
+
 def show_3d_plot(X: np.ndarray) -> None:
     """
         :param X: must be 3 dimensional numpy array, with last dimension

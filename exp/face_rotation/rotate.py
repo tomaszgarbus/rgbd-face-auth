@@ -1,12 +1,10 @@
 import numpy as np
 import math
-from common.constants import IMG_SIZE, BGCOLOR
+from common.constants import IMG_SIZE, BGCOLOR, SMOOTHEN_ITER
 import random
 import logging
 
 from model.face import Face
-
-SMOOTHEN_ITER = 15
 
 
 def _rx(theta: float) -> np.ndarray:

@@ -6,35 +6,36 @@ import numpy.linalg
 import common.tools
 from math import acos, degrees
 from scipy import linalg, matrix
+from common.constants import FACE_AZIMUTH
 import scipy
+from model.face import Face
+from face_rotation.face_points import construct_face_points
 
-FACE_AZIMUTH = np.array([0, 0, 1])
 
-
-def matrix_null(A, eps=1e-15):
+def matrix_null(A: matrix, eps=1e-15):
     u, s, vh = scipy.linalg.svd(A)
     null_mask = (s <= eps)
     null_space = scipy.compress(null_mask, vh, axis=0)
     return scipy.transpose(null_space)
 
 
-def calculate_face_normal_vector(x, y):
+def calculate_face_normal_vector(x: np.array, y: np.array) -> np.array:
     face_surface = matrix([x, y, [0, 0, 0]])
     v = matrix_null(face_surface)
     return v
 
 
-def calculate_rotation_matrix(x, y, z):
+def calculate_rotation_matrix(x: tuple, y: tuple, z: tuple) -> tuple:
     xy = np.array(x) - np.array(y)
     zy = np.array(z) - np.array(y)
     xz = np.array(x) - np.array(z)
 
     v = calculate_face_normal_vector(xy, zy)
     print("face azimuth = " + str(v))
-    rotation = calculate_rotation_beetween_vectors(v, FACE_AZIMUTH)
-    test = np.dot(rotation, v.reshape(3)) - FACE_AZIMUTH
+    rotation = calculate_rotation_beetween_vectors(v, np.array(FACE_AZIMUTH))
+    test = np.dot(rotation, v.reshape(3)) - np.array(FACE_AZIMUTH)
     testort = np.dot(xz, v)
-    print("test rot matrix error = " + str(np.linalg.norm(test)) )
+    print("test rot matrix error = " + str(np.linalg.norm(test)))
     print("test ort error = " + str(np.linalg.norm(testort)))
     return rotation, v
 
@@ -61,95 +62,17 @@ def calculate_rotation_beetween_vectors(xy, zy):
     return r
 
 
-def landmarks_take(landmarks):
-    for key in list(landmarks.keys()):
-        landmarks[key] = list([(x, y) for (y, x) in landmarks[key]])
-
-    avgl = lambda x: tuple([int(sum(y) / len(y)) for y in zip(*x)])
-    chin_bottom = landmarks["chin"][6:11]
-    chin_left = landmarks["chin"][:6]
-    chin_right = landmarks["chin"][11:]
-    print("chin_bottom" + str(len(chin_bottom)))
-    print("chin_left" + str(len(chin_left)))
-    print("chin_right" + str(len(chin_right)))
-
-    right_brow = avgl(landmarks["right_eyebrow"])
-    left_brow = avgl(landmarks["left_eyebrow"])
-    forehead = avgl([right_brow, left_brow])
-    top_chin = avgl(landmarks["bottom_lip"] + chin_bottom + chin_bottom + chin_bottom)
-    left_cheek = avgl(chin_left + landmarks["left_eyebrow"] + landmarks["nose_tip"])
-    right_cheek = avgl(chin_right + landmarks["right_eyebrow"] + landmarks["nose_tip"])
-    face_center = avgl([right_brow] + [left_brow] + [top_chin])
-
-    return {"right_brow": [right_brow], "left_brow": [left_brow], "forehead": [forehead],
-            "top_chin": [top_chin]}
-
-
-def angle_from(landmarks, imaged, shape):
-    get_pixl = lambda x0, x1: imaged[max(0, min(shape[0]-1, x0)), max(0, min(shape[1]-1, x1))]
-    to3d = lambda x: (x[0]/shape[0], x[1]/shape[1], get_pixl(x[0], x[1]))
-
-    right_brow = to3d(landmarks["right_brow"][0])
-    left_brow = to3d(landmarks["left_brow"][0])
-    top_chin = to3d(landmarks["top_chin"][0])
-    forehead = to3d(landmarks["forehead"][0])
-
-    face_points = {"right_brow": right_brow, "left_brow": left_brow,  "top_chin": top_chin, "forehead": forehead}
-    print(str(face_points))
-
-    rotation, azimuth = calculate_rotation_matrix(right_brow, top_chin, left_brow)
-
-    #print("after rotation face points = " + str(face_points))
-
-    return rotation, forehead, azimuth, face_points
-
-
-def show_with_landmarks_normalized(image, landmarks):
-    img = np.copy(image)
-    mxx = img.shape[0] - 1
-    mxy = img.shape[1] - 1
-    print(str(landmarks))
-    for key, q in landmarks.items():
-        x = int(q[0] * mxx)
-        y = int(q[1] * mxy)
-        img[min(max(x, 0), mxx), min(max(y, 0), mxy)] = 1
-    tools.show_image(img)
-
-
-def show_with_landmarks(image, landmarks, azimuth, face_center):
-    img = np.copy(image)
-    mxx = img.shape[0] - 1
-    mxy = img.shape[1] - 1
-    print(str(landmarks))
-    for key in landmarks.keys():
-        for (x, y) in landmarks[key]:
-            img[min(max(x, 0), mxx), min(max(y, 0), mxy)] = 1
-
-    v = np.array([face_center[0]*(mxx + 1), face_center[1]*(mxy+1), face_center[2]])
-    azimuth = np.array([azimuth.item(0), azimuth.item(1), azimuth.item(2)])
-    for i in range(100):
-        x = min(max(int(v[0]), 0), mxx)
-        y = min(max(int(v[1]), 0), mxy)
-        img[x,y] = ((100-i)/100)
-        if i % 10 == 0:
-            print("point on " + str(x) + "," +str(y))
-        v -= azimuth
-
-    tools.show_image(img)
-
-
-def load_face_points(image):
-    img1 = (image*256).astype(np.uint8)
-    return face_recognition.face_landmarks(img1)
-
-
-def find_angle(image, imaged):
-    print("\n\nFIND ANGLE")
-    face_points = load_face_points(image)
-    if len(face_points) > 0:
-        landmarks = landmarks_take(face_points[0])
-        rotation, face_center, azimuth, face_points = angle_from(landmarks, imaged, image.shape)
-        show_with_landmarks(image, landmarks, azimuth, face_center)
-        return rotation, face_points
+def angle_from(face: Face) -> np.ndarray:
+    rotation, azimuth = calculate_rotation_matrix(
+        face.face_points["right_brow"],
+        face.face_points["top_chin"],
+        face.face_points["left_brow"])
+    face.azimuth = azimuth
+    return rotation
+def find_angle(face: Face) -> np.ndarray:
+    if len(face.landmarks) > 0:
+        rotation = angle_from(face)
+        face.show_position()
+        return rotation
     print("Error, face not found, returning no rotation")
-    return None, None
+    return None

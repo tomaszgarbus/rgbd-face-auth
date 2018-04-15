@@ -3,10 +3,18 @@ import face_recognition
 
 from common import tools
 
+
 class Face:
     grey_img = None
     depth_img = None
     landmarks = None
+
+    """ list of points defining the face surface"""
+    face_points = None
+    """ center of face """
+    face_center = None
+    """ vector orthogonal to the face surface"""
+    azimuth = None
 
     def __init__(self, grey_img: np.array, depth_img: np.array):
         self.grey_img = grey_img
@@ -34,10 +42,17 @@ class Face:
         tmp = face_recognition.face_landmarks(self.grey_img)
         if not tmp:
             return
-        self.landmarks = tmp
+        assert (len(tmp) == 1)  # allowing to recognise only one face
+        tmp = tmp[0]
+        #  swapping coordinates to suitable format
+        self.landmarks = {k: list([(x, y) for (y, x) in v]) for k, v in tmp.iter()}
 
     def show_grey(self) -> None:
         tools.show_image(self.grey_img)
 
     def show_depth(self) -> None:
         tools.show_image(self.depth_img)
+
+    """ shows face with face points and azimuth"""
+    def show_position(self) -> None:
+        tools.show_position(self.grey_img, self.face_points, self.azimuth, self.face_center)
