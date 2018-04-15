@@ -12,9 +12,9 @@
 #include <libfreenect2/libfreenect2.hpp>
 #include <libfreenect2/registration.h>
 
+#include "basic_types.hpp"
 #include "libkinect.hpp"
 #include "picture.hpp"
-#include "basic_types.hpp"
 
 // Constants
 
@@ -195,13 +195,13 @@ std::pair<size_t, size_t> fit_to_size(size_t width, size_t height, size_t max_wi
 
 #include <cmath>
 
-template<typename VectorT, typename ElementT=double>
+template <typename VectorT, typename ElementT = double>
 ElementT euclidian_norm(VectorT const vector) {
    size_t length = 0;
-   ElementT ret = 0;
+   ElementT ret  = 0;
 
-   for(auto const &x : vector) {
-      ret += x*x;
+   for (auto const &x : vector) {
+      ret += x * x;
    }
 
    return std::sqrt(ret);
@@ -209,15 +209,15 @@ ElementT euclidian_norm(VectorT const vector) {
 
 #include <stdexcept>
 
-template<typename VectorT, typename ElementT=double>
+template <typename VectorT, typename ElementT = double>
 ElementT vector_dot(VectorT const &v, VectorT const &w) {
-   if(v.size() != w.size()) {
+   if (v.size() != w.size()) {
       throw std::invalid_argument("v.size != w.szie // TODO explanation?");
    }
 
    ElementT ret = 0;
-   for(size_t i = 0; i < v.size(); ++i) {
-      ret += v[i]*w[i];
+   for (size_t i = 0; i < v.size(); ++i) {
+      ret += v[i] * w[i];
    }
 
    return ret;
@@ -231,13 +231,13 @@ double calculate_reflectiveness_for_surface(std::array<std::array<Point3d const,
       std::cerr << std::endl;
    }*/
 
-   std::array<double, 3> v{{square[1][0].x-square[1][1].x, square[1][0].y-square[1][1].y,
-    square[1][0].z-square[1][1].z}}, w{{square[1][2].x-square[1][2].x, square[1][2].y-square[1][2].y,
-    square[1][2].z-square[1][1].z}};
+   std::array<double, 3> v{
+         {square[1][0].x - square[1][1].x, square[1][0].y - square[1][1].y, square[1][0].z - square[1][1].z}},
+         w{{square[1][2].x - square[1][2].x, square[1][2].y - square[1][2].y, square[1][2].z - square[1][1].z}};
 
    double ret = vector_dot(v, w) / (euclidian_norm(v) * euclidian_norm(w));
 
-   if(ret != ret) {
+   if (ret != ret) {
       return 0.5;
    }
 
@@ -379,25 +379,30 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       libfreenect2::Frame undistorted(frame_width, frame_height, 4);
       registration.undistortDepth(window->picture->depth_frame->freenect2_frame, &undistorted);
       Matrix<Point3d> points(frame_height, frame_width);
+      Matrix<double> distance(frame_height, frame_width);
 
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
-            registration.getPointXYZ(&undistorted, static_cast<int>(i), static_cast<int>(j),
-                  points[i][j].x, points[i][j].y, points[i][j].z);
+            distance[i][j] = reinterpret_cast<float const *>(undistorted.data)[i * frame_width + j];
          }
       }
 
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
-            double distance             = undistorted.data[i * frame_width + j];
-            values[i][j] = distance * distance * (*window->picture->ir_frame->pixels)[i][j];
+            registration.getPointXYZ(&undistorted, static_cast<int>(i), static_cast<int>(j), points[i][j].x,
+                  points[i][j].y, points[i][j].z);
+         }
+      }
 
-            if (i > 0 && j > 0 && i+1 < frame_height && j+1 < frame_width) {
-               double reflectiveness = calculate_reflectiveness_for_surface({{
-                  {points[i-1][j-1], points[i-1][j], points[i-1][j+1]},
-                  {points[i+0][j-1], points[i+0][j], points[i+0][j+1]},
-                  {points[i+1][j-1], points[i+1][j], points[i+1][j+1]}
-               }});
+      for (size_t i = 0; i < frame_height; ++i) {
+         for (size_t j = 0; j < frame_width; ++j) {
+            values[i][j] = distance[i][j] * distance[i][j] * (*window->picture->ir_frame->pixels)[i][j];
+
+            if (i > 0 && j > 0 && i + 1 < frame_height && j + 1 < frame_width) {
+               double reflectiveness = calculate_reflectiveness_for_surface(
+                     {{{points[i - 1][j - 1], points[i - 1][j], points[i - 1][j + 1]},
+                           {points[i + 0][j - 1], points[i + 0][j], points[i + 0][j + 1]},
+                           {points[i + 1][j - 1], points[i + 1][j], points[i + 1][j + 1]}}});
                values[i][j] *= reflectiveness;
 
                max_value = std::max(max_value, values[i][j]);
