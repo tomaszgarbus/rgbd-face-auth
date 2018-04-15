@@ -8,6 +8,8 @@ from common import tools
 class Face:
     grey_img: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
     depth_img: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
+    """ maps pixels which belong to the face """
+    mask: np.ndarray((IMG_SIZE, IMG_SIZE), dtype=np.bool) = None
     landmarks = None
 
     """ list of points defining the face surface"""

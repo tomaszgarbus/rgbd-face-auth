@@ -96,9 +96,9 @@ def generate_mask(face: Face, points: list((float, float, float))) -> None:
     starting_point = (IMG_SIZE//2, IMG_SIZE//2)  # TODO: maybe some specific landmark (like nose)
 
     def _helper(px, py):
-        if mask(px, py):
-            return
         if min(px, py) < 0 or max(px, py) >= IMG_SIZE:
+            return
+        if mask[px, py]:
             return
         mask[px, py] = True
         _helper(px-1, py)
@@ -144,6 +144,7 @@ def trim_greyd(face: Face) -> None:
     all_points = find_convex_hull(face)
 
     cut_around_points(face, all_points)
+    generate_mask(face, all_points)
 
     #tools.show_image(grey_img)
     #tools.show_image(depth_img)
