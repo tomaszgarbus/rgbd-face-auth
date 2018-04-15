@@ -1,14 +1,10 @@
 """ A simple demo to demonstrate an example usage of module rotate. """
 
 
-from common.db_helper import DBHelper, Database
+from common.db_helper import DBHelper
 from face_rotation import rotate
-from common import tools
 from face_rotation.find_angle import find_angle
-from face_rotation.recentre import recentre, show_with_center
 from face_rotation import trim_face
-import face_rotation.find_angle
-import numpy as np
 
 
 if __name__ == '__main__':
@@ -36,7 +32,7 @@ if __name__ == '__main__':
     for face in photos:
 
         # Trim face
-        face, convex_hull_vertices = trim_face.trim_greyd(face)
+        trim_face.trim_greyd(face)
         img_grey, img_depth = face
 
         # Display trimmed photo

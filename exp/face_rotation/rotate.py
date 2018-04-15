@@ -7,21 +7,21 @@ import logging
 from model.face import Face
 
 
-def _rx(theta: float) -> np.ndarray:
+def _rx(theta: float) -> np.ndarray((3, 3)):
     """ returns rotation matrix for x axis """
     return np.array([[1, 0, 0],
                      [0, math.cos(theta), -math.sin(theta)],
                      [0, math.sin(theta), math.cos(theta)]])
 
 
-def _ry(theta: float) -> np.ndarray:
+def _ry(theta: float) -> np.ndarray((3, 3)):
     """ returns rotation matrix for y axis """
     return np.array([[math.cos(theta), 0, math.sin(theta)],
                      [0, 1, 0],
                      [-math.sin(theta), 0, math.cos(theta)]])
 
 
-def _rz(theta: float) -> np.ndarray:
+def _rz(theta: float) -> np.ndarray((3, 3)):
     """ returns rotation matrix for z axis """
     return np.array([[math.cos(theta), -math.sin(theta), 0],
                      [math.sin(theta), math.cos(theta), 0],
@@ -135,7 +135,11 @@ def drop_corner_values(dimage: np.ndarray,
     _rescale_one_dim(image)
 
 
-def to_one_matrix(face: Face) -> np.ndarray:
+def _to_one_matrix(face: Face) -> np.ndarray:
+    """
+        :param face:
+        :return: a 3D np.ndarray of shape (IMG_SIZE, IMG_SIZE, 4): (x, y, z, grey)
+    """
     points = np.zeros((IMG_SIZE, IMG_SIZE, 4))
     for i in range(IMG_SIZE):
         points[i, :, 0] = i
@@ -147,8 +151,7 @@ def to_one_matrix(face: Face) -> np.ndarray:
 
 def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray, face_points):
     # First, we prepare the matrix X of points (x, y, z, Grey)
-    (grey_img, depth_img) = (face)
-    points = to_one_matrix(face)
+    points = _to_one_matrix(face)
 
     drop_corner_values(points[:, :, 2], points[:, :, 3])
 
