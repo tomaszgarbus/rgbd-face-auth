@@ -1,8 +1,13 @@
 import numpy as np
 import face_recognition
 
-from common.constants import IMG_SIZE
 from common import tools
+from common.constants import IMG_SIZE
+from face_rotation.trim_face import trim_greyd
+from face_rotation.rotate import rotate_greyd_img
+from face_rotation.other import construct_face_points, drop_corner_values
+from face_rotation.find_angle import find_angle
+from face_rotation.recentre import recentre
 
 
 class Face:
@@ -13,11 +18,13 @@ class Face:
     landmarks = None
 
     """ list of points defining the face surface"""
-    face_points = None
+    face_points: dict = None
     """ center of face """
-    face_center = None
+    face_center: tuple = None
     """ vector orthogonal to the face surface"""
-    azimuth = None
+    azimuth: tuple = None
+
+    preprocessed: tuple = False
 
     def __init__(self, grey_img: np.array, depth_img: np.array):
         self.grey_img = grey_img
@@ -60,52 +67,52 @@ class Face:
     def show_position(self) -> None:
         tools.show_position(self.grey_img, self.face_points, self.azimuth, self.face_center)
 
-    def normalization(self):
+    def preprocessing(self) -> None:
+        if self.preprocessed:
+            return
+        self.preprocessed = True
+
         # Display the original photo
-        face.show_grey()
-        face.show_depth()
+        self.show_grey()
+        self.show_depth()
 
         # Trim face
-        trim_face.trim_greyd(face)
-        img_grey, img_depth = face
+        trim_greyd(self)
 
         # Display trimmed photo
-        face.show_grey()
-        face.show_depth()
+        self.show_grey()
+        self.show_depth()
 
         # Drop corner values and rescale to 0...1
-        rotate.drop_corner_values(face)
+        drop_corner_values(self)
+
+        # Calculate face center and points defining face surface
+        construct_face_points(self)
 
         # Display the photo after normalizing mean
-        face.show_grey()
-        face.show_depth()
+        self.show_position()
+        self.show_depth()
 
-        # TODO: delete when find_angle code below works
-        continue
+    def normalized(self) -> 'Face':
+        self.preprocessing()
 
         # Find the angle
-        rotation, face_points = find_angle(face)
+        rotation = find_angle(self)
         if rotation is None:
-            continue
-        center = face_points["forehead"]
-        print("center = " + str(center))
+            return None
 
         # Apply rotation
-        rotated_face, face_points = rotate.rotate_greyd_img(face, rotation, face_points)
+        rotated_face = rotate_greyd_img(self, rotation)
 
-        rotated_face.show_grey()
+        # Display the results
+        rotated_face.show_position()
         rotated_face.show_depth()
 
-        # face_rotation.find_angle.show_with_landmarks_normalized(rotated_face.grey_img, face_points)
-
-        # show_with_center(rotated_grey, center)
-        # rotated_grey, rotated_depth = recentre(rotated_grey, rotated_depth, face_points["forehead"])
-        # show_with_center(rotated_grey, (1/2, 1/5))
+        # centering
+        rotated_face.show_position()
+        recentre(rotated_face)
+        rotated_face.show_position()
 
         # tools.show_3d_plot(rotate.to_one_matrix(rotated_face))
-        # Display the results
-        # tools.show_image(rotated_depth)
-        # tools.show_image(rotated_grey)
 
-        # exit(0)
 

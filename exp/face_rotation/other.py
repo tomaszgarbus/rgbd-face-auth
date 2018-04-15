@@ -1,4 +1,6 @@
 from model.face import Face
+from face_rotation.rotate import _rescale_one_dim
+from common.constants import IMG_SIZE
 
 
 def construct_face_points(face: Face) -> None:
@@ -23,4 +25,27 @@ def construct_face_points(face: Face) -> None:
 
     face.face_center = to3d(forehead)
     face.face_points = {"right_brow": to3d(right_brow), "left_brow": to3d(left_brow), "top_chin": to3d(top_chin)}
+
+
+def drop_corner_values(face: Face,
+                       lower_threshold : float = 0.1,
+                       upper_threshold : float = 0.98) -> None:
+    """
+        Erase those pixels which are too close or to far to be treated as
+        valuable data.
+    """
+    depth_median = np.median(face.depth_img[face.mask])
+    face.depth_img[face.mask] -= depth_median
+    depth_stdev = np.std(face.depth_img[face.mask])
+    for i in range(IMG_SIZE):
+        for j in range(IMG_SIZE):
+            if abs(face.depth_img[i, j]) >= depth_stdev:
+                face.depth_img[i, j] = 0
+
+    face.depth_img /= depth_stdev
+
+
+    # Scale each dimension into interval 0..1
+    _rescale_one_dim(face.depth_img)
+    _rescale_one_dim(face.grey_img)
 

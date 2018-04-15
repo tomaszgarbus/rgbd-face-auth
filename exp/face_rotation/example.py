@@ -30,7 +30,7 @@ if __name__ == '__main__':
             photos += load_samples(database, limit=4)
 
     for face in photos[:4]:
-        face = face.normalization()
+        face = face.normalized()
         face.show_grey()
         face.show_depth()
 

@@ -110,30 +110,6 @@ def _smoothen(img: np.ndarray) -> np.ndarray:
                 img[i, j] = _median_neighbors(img, (i, j), 1, 0.01, 0.9)
     return img
 
-
-def drop_corner_values(face: Face,
-                       lower_threshold : float = 0.1,
-                       upper_threshold : float = 0.98) -> None:
-    """
-        Erase those pixels which are too close or to far to be treated as
-        valuable data.
-    """
-    depth_median = np.median(face.depth_img[face.mask])
-    face.depth_img[face.mask] -= depth_median
-    depth_stdev = np.std(face.depth_img[face.mask])
-    for i in range(IMG_SIZE):
-        for j in range(IMG_SIZE):
-            if abs(face.depth_img[i, j]) >= depth_stdev:
-                face.depth_img[i, j] = 0
-
-    face.depth_img /= depth_stdev
-
-
-    # Scale each dimension into interval 0..1
-    _rescale_one_dim(face.depth_img)
-    _rescale_one_dim(face.grey_img)
-
-
 def _to_one_matrix(face: Face) -> np.ndarray:
     """
         :param face:
@@ -148,7 +124,9 @@ def _to_one_matrix(face: Face) -> np.ndarray:
     return points
 
 
-def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray, face_points):
+def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
+    face_points = face.face_points
+
     drop_corner_values(face)
 
     # First, we prepare the matrix X of points (x, y, z, Grey)

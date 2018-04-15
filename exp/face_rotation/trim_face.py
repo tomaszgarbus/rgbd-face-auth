@@ -7,7 +7,6 @@ from common import tools
 from common.constants import IMG_SIZE, BGCOLOR
 from model.face import Face
 
-
 def find_convex_hull_vertices(grey_img: np.ndarray) -> list:
     """
         :param grey_img:
