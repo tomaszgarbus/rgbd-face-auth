@@ -2,9 +2,7 @@
 
 
 from common.db_helper import DBHelper
-from face_rotation import rotate
-from face_rotation.find_angle import find_angle
-from face_rotation import trim_face
+from controller.normalization import normalized
 
 
 if __name__ == '__main__':
@@ -30,7 +28,7 @@ if __name__ == '__main__':
             photos += load_samples(database, limit=4)
 
     for face in photos[:4]:
-        face = face.normalized()
+        face = normalized(face)
         face.show_grey()
         face.show_depth()
 

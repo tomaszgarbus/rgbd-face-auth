@@ -3,9 +3,7 @@ import math
 from common.constants import IMG_SIZE, BGCOLOR, SMOOTHEN_ITER
 import random
 import logging
-
 from model.face import Face
-
 
 def _rx(theta: float) -> np.ndarray((3, 3)):
     """ returns rotation matrix for x axis """
@@ -28,7 +26,30 @@ def _rz(theta: float) -> np.ndarray((3, 3)):
                      [0, 0, 1]])
 
 
-def _rescale_one_dim(_points: np.ndarray) -> None:
+def drop_corner_values(face: Face,
+                       lower_threshold : float = 0.1,
+                       upper_threshold : float = 0.98) -> None:
+    """
+        Erase those pixels which are too close or to far to be treated as
+        valuable data.
+    """
+    depth_median = np.median(face.depth_img[face.mask])
+    face.depth_img[face.mask] -= depth_median
+    depth_stdev = np.std(face.depth_img[face.mask])
+    for i in range(IMG_SIZE):
+        for j in range(IMG_SIZE):
+            if abs(face.depth_img[i, j]) >= depth_stdev:
+                face.depth_img[i, j] = 0
+
+    face.depth_img /= depth_stdev
+
+
+    # Scale each dimension into interval 0..1
+    rescale_one_dim(face.depth_img)
+    rescale_one_dim(face.grey_img)
+
+
+def rescale_one_dim(_points: np.ndarray) -> None:
     """
         Scales one dimension into interval 0..1
     """
@@ -42,7 +63,7 @@ def _rescale(_points: np.ndarray) -> None:
         Scales each dimension into interval 0..1
     """
     for i in range(_points.shape[-1]):
-        _rescale_one_dim(_points[:, :, i])
+        rescale_one_dim(_points[:, :, i])
 
 
 def normalize_face_points(_points: np.ndarray, face_points: dict, rotation_matrix: np.ndarray((3, 3))) -> dict:
@@ -133,8 +154,8 @@ def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
     points = _to_one_matrix(face)
 
     # Normalize x an y dimensions of |points|
-    _rescale_one_dim(points[:, :, 0])
-    _rescale_one_dim(points[:, :, 1])
+    rescale_one_dim(points[:, :, 0])
+    rescale_one_dim(points[:, :, 1])
 
     # Rotate around each axis
     # rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
@@ -173,7 +194,10 @@ def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
     # tools.show_image(depth_rotated)
     # Or:
     # tools.show_3d_plot(points)
-    return (Face(grey_rotated, depth_rotated), face_points)
+
+    rotated_face = Face(grey_rotated, depth_rotated)
+    rotated_face.face_points = face_points
+    return rotated_face
 
 
 def rotate_greyd_img_by_angle(face: Face,
