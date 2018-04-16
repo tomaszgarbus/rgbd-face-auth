@@ -25,7 +25,7 @@ if __name__ == '__main__':
     photos = []
     for database in helper.get_databases():
         if database.get_name() != 'www.vap.aau.dk':
-            photos += load_samples(database, limit=10)
+            photos += load_samples(database, limit=1)
 
     for face in photos[:15]:
         face = normalized(face)

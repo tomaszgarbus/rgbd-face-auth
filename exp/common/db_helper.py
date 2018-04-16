@@ -186,6 +186,8 @@ class Database:
         if self._load_depth:
             assert os.path.isfile(path_color), "No such file %s " % path_depth
             depth_photo = tools.load_depth_photo(path_depth)
+            if self.get_name() == 'eurecom':
+                depth_photo = 1 - depth_photo
             loaded_imgs.append(depth_photo)
         # TODO: load IR photo too
         return tuple(loaded_imgs)

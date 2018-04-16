@@ -41,8 +41,15 @@ def drop_corner_values(face: Face,
             if abs(face.depth_img[i, j]) >= depth_stdev:
                 face.depth_img[i, j] = 0
 
-    face.depth_img /= depth_stdev
+    depth_stdev = np.std(face.depth_img[face.mask])
+    face.depth_img /= depth_stdev*4
 
+    mx = face.depth_img.max()
+    mi = face.depth_img.min()
+    if abs(mi) > abs(mx):
+        face.depth_img = np.maximum(-abs(mx), face.depth_img)
+    else:
+        face.depth_img = np.minimum(abs(mi), face.depth_img)
 
     # Scale each dimension into interval 0..1
     rescale_one_dim(face.depth_img)
@@ -148,8 +155,6 @@ def _to_one_matrix(face: Face) -> np.ndarray:
 def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
     face_points = face.face_points
     face_points["center"] = face.face_center
-
-    drop_corner_values(face)
 
     # First, we prepare the matrix X of points (x, y, z, Grey)
     points = _to_one_matrix(face)
