@@ -15,7 +15,7 @@ from common.constants import IMG_SIZE
 def get_model(model_id):
     # TODO sensible creating models
     if model_id == 0:
-        print( "MODEL ZERO" )
+        logging.debug( "MODEL ZERO" )
 
         model = Sequential()
         model.add(Conv2D(20,
@@ -39,7 +39,7 @@ def get_model(model_id):
         return model
 
     if model_id == 1:
-        print( "MODEL ONE" )
+        logging.debug( "MODEL ONE" )
 
         model = Sequential()
 
@@ -87,11 +87,11 @@ def get_no_normalization_models():
 if __name__ == '__main__':
     sys.setrecursionlimit(1000000)
 
-    print("Loading data..")
+    logging.debug("Loading data..")
     X_train, Y_train, X_test, Y_test = get_no_normalization_models()
 
     TOTAL_SUBJECTS_COUNT = Y_test[0].shape[0]
-    print("Loaded data")
+    logging.debug("Loaded data")
     # If you want, display the first input image. It is already scaled to [0;1]
     # tools.show_image(X_train[0].reshape((TYPES * IMG_SIZE, IMG_SIZE)));
 
@@ -122,4 +122,4 @@ if __name__ == '__main__':
         )
         loss = model.evaluate(X_test, Y_test)
         total_epochs += epochs_per_round
-        print("Epochs: %d;  Loss (on test set): %f;  Cat. accuracy: %f" % (total_epochs, loss[0], loss[1]))
+        logging.debug("Epochs: %d;  Loss (on test set): %f;  Cat. accuracy: %f" % (total_epochs, loss[0], loss[1]))

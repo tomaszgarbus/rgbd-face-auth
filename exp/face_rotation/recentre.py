@@ -2,6 +2,7 @@ import numpy as np
 from common import tools
 from common.constants import IMG_SIZE, CENTER_DEST
 from model.face import Face
+import logging
 
 
 def show_with_center(image, center):
@@ -14,11 +15,11 @@ def show_with_center(image, center):
 
 def recentre(face: Face) -> None:
     assert face.depth_img.shape == face.grey_img.shape
-    print("\n\nRECENTRE")
+    logging.debug("\n\nRECENTRE")
     move_x = int((CENTER_DEST[0] - face.face_center[0]) * IMG_SIZE)
     move_y = int((CENTER_DEST[1] - face.face_center[1]) * IMG_SIZE)
 
-    print("MOVE X MOVE Y %d %d" % (move_x, move_y))
+    logging.debug("MOVE X MOVE Y %d %d" % (move_x, move_y))
     face.grey_img = np.roll(face.grey_img, move_x, axis=1)
     face.grey_img = np.roll(face.grey_img, move_y, axis=0)
     face.depth_img = np.roll(face.depth_img, move_x, axis=1)

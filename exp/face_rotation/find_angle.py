@@ -1,10 +1,5 @@
 import numpy as np
-import math
-import face_recognition
-from common import tools
-import numpy.linalg
-import common.tools
-from math import acos, degrees
+import logging
 from scipy import linalg, matrix
 from common.constants import FACE_AZIMUTH
 import scipy
@@ -26,12 +21,12 @@ def calculate_face_normal_vector(x: np.array, y: np.array) -> np.array:
 
 def calculate_rotation_beetween_vectors(xy, zy):
     a, b = (xy / np.linalg.norm(xy)).reshape(3), (zy / np.linalg.norm(zy)).reshape(3)
-    print("\nmake " + str(a) + " become " + str(b))
+    logging.debug("\nmake " + str(a) + " become " + str(b))
     v = np.cross(a, b)
     c = np.dot(a, b)
     s = np.linalg.norm(v)
     I = np.identity(3)
-    #print("crossvectorrotation = " + str(v))
+    #logging.debug("crossvectorrotation = " + str(v))
     vXStr = '{} {} {}; {} {} {}; {} {} {}'.format(
         0, -v[2], v[1],
         v[2], 0, -v[0],
@@ -42,7 +37,7 @@ def calculate_rotation_beetween_vectors(xy, zy):
     if bb == 0:
         return I
     r = I + k + np.dot(k, k) * ((1 - c) / bb)
-    print("ROTATION MATRIX = \n" + str(r))
+    logging.debug("ROTATION MATRIX = \n" + str(r))
     return r
 
 
@@ -52,12 +47,12 @@ def calculate_rotation_matrix(x: tuple, y: tuple, z: tuple) -> tuple:
     xz = np.array(x) - np.array(z)
 
     v = calculate_face_normal_vector(xy, zy)
-    print("face azimuth = " + str(v))
+    logging.debug("face azimuth = " + str(v))
     rotation = calculate_rotation_beetween_vectors(v, np.array(FACE_AZIMUTH))
     test = np.dot(rotation, v.reshape(3)) - np.array(FACE_AZIMUTH)
     testort = np.dot(xz, v)
-    print("test rot matrix error = " + str(np.linalg.norm(test)))
-    print("test ort error = " + str(np.linalg.norm(testort)))
+    logging.debug("test rot matrix error = " + str(np.linalg.norm(test)))
+    logging.debug("test ort error = " + str(np.linalg.norm(testort)))
     return rotation, v
 
 
@@ -75,5 +70,5 @@ def find_angle(face: Face) -> np.ndarray((3, 3)):
         rotation = angle_from(face)
         face.show_position()
         return rotation
-    print("Error, face not found, returning no rotation")
+    logging.debug("Error, face not found, returning no rotation")
     return None

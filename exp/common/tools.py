@@ -6,6 +6,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
+import logging
 
 
 def rgb_skin_check(R: float, G: float, B: float) -> bool:
@@ -97,7 +98,7 @@ def show_position(image: np.ndarray, landmarks: dict, azimuth: tuple, face_cente
     img = np.copy(image)
     mxx = img.shape[0] - 1
     mxy = img.shape[1] - 1
-    print(str(landmarks))
+    logging.debug(str(landmarks))
     for (key, v) in landmarks.items():
         (x, y, z) = v
         x *= (mxx + 1)
@@ -112,7 +113,7 @@ def show_position(image: np.ndarray, landmarks: dict, azimuth: tuple, face_cente
             y = min(max(int(v[1]), 0), mxy)
             img[x, y] = ((100-i)/100)
             if i % 10 == 0:
-                print("point on " + str(x) + "," +str(y))
+                logging.debug("point on " + str(x) + "," +str(y))
             v -= azimuth
 
     show_image(img)

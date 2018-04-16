@@ -31,11 +31,11 @@ def build_input_vector(greyd_face):
 
 
 def load_database(database, offset, override_test_set=False):
-    print('Loading database %s' % database.get_name())
+    logging.debug('Loading database %s' % database.get_name())
     for i in range(database.subjects_count()):
-        print('Subject', i)
+        logging.debug('Subject', i)
         for j in range(database.imgs_per_subject(i)):
-            print('Photo %d/%d' % (j, database.imgs_per_subject(i)))
+            logging.debug('Photo %d/%d' % (j, database.imgs_per_subject(i)))
             x = build_input_vector(database.load_greyd_face(i, j))
             y = offset + i + 1
             if x is None or y is None:
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     helper = DBHelper()
     TOTAL_SUBJECTS_COUNT = helper.all_subjects_count()
-    print(TOTAL_SUBJECTS_COUNT)
+    logging.debug(TOTAL_SUBJECTS_COUNT)
 
     sum_offset = 0
     for database in helper.get_databases():

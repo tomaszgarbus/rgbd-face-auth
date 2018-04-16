@@ -3,12 +3,13 @@
 
 from common.db_helper import DBHelper
 from controller.normalization import normalized
+import logging
 
 
 if __name__ == '__main__':
     def load_samples(database, limit=10):
         samples = []
-        print('Loading database %s with limit %d' % (database.get_name(), limit))
+        logging.debug('Loading database %s with limit %d' % (database.get_name(), limit))
         for i in range(database.subjects_count()):
             for j in range(database.imgs_per_subject(i)):
                 if len(samples) >= limit:
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     photos = []
     for database in helper.get_databases():
         if database.get_name() != 'www.vap.aau.dk':
-            photos += load_samples(database, limit=1)
+            photos += load_samples(database, limit=2)
 
     for face in photos[:15]:
         face = normalized(face)
