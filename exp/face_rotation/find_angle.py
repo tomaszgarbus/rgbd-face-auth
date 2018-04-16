@@ -24,21 +24,6 @@ def calculate_face_normal_vector(x: np.array, y: np.array) -> np.array:
     return v
 
 
-def calculate_rotation_matrix(x: tuple, y: tuple, z: tuple) -> tuple:
-    xy = np.array(x) - np.array(y)
-    zy = np.array(z) - np.array(y)
-    xz = np.array(x) - np.array(z)
-
-    v = calculate_face_normal_vector(xy, zy)
-    print("face azimuth = " + str(v))
-    rotation = calculate_rotation_beetween_vectors(v, np.array(FACE_AZIMUTH))
-    test = np.dot(rotation, v.reshape(3)) - np.array(FACE_AZIMUTH)
-    testort = np.dot(xz, v)
-    print("test rot matrix error = " + str(np.linalg.norm(test)))
-    print("test ort error = " + str(np.linalg.norm(testort)))
-    return rotation, v
-
-
 def calculate_rotation_beetween_vectors(xy, zy):
     a, b = (xy / np.linalg.norm(xy)).reshape(3), (zy / np.linalg.norm(zy)).reshape(3)
     print("\nmake " + str(a) + " become " + str(b))
@@ -59,6 +44,21 @@ def calculate_rotation_beetween_vectors(xy, zy):
     r = I + k + np.dot(k, k) * ((1 - c) / bb)
     print("ROTATION MATRIX = \n" + str(r))
     return r
+
+
+def calculate_rotation_matrix(x: tuple, y: tuple, z: tuple) -> tuple:
+    xy = np.array(x) - np.array(y)
+    zy = np.array(z) - np.array(y)
+    xz = np.array(x) - np.array(z)
+
+    v = calculate_face_normal_vector(xy, zy)
+    print("face azimuth = " + str(v))
+    rotation = calculate_rotation_beetween_vectors(v, np.array(FACE_AZIMUTH))
+    test = np.dot(rotation, v.reshape(3)) - np.array(FACE_AZIMUTH)
+    testort = np.dot(xz, v)
+    print("test rot matrix error = " + str(np.linalg.norm(test)))
+    print("test ort error = " + str(np.linalg.norm(testort)))
+    return rotation, v
 
 
 def angle_from(face: Face) -> np.ndarray:

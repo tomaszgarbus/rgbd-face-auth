@@ -1,8 +1,8 @@
 import numpy as np
 from common import tools
-from common.constants import IMG_SIZE
+from common.constants import IMG_SIZE, CENTER_DEST
+from model.face import Face
 
-CENTER_DEST = (1/2, 1/5)  # where center should be
 
 def show_with_center(image, center):
     img = np.copy(image)
@@ -12,37 +12,28 @@ def show_with_center(image, center):
     tools.show_image(img)
 
 
-def get_landmarks(image):
-    img1 = (image*256).astype(np.uint8)
-    return face_recognition.face_landmarks(img1)
-
-
-def recentre(image, imaged, center):
-    assert image.shape == imaged.shape
+def recentre(face: Face) -> None:
+    assert face.depth_img.shape == face.grey_img.shape
     print("\n\nRECENTRE")
-    move_x = int((CENTER_DEST[0] - center[0]) * IMG_SIZE)
-    move_y = int((CENTER_DEST[1] - center[1]) * IMG_SIZE)
+    move_x = int((CENTER_DEST[0] - face.face_center[0]) * IMG_SIZE)
+    move_y = int((CENTER_DEST[1] - face.face_center[1]) * IMG_SIZE)
 
     print("MOVE X MOVE Y %d %d" % (move_x, move_y))
-    image = np.roll(image, move_x, axis=1)
-    image = np.roll(image, move_y, axis=0)
-    imaged = np.roll(imaged, move_x, axis=1)
-    imaged = np.roll(imaged, move_y, axis=0)
+    face.grey_img = np.roll(face.grey_img, move_x, axis=1)
+    face.grey_img = np.roll(face.grey_img, move_y, axis=0)
+    face.depth_img = np.roll(face.depth_img, move_x, axis=1)
+    face.depth_img = np.roll(face.depth_img, move_y, axis=0)
     if move_x >= 0:
-        image[:, move_x] = 0
-        imaged[:, move_x] = 0
+        face.grey_img[:, move_x] = 0
+        face.depth_img[:, move_x] = 0
     else:
-        image[:, move_x:] = 0
-        imaged[:, move_x:] = 0
+        face.grey_img[:, move_x:] = 0
+        face.depth_img[:, move_x:] = 0
     if move_y >= 0:
-        image[:move_y, :] = 0
-        imaged[:move_y, :] = 0
+        face.grey_img[:move_y, :] = 0
+        face.depth_img[:move_y, :] = 0
     else:
-        image[move_y:, :] = 0
-        imaged[move_y:, :] = 0
+        face.grey_img[move_y:, :] = 0
+        face.depth_img[move_y:, :] = 0
     #show_with_center(imaged, center)
-
-    return image, imaged
-
-
 

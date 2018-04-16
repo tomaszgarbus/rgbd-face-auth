@@ -147,6 +147,7 @@ def _to_one_matrix(face: Face) -> np.ndarray:
 
 def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
     face_points = face.face_points
+    face_points["center"] = face.face_center
 
     drop_corner_values(face)
 
@@ -196,6 +197,8 @@ def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
     # tools.show_3d_plot(points)
 
     rotated_face = Face(grey_rotated, depth_rotated)
+    rotated_face.face_center = face_points["center"]
+    del face_points["center"]
     rotated_face.face_points = face_points
     return rotated_face
 

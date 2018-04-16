@@ -26,7 +26,7 @@ class Face:
         self.depth_img = depth_img
         if self.grey_img is not None and self.depth_img is not None:
             assert self.depth_img.shape == self.grey_img.shape == (IMG_SIZE, IMG_SIZE)
-        self.preprocess_landmarks()
+        self._preprocess_landmarks()
 
     _iter_rq = 0
 
@@ -44,13 +44,13 @@ class Face:
             self._iter_rq = 0
             raise StopIteration
 
-    def preprocess_landmarks(self) -> None:
+    def _preprocess_landmarks(self) -> None:
         tmp = face_recognition.face_landmarks((self.grey_img * 256).astype(np.uint8))
         if not tmp:
             return
         assert (len(tmp) == 1)  # allowing to recognise only one face
         tmp = tmp[0]
-        #  swapping coordinates to suitable format
+        # swapping coordinates to suitable format
         self.landmarks = {k: list([(x, y) for (y, x) in v]) for k, v in tmp.items()}
 
     def show_grey(self) -> None:

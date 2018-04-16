@@ -93,7 +93,7 @@ def show_image(img: np.ndarray) -> None:
     plt.show()
 
 
-def show_position(image: np.ndarray, landmarks : dict, azimuth : tuple, face_center :tuple):
+def show_position(image: np.ndarray, landmarks: dict, azimuth: tuple, face_center: tuple):
     img = np.copy(image)
     mxx = img.shape[0] - 1
     mxy = img.shape[1] - 1

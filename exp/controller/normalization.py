@@ -53,9 +53,10 @@ def normalized(face: Face) -> Face:
 
     # centering
     rotated_face.show_position()
-    recentre(rotated_face)
+    recentre(face)
     rotated_face.show_position()
 
+    return rotated_face
     # tools.show_3d_plot(rotate.to_one_matrix(rotated_face))
 
 

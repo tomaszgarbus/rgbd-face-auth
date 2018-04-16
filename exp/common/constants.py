@@ -53,3 +53,6 @@ FACE_AZIMUTH = [0, 0, 1]
 
 """ smoothing iterations after rotation """
 SMOOTHEN_ITER = 15
+
+
+CENTER_DEST = (1/2, 1/5)  # where center should be
