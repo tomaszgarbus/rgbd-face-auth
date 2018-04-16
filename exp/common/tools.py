@@ -100,7 +100,9 @@ def show_position(image: np.ndarray, landmarks: dict, azimuth: tuple, face_cente
     print(str(landmarks))
     for (key, v) in landmarks.items():
         (x, y, z) = v
-        img[min(max(int(x*256), 0), mxx), min(max(int(y*256), 0), mxy)] = 1
+        x *= (mxx + 1)
+        y *= (mxy + 1)
+        img[min(max(int(x), 0), mxx), min(max(int(y), 0), mxy)] = 1
 
     v = np.array([face_center[0]*(mxx + 1), face_center[1]*(mxy+1), face_center[2]])
     if azimuth is not None:

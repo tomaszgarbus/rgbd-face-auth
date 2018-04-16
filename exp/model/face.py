@@ -26,7 +26,7 @@ class Face:
         self.depth_img = depth_img
         if self.grey_img is not None and self.depth_img is not None:
             assert self.depth_img.shape == self.grey_img.shape == (IMG_SIZE, IMG_SIZE)
-        self._preprocess_landmarks()
+            self._preprocess_landmarks()
 
     _iter_rq = 0
 
