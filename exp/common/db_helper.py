@@ -44,6 +44,10 @@ def photo_to_greyd_face(color_photo: np.ndarray, depth_photo: np.ndarray) -> Fac
         grey_face = tools.change_image_mode('RGB', 'L', color_face)
         grey_face = grey_face/np.max(grey_face)
 
+        # Check if we can find any landmarks on the face. If not, it is useless.
+        if not face_recognition.face_landmarks((grey_face * 256).astype(np.uint8)):
+            return Face(None, None)
+
         return Face(grey_face, depth_face)
     else:
         # Face couldn't be detected

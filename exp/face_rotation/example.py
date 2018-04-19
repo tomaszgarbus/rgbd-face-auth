@@ -7,10 +7,13 @@ import logging
 
 
 if __name__ == '__main__':
-    def load_samples(database, limit=10):
+    logging.basicConfig(level=logging.INFO)
+
+    def load_samples(database, limit=10, limit_per_person=2):
         samples = []
-        logging.debug('Loading database %s with limit %d' % (database.get_name(), limit))
+        logging.info('Loading database %s with limit %d' % (database.get_name(), limit))
         for i in range(database.subjects_count()):
+            person_photos_count = 0
             for j in range(database.imgs_per_subject(i)):
                 if len(samples) >= limit:
                     return samples
@@ -18,6 +21,10 @@ if __name__ == '__main__':
                 if x.grey_img is None or x.depth_img is None:
                     continue
                 samples.append(x)
+                person_photos_count += 1
+                if limit_per_person is not None\
+                   and person_photos_count >= limit_per_person:
+                    break
         return samples
 
     # Load a random photo to rotate
@@ -26,9 +33,9 @@ if __name__ == '__main__':
     photos = []
     for database in helper.get_databases():
         if database.get_name() != 'www.vap.aau.dk':
-            photos += load_samples(database, limit=2)
+            photos += load_samples(database, limit=9, limit_per_person=3)
 
-    for face in photos[:15]:
+    for face in photos:
         face = normalized(face)
         face.show_grey()
         face.show_depth()

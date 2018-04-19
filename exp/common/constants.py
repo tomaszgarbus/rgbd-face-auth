@@ -54,5 +54,11 @@ FACE_AZIMUTH = [0, 0, 1]
 """ smoothing iterations after rotation """
 SMOOTHEN_ITER = 15
 
+"""
+    Assuming frontal position of the face, the range of visible depth
+    values is approx |DEPTH_TO_WIDTH_RATIO| as large as the range of
+    visible width.
+"""
+DEPTH_TO_WIDTH_RATIO = 0.5
 
 CENTER_DEST = (1/2, 1/5)  # where center should be

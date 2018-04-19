@@ -13,7 +13,7 @@ with open(filename, 'rb') as f:
 
     size_arr = np.fromfile(f, dtype='i4', count=2)
     width, height = size_arr
-    logging.debug(size_arr)
+    print(size_arr)
 
     data_arr = np.fromfile(f, dtype='f', count=height * width)
 

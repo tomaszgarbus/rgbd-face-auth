@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from common.constants import IMG_SIZE, BGCOLOR, SMOOTHEN_ITER
+from common.constants import IMG_SIZE, SMOOTHEN_ITER, DEPTH_TO_WIDTH_RATIO
 import random
 import logging
 from model.face import Face
@@ -54,6 +54,7 @@ def drop_corner_values(face: Face,
     # Scale each dimension into interval 0..1
     rescale_one_dim(face.depth_img)
     rescale_one_dim(face.grey_img)
+    face.depth_img *= DEPTH_TO_WIDTH_RATIO
 
 
 def rescale_one_dim(_points: np.ndarray) -> None:
@@ -209,9 +210,8 @@ def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
 
 
 def rotate_greyd_img_by_angle(face: Face,
-                              face_points,
                               theta_x : float = 0,
                               theta_y : float = 0,
                               theta_z : float = 0,):
     rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
-    return rotate_greyd_img(face, rotation_matrix, face_points)
+    return rotate_greyd_img(face, rotation_matrix)
