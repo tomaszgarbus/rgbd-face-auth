@@ -22,11 +22,21 @@ def photo_to_greyd_face(color_photo: np.ndarray, depth_photo: np.ndarray) -> Fac
     face_coords = face_recognition.face_locations(color_photo)
     # Process face detected by the library
     if len(face_coords) == 1:
-        (x1,y1,x2,y2) = face_coords[0]
+        (x1, y1, x2, y2) = face_coords[0]
         margin = int(abs(x2-x1) * MARGIN_COEF)
-        # Cut out RGB & D face images
-        depth_face = depth_photo[x1-margin:x2+margin,y2-margin:y1+margin]
-        color_face = color_photo[x1-margin:x2+margin,y2-margin:y1+margin]
+        # Cut out RGB & D face images with margin |margin|
+        guard_x = lambda x: max(0, min(x, depth_photo.shape[0]))
+        guard_y = lambda y: max(0, min(y, depth_photo.shape[1]))
+        x1 = guard_x(x1-margin)
+        x2 = guard_x(x2+margin)
+        y1, y2 = y2, y1
+        y1 = guard_y(y1-margin)
+        y2 = guard_y(y2+margin)
+        if x1 >= x2 or y1 >= y2:
+            logging.warning("Face has non-positive area, returning (None, None)")
+            return Face(None, None)
+        depth_face = depth_photo[x1:x2, y1:y2]
+        color_face = color_photo[x1:x2, y1:y2]
         depth_face = tools.gray_image_resize(depth_face, (IMG_SIZE, IMG_SIZE))
         depth_face = depth_face/np.max(depth_face)
         color_face = tools.rgb_image_resize(color_face, (IMG_SIZE, IMG_SIZE))
