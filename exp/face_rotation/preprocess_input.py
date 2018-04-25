@@ -13,43 +13,55 @@ from skimage.morphology import disk
 import os
 import logging
 
+from controller.normalization import normalized
+from common import tools
 
-def build_input_vector(greyd_face):
+def build_input_vector(face):
     """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
-    (grey_face, depth_face) = greyd_face
+    (grey_face, depth_face) = (face.grey_img, face.depth_img)
     if grey_face is None or depth_face is None:
         return None
-    tmp = np.zeros((4 * IMG_SIZE, IMG_SIZE))
+    if np.isnan(grey_face).any() or np.isnan(depth_face).any():
+        return None
+    try:
+        face = normalized(face)
+    except ValueError:
+        return None
+    (grey_face, depth_face) = (face.grey_img, face.depth_img)
+    tmp = np.zeros((2 * IMG_SIZE, IMG_SIZE))
     entr_grey_face = entropy(grey_face, disk(5))
     entr_grey_face = entr_grey_face / np.max(entr_grey_face)
     entr_depth_face = entropy(depth_face, disk(5))
     entr_depth_face = entr_depth_face / np.max(entr_depth_face)
     tmp[0:IMG_SIZE] = depth_face
     tmp[IMG_SIZE:IMG_SIZE * 2] = grey_face
-    tmp[IMG_SIZE * 2:IMG_SIZE * 3] = entr_grey_face
-    tmp[IMG_SIZE * 3:IMG_SIZE * 4] = entr_depth_face
     return tmp
 
 
 def load_database(database, offset, override_test_set=False):
-    logging.debug('Loading database %s' % database.get_name())
+    logging.info('Loading database %s' % database.get_name())
     for i in range(database.subjects_count()):
-        logging.debug('Subject', i)
+        logging.info('Subject {0}/{1}'.format(i, database.subjects_count()))
         for j in range(database.imgs_per_subject(i)):
-            logging.debug('Photo %d/%d' % (j, database.imgs_per_subject(i)))
-            x = build_input_vector(database.load_greyd_face(i, j))
+            logging.info('Photo %d/%d' % (j, database.imgs_per_subject(i)))
+            face = database.load_greyd_face(i, j)
+            x = build_input_vector(face)
             y = offset + i + 1
             if x is None or y is None:
                 continue
+            # tools.show_image(x)
             if database.is_photo_in_test_set(i, j):
                 x_test.append(x)
                 y_test.append(y)
+                #tools.show_image(x)
             else:
                 x_train.append(x)
                 y_train.append(y)
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+
     # Load data
     x_train = []
     y_train = []
@@ -62,21 +74,22 @@ if __name__ == '__main__':
 
     sum_offset = 0
     for database in helper.get_databases():
-        load_database(database, sum_offset)
-        sum_offset += database.subjects_count()
+        if database.get_name() != 'www.vap.aau.dk':
+            load_database(database, sum_offset)
+            sum_offset += database.subjects_count()
 
     # Reshape input
     TRAIN_SIZE = len(x_train)
     TEST_SIZE = len(x_test)
-    X_train = np.zeros((TRAIN_SIZE, 4 * IMG_SIZE, IMG_SIZE, 1))
+    X_train = np.zeros((TRAIN_SIZE, 2 * IMG_SIZE, IMG_SIZE, 1))
     Y_train = np.zeros((TRAIN_SIZE, TOTAL_SUBJECTS_COUNT))
-    X_test = np.zeros((TEST_SIZE, 4 * IMG_SIZE, IMG_SIZE, 1))
+    X_test = np.zeros((TEST_SIZE, 2 * IMG_SIZE, IMG_SIZE, 1))
     Y_test = np.zeros((TEST_SIZE, TOTAL_SUBJECTS_COUNT))
     for i in range(TRAIN_SIZE):
-        X_train[i] = x_train[i].reshape((4 * IMG_SIZE, IMG_SIZE, 1))
+        X_train[i] = x_train[i].reshape((2 * IMG_SIZE, IMG_SIZE, 1))
         Y_train[i, y_train[i]-1] = 1
     for i in range(TEST_SIZE):
-        X_test[i] = x_test[i].reshape((4 * IMG_SIZE, IMG_SIZE, 1))
+        X_test[i] = x_test[i].reshape((2 * IMG_SIZE, IMG_SIZE, 1))
         Y_test[i, y_test[i]-1] = 1
     x_train = []
     y_train = []
@@ -96,7 +109,7 @@ if __name__ == '__main__':
     if not os.path.isdir(DB_LOCATION + '/gen'):
         os.makedirs(DB_LOCATION + '/gen')
 
-    np.save(DB_LOCATION + '/gen/no_normalization_X_train', X_train)
-    np.save(DB_LOCATION + '/gen/no_normalization_Y_train', Y_train)
-    np.save(DB_LOCATION + '/gen/no_normalization_X_test', X_test)
-    np.save(DB_LOCATION + '/gen/no_normalization_Y_test', Y_test)
+    np.save(DB_LOCATION + '/gen/face_rotation_X_train', X_train)
+    np.save(DB_LOCATION + '/gen/face_rotation_Y_train', Y_train)
+    np.save(DB_LOCATION + '/gen/face_rotation_X_test', X_test)
+    np.save(DB_LOCATION + '/gen/face_rotation_Y_test', Y_test)

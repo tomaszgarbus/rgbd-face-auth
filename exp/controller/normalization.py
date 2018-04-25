@@ -15,15 +15,15 @@ def preprocessing(face: Face) -> None:
     face.preprocessed = True
 
     # Display the original photo
-    face.show_grey()
-    face.show_depth()
+    #face.show_grey()
+    #face.show_depth()
 
     # Trim face
     trim_greyd(face)
 
     # Display trimmed photo
-    face.show_grey()
-    face.show_depth()
+    #face.show_grey()
+    #face.show_depth()
 
     # Drop corner values and rescale to 0...1
     drop_corner_values(face)
@@ -32,8 +32,8 @@ def preprocessing(face: Face) -> None:
     construct_face_points(face)
 
     # Display the photo after normalizing mean
-    face.show_position()
-    face.show_depth()
+    #face.show_position()
+    #face.show_depth()
 
 
 def normalized(face: Face) -> Face:
@@ -48,13 +48,13 @@ def normalized(face: Face) -> Face:
     rotated_face = rotate_greyd_img(face, rotation)
 
     # Display the results
-    rotated_face.show_position()
-    rotated_face.show_depth()
+    #rotated_face.show_position()
+    #rotated_face.show_depth()
 
     # centering
-    rotated_face.show_position()
+    #rotated_face.show_position()
     recentre(face)
-    rotated_face.show_position()
+    #rotated_face.show_position()
 
     return rotated_face
     # tools.show_3d_plot(rotate.to_one_matrix(rotated_face))

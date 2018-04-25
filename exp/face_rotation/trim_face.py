@@ -46,7 +46,8 @@ def connect_convex_hull_vertices(depth_img: np.ndarray, ch_vertices: list) -> li
             try:
                 all_points.append((int(xs), int(ys), depth_img[int(xs), int(ys)]))
             except IndexError:
-                logging.warning("Pixel out of image")
+                #logging.warning("Pixel out of image")
+                pass
             xs += stepx
             ys += stepy
 

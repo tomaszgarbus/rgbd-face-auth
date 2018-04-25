@@ -68,7 +68,7 @@ def angle_from(face: Face) -> np.ndarray:
 def find_angle(face: Face) -> np.ndarray((3, 3)):
     if len(face.landmarks) > 0:
         rotation = angle_from(face)
-        face.show_position()
+        #face.show_position()
         return rotation
     logging.debug("Error, face not found, returning no rotation")
     return None
