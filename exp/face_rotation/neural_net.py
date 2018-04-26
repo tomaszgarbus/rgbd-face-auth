@@ -11,17 +11,20 @@ from progress.bar import Bar
 
 from common.db_helper import DB_LOCATION
 from common.constants import IMG_SIZE
+from common.tools import show_image
 
 NUM_CLASSES = 129
 
 
 class NeuralNet:
     # TODO: optionally pass through constructor
+    # TODO: data augmentation: removing random (?) pixels to teach network ignore holes
+    # TODO: try initializing convolution filters with Gabor filters instead of random
     mb_size = 32
-    conv_layers = [32, 32]
+    conv_layers = [32, 64]
     kernel_size = [5, 5]
-    dense_layers = [64, NUM_CLASSES]
-    dropout = 0.5
+    dense_layers = [128, NUM_CLASSES]
+    dropout = 0.8
     learning_rate = 0.2
     nb_epochs = 50000
     accs = []
@@ -41,7 +44,12 @@ class NeuralNet:
         self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, 2 * IMG_SIZE, IMG_SIZE, 1])
         self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, NUM_CLASSES])
 
+        # Initial pooling to reduce input size
         signal = self.x
+        signal = tf.layers.max_pooling2d(inputs=signal,
+                                         pool_size=[2, 2],
+                                         strides=2)
+
         for layer_no in range(len(self.conv_layers)):
             num_filters = self.conv_layers[layer_no]
             signal = tf.layers.batch_normalization(signal)
@@ -64,29 +72,28 @@ class NeuralNet:
             # Write 2 summaries for each filter:
             #  * kernel
             #  * input image with applied convolution
-            for i in range(num_filters):
-                inp_x = 2 * IMG_SIZE // (2 ** layer_no)
-                inp_y = IMG_SIZE // (2 ** layer_no)
+            for filter_no in range(num_filters):
+                inp_x = 2 * IMG_SIZE // (2 ** (layer_no+1))
+                inp_y = IMG_SIZE // (2 ** (layer_no+1))
                 if layer_no == 0:
                     tmp_str = 'conv2d/kernel:0'
                 else:
                     tmp_str = 'conv2d_%d/kernel:0' % layer_no
                 kernel = [v for v in tf.global_variables() if v.name == tmp_str][0]
-                print(kernel.get_shape())
-                kernel = kernel[:, :, :, i]
+                kernel = kernel[:, :, :, filter_no]
                 if layer_no == 0:
                     kernel = tf.reshape(kernel, [1] + self.kernel_size + [1])
-                    applied = tf.reshape(cur_conv_layer[0, :, :, i], [1, inp_x, inp_y, 1])
+                    applied = tf.reshape(cur_conv_layer[0, :, :, filter_no], [1, inp_x, inp_y, 1])
                 else:
-                    kernel = tf.reshape(kernel, [1] + \
-                                        [self.kernel_size[0], self.kernel_size[1] * num_filters] + \
+                    kernel = tf.reshape(kernel, [1] +\
+                                        [self.kernel_size[0], self.kernel_size[1] * self.conv_layers[layer_no-1]] +\
                                         [1])
-                    applied = tf.reshape(cur_conv_layer[0, :, :, i], [1, inp_x, inp_y, 1])
-                tf.summary.image('conv{0}_filter{1}_kernel'.format(layer_no, i),
+                    applied = tf.reshape(cur_conv_layer[0, :, :, filter_no], [1, inp_x, inp_y, 1])
+                tf.summary.image('conv{0}_filter{1}_kernel'.format(layer_no, filter_no),
                                  kernel,
                                  family='kernels_layer{0}'.format(layer_no),
                                  max_outputs=1)
-                tf.summary.image('conv{0}_filter{1}_applied'.format(layer_no, i),
+                tf.summary.image('conv{0}_filter{1}_applied'.format(layer_no, filter_no),
                                  applied,
                                  family='convolved_layer_{0}'.format(layer_no),
                                  max_outputs=1)
@@ -110,18 +117,23 @@ class NeuralNet:
 
             cur_dense_layer = tf.layers.dense(inputs=signal,
                                               units=num_neurons,
-                                              activation=tf.nn.sigmoid,
+                                              activation=tf.nn.leaky_relu,
                                               kernel_initializer=w_init)
 
             signal = cur_dense_layer
 
-        # Apply last dense layer
+        # Apply last dense layer, with dropout
+        cur_dropout_layer = tf.layers.dropout(inputs=signal,
+                                              rate=self.dropout)
+
+        signal = cur_dropout_layer
         cur_layer = tf.layers.dense(inputs=signal,
+                                    activation=tf.nn.sigmoid,
                                     units=self.dense_layers[-1])
         signal = cur_layer
 
-        self.preds = tf.argmax(self.y, axis=1)
-        self.loss = tf.losses.mean_squared_error(self.y, signal)
+        self.preds = tf.argmax(signal, axis=1)
+        self.loss = tf.losses.log_loss(self.y, signal)
         self.accuracy = tf.reduce_mean(
             tf.cast(tf.equal(tf.argmax(self.y, axis=1), tf.argmax(signal, axis=1)), tf.float32))
         self.train_op = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
@@ -202,23 +214,26 @@ class NeuralNet:
             for epoch_no in range(self.nb_epochs):
                 # Train model on next batch
 
-                batch = sample(list(range(self.x_train.shape[1])), self.mb_size)
+                batch = sample(list(range(self.x_train.shape[0])), self.mb_size)
                 batch_x, batch_y = self.x_train[batch], self.y_train[batch]
                 results = self.train_on_batch(batch_x, batch_y, global_step=epoch_no)
 
-                bar.message = 'loss: {0[0]:.8f} acc: {0[1]:.3f} mean_acc: {1:.3f}'.format(results, np.mean(self.accs))
+                bar.message = 'loss: {0[0]:.8f} acc: {0[1]:.3f} mean_acc: {1:.3f}'.\
+                    format(results, np.mean(self.accs[-1000:]))
 
                 if epoch_no % 100 == 0:
                     bar.finish()
                     bar = Bar('', max=100, suffix='%(index)d/%(max)d ETA: %(eta)ds')
-                    #self.logger.info("Epoch {0}: Loss: {1[0]}, accuracy: {1[1]}, mean acc: {2}".format(epoch_no, results, np.mean(self.accs)))
-                    batch_t = sample(list(range(self.x_test.shape[1])), self.mb_size)
-                    batch_x_t, batch_y_t = self.x_test[batch], self.y_test[batch]
+                    batch_t = sample(list(range(self.x_test.shape[0])), self.mb_size)
+                    batch_x_t, batch_y_t = self.x_test[batch_t], self.y_test[batch_t]
                     test_results = self.test_on_batch(batch_x_t, batch_y_t)
                     self.logger.info("(Test(batch):   Loss: {0[0]}, accuracy: {0[1]}, mean acc: {1}".
                                      format(test_results,
-                                            np.mean(self.val_accs)))
+                                            np.mean(self.val_accs[-10:])))
                 bar.next()
+
+                if epoch_no % 1000 == 0:
+                    show_image(self._confusion_matrix)
 
 
 if __name__ == '__main__':
