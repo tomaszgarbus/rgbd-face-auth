@@ -9,7 +9,6 @@ from math import sqrt
 from random import sample
 from progress.bar import Bar
 
-from common.tools import show_image
 from common.db_helper import DB_LOCATION
 from common.constants import IMG_SIZE
 
@@ -43,7 +42,8 @@ class NeuralNet:
         self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, NUM_CLASSES])
 
         signal = self.x
-        for num_filters in self.conv_layers:
+        for layer_no in range(len(self.conv_layers)):
+            num_filters = self.conv_layers[layer_no]
             signal = tf.layers.batch_normalization(signal)
 
             # Init weights with std.dev = sqrt(2 / N)
@@ -60,6 +60,39 @@ class NeuralNet:
                                                      strides=2)
 
             signal = cur_pool_layer
+
+            # Write 2 summaries for each filter:
+            #  * kernel
+            #  * input image with applied convolution
+            for i in range(num_filters):
+                inp_x = 2 * IMG_SIZE // (2 ** layer_no)
+                inp_y = IMG_SIZE // (2 ** layer_no)
+                if layer_no == 0:
+                    tmp_str = 'conv2d/kernel:0'
+                else:
+                    tmp_str = 'conv2d_%d/kernel:0' % layer_no
+                kernel = [v for v in tf.global_variables() if v.name == tmp_str][0]
+                print(kernel.get_shape())
+                kernel = kernel[:, :, :, i]
+                if layer_no == 0:
+                    kernel = tf.reshape(kernel, [1] + self.kernel_size + [1])
+                    applied = tf.reshape(cur_conv_layer[0, :, :, i], [1, inp_x, inp_y, 1])
+                else:
+                    kernel = tf.reshape(kernel, [1] + \
+                                        [self.kernel_size[0], self.kernel_size[1] * num_filters] + \
+                                        [1])
+                    applied = tf.reshape(cur_conv_layer[0, :, :, i], [1, inp_x, inp_y, 1])
+                tf.summary.image('conv{0}_filter{1}_kernel'.format(layer_no, i),
+                                 kernel,
+                                 family='kernels_layer{0}'.format(layer_no),
+                                 max_outputs=1)
+                tf.summary.image('conv{0}_filter{1}_applied'.format(layer_no, i),
+                                 applied,
+                                 family='convolved_layer_{0}'.format(layer_no),
+                                 max_outputs=1)
+
+        # Merge all summaries.
+        self.merged_summary = tf.summary.merge_all()
 
         signal = tf.reshape(signal, [self.mb_size, -1])
 
@@ -93,6 +126,8 @@ class NeuralNet:
             tf.cast(tf.equal(tf.argmax(self.y, axis=1), tf.argmax(signal, axis=1)), tf.float32))
         self.train_op = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
 
+        self.logger.info('list of variables {0}'.format(list(map(lambda x: x.name, tf.global_variables()))))
+
     def __init__(self):
         self._get_data()
 
@@ -110,12 +145,22 @@ class NeuralNet:
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
 
-    def train_on_batch(self, batch_x, batch_y):
+    def train_on_batch(self, batch_x, batch_y, global_step=1):
         """
         :return: [loss, accuracy]
         """
-        results = self.sess.run([self.loss, self.accuracy, self.preds, self.train_op],
-                                 feed_dict={self.x: batch_x, self.y: batch_y})
+
+
+        # Write summaries every 100 steps
+        if global_step % 100 == 0:
+            results = self.sess.run([self.loss, self.accuracy, self.merged_summary, self.train_op],
+                                    feed_dict={self.x: batch_x, self.y: batch_y})
+            msum = results[2]
+            self.writer.add_summary(msum, global_step=global_step)
+            self.writer.flush()
+        else:
+            results = self.sess.run([self.loss, self.accuracy, self.train_op],
+                                    feed_dict={self.x: batch_x, self.y: batch_y})
         self.accs.append(results[1])
         return results[:2]
 
@@ -130,10 +175,11 @@ class NeuralNet:
         results = self.sess.run([self.loss, self.accuracy, self.preds],
                                 feed_dict={self.x: batch_x, self.y: batch_y})
         self.val_accs.append(results[1])
-        preds = results[2]
         # Update confusion matrix
+        preds = results[2]
         for i in range(self.mb_size):
-            self._confusion_matrix[np.argmax(batch_y[i]),preds[i]] += 1.
+            self._confusion_matrix[np.argmax(batch_y[i]), preds[i]] += 1.
+
         return results[:2]
 
     def train_and_evaluate(self) -> None:
@@ -147,13 +193,18 @@ class NeuralNet:
             # Initialize variables.
             tf.global_variables_initializer().run()
 
+            # Initialize summary writer.
+            self.writer = tf.summary.FileWriter(logdir='conv_vis')
+
+            # Initialize progress bar.
             bar = Bar('', max=100, suffix='%(index)d/%(max)d ETA: %(eta)ds')
+
             for epoch_no in range(self.nb_epochs):
                 # Train model on next batch
 
                 batch = sample(list(range(self.x_train.shape[1])), self.mb_size)
                 batch_x, batch_y = self.x_train[batch], self.y_train[batch]
-                results = self.train_on_batch(batch_x, batch_y)
+                results = self.train_on_batch(batch_x, batch_y, global_step=epoch_no)
 
                 bar.message = 'loss: {0[0]:.8f} acc: {0[1]:.3f} mean_acc: {1:.3f}'.format(results, np.mean(self.accs))
 
@@ -164,9 +215,10 @@ class NeuralNet:
                     batch_t = sample(list(range(self.x_test.shape[1])), self.mb_size)
                     batch_x_t, batch_y_t = self.x_test[batch], self.y_test[batch]
                     test_results = self.test_on_batch(batch_x_t, batch_y_t)
-                    self.logger.info("(Test(batch):   Loss: {0[0]}, accuracy: {0[1]}, mean acc: {1}".format(test_results, np.mean(self.val_accs)))
+                    self.logger.info("(Test(batch):   Loss: {0[0]}, accuracy: {0[1]}, mean acc: {1}".
+                                     format(test_results,
+                                            np.mean(self.val_accs)))
                 bar.next()
-
 
 
 if __name__ == '__main__':

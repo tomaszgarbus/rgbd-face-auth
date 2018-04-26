@@ -2,3 +2,4 @@ database
 __pycache__
 **.pyc
 log.txt
+conv_vis/
