@@ -7,6 +7,7 @@ import logging
 import tensorflow as tf
 from math import sqrt
 from random import sample
+from typing import Optional, List, Tuple
 from progress.bar import Bar
 from imgaug import augmenters as ia
 
@@ -18,20 +19,72 @@ NUM_CLASSES = 129
 
 
 class NeuralNet:
-    # TODO: optionally pass through constructor
-    # TODO: data augmentation: removing random (?) pixels to teach network ignore holes
     # TODO: try initializing convolution filters with Gabor filters instead of random
+
+    # Mini batch size
     mb_size = 32
+
+    # Number of filters in each convolutional layer
     conv_layers = [32, 64]
+
+    # Size of kernel, common for each convolutional layer
     kernel_size = [5, 5]
+
+    # Neurons count in each dense layer
     dense_layers = [128, NUM_CLASSES]
+
+    # Dropout after each dense layer (excluding last)
     dropout = 0.8
+
     learning_rate = 0.2
     nb_epochs = 50000
+
+    # History of accuracies on train set
     accs = []
+
+    # History of accuracies on test set
     val_accs = []
 
     _confusion_matrix = np.zeros((NUM_CLASSES, NUM_CLASSES))
+
+    def __init__(self,
+                 mb_size: Optional[int] = None,
+                 conv_layers: Optional[List[int]] = None,
+                 kernel_size: Optional[Tuple[int, int]] = None,
+                 dense_layers: Optional[List[int]] = None,
+                 learning_rate: Optional[float] = None,
+                 nb_epochs: Optional[int] = None,
+                 min_label: int = 0,
+                 max_label: int = NUM_CLASSES
+                 ):
+        if mb_size is not None:
+            self.mb_size = mb_size
+        if conv_layers is not None:
+            self.conv_layers = conv_layers
+        if kernel_size is not None:
+            self.kernel_size = kernel_size
+        if dense_layers is not None:
+            self.dense_layers = dense_layers
+        if learning_rate is not None:
+            self.learning_rate = learning_rate
+        if nb_epochs is not None:
+            self.nb_epochs = nb_epochs
+
+        self._get_data(min_label, max_label)
+
+        # Initialize logging.
+        self.logger = logging.Logger("main_logger", level=logging.INFO)
+        log_file = 'log.txt'
+        formatter = logging.Formatter(
+            fmt='{levelname:<7} {message}',
+            style='{'
+        )
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(formatter)
+        self.logger.addHandler(console_handler)
+        self.logger.addHandler(file_handler)
 
     def _get_data(self, range_beg: int = 0, range_end: int = 52) -> None:
         """
@@ -175,28 +228,10 @@ class NeuralNet:
 
         self.logger.info('list of variables {0}'.format(list(map(lambda x: x.name, tf.global_variables()))))
 
-    def __init__(self):
-        self._get_data()
-
-        # Initialize logging.
-        self.logger = logging.Logger("main_logger", level=logging.INFO)
-        log_file = 'log.txt'
-        formatter = logging.Formatter(
-            fmt='{levelname:<7} {message}',
-            style='{'
-        )
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(formatter)
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(formatter)
-        self.logger.addHandler(console_handler)
-        self.logger.addHandler(file_handler)
-
     def train_on_batch(self, batch_x, batch_y, global_step=1):
         """
         :return: [loss, accuracy]
         """
-
 
         # Write summaries every 100 steps
         if global_step % 100 == 0:
@@ -272,5 +307,5 @@ class NeuralNet:
 
 
 if __name__ == '__main__':
-    net = NeuralNet()
+    net = NeuralNet(conv_layers=[64], min_label=51, max_label=78)
     net.train_and_evaluate()
