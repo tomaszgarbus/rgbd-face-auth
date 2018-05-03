@@ -8,6 +8,7 @@ import tensorflow as tf
 from math import sqrt
 from random import sample
 from progress.bar import Bar
+from imgaug import augmenters as ia
 
 from common.db_helper import DB_LOCATION
 from common.constants import IMG_SIZE
@@ -32,13 +33,47 @@ class NeuralNet:
 
     _confusion_matrix = np.zeros((NUM_CLASSES, NUM_CLASSES))
 
-    def _get_data(self):
-        logging.debug("Loading data..")
+    def _get_data(self, range_beg: int = 0, range_end: int = 52) -> None:
+        """
+        :param range_beg, range_end: only samples such that label \in [range_beg, range_end) will be
+            used. Sensible values for (range_beg, range_end) would be:
+            * 00, 52 -> to use eurecom only
+            * 52, 78 -> to use ias_lab_rgbd_only
+            * 78, 98 -> to use superface_dataset only
+        :return: self.(x|y)_(train|test) are set as a result
+        """
+
+        # Load stored numpy arrays from files.
+        logging.info("Loading data..")
         self.x_train = np.load(DB_LOCATION + '/gen/face_rotation_X_train.npy')
         self.y_train = np.load(DB_LOCATION + '/gen/face_rotation_Y_train.npy')
         self.x_test = np.load(DB_LOCATION + '/gen/face_rotation_X_test.npy')
         self.y_test = np.load(DB_LOCATION + '/gen/face_rotation_Y_test.npy')
-        logging.debug("Loaded data..")
+        train_indices = []
+        test_indices = []
+
+        # Filter out samples out of [range_beg, range_end)
+        for i in range(len(self.y_train)):
+            if range_end > np.argmax(self.y_train[i]) >= range_beg:
+                train_indices.append(i)
+        for i in range(len(self.y_test)):
+            if range_end > np.argmax(self.y_test[i]) >= range_beg:
+                test_indices.append(i)
+        self.x_train = self.x_train[train_indices]
+        self.y_train = self.y_train[train_indices]
+        self.x_test = self.x_test[test_indices]
+        self.y_test = self.y_test[test_indices]
+
+        # Image augmentation; removing random chunks from images.
+        seq = ia.Sequential([
+            ia.CoarseDropout(p=0.2, size_percent=0.05)
+        ])
+        train_aug = np.ndarray.astype(seq.augment_images(np.ndarray.astype(self.x_train * 256, np.uint8)), np.float32)
+        train_aug = train_aug * (1 / 256)
+        self.x_train = np.concatenate([self.x_train, train_aug])
+        self.y_train = np.concatenate([self.y_train, self.y_train])
+
+        logging.info("Loaded data..")
 
     def _create_model(self):
         self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, 2 * IMG_SIZE, IMG_SIZE, 1])
