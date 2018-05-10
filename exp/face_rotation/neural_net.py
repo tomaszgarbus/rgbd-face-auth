@@ -147,6 +147,9 @@ class NeuralNet:
         logging.info("Loaded data..")
 
     def _visualize_kernels(self):
+        """
+        For each convolutional layer, visualizes filters and convolved images.
+        """
         for layer_no in range(len(self.conv_layers)):
             num_filters = self.filters_count[layer_no]
             for filter_no in range(num_filters):
@@ -176,79 +179,83 @@ class NeuralNet:
                                  max_outputs=1)
         self.merged_summary = tf.summary.merge_all()
 
-    # def _visualize_kernels(self):
-    #     # Initialize fetch handles for exciting patches and their respective responses.
-    #     self.exciting_patches = [[None] * k for k in self.conv_layers]
-    #     self.patches_responses = [[None] * k for k in self.conv_layers]
-    #     self.flattened_exciting_patches = [[None] * k for k in self.conv_layers]
-    #     self.all_exciting_patches_at_layer = [None for _ in self.conv_layers]
-    #
-    #     # Write 3 summaries for each filter:
-    #     #  * kernel
-    #     #  * input image with applied convolution
-    #     #  * patches that  e x c i t e  the filter the most
-    #     for filter_no in range(num_filters):
-    #         # Find  e x c i t i n g  patches.
-    #         # Find top 10 responses to current filter, in the current mini-batch.
-    #         inp_x = IMGS_PER_FACE * IMG_SIZE // (2 ** layer_no)
-    #         inp_y = IMG_SIZE // (2 ** layer_no)
-    #         single_filtered_flattened = tf.reshape(cur_conv_layer[:, :, :, filter_no],
-    #                                                [self.mb_size * inp_x * inp_y])
-    #         top10_vals, top10_indices = tf.nn.top_k(single_filtered_flattened,
-    #                                                 k=10,
-    #                                                 sorted=True)
-    #         top10_reshaped = tf.map_fn(lambda sxy: [sxy // (inp_x * inp_y), (sxy // inp_y) % inp_x, sxy % inp_y],
-    #                                    top10_indices,
-    #                                    dtype=[tf.int32, tf.int32, tf.int32])
-    #
-    #         # Find patches corresponding to the top 10 responses.
-    #
-    #         def safe_cut_patch(sxy, size=self.kernel_size, img=signal, paddings=1):
-    #             """
-    #             :param (sample_no, x, y)@sxy
-    #             :param paddings: number of paddings to be reversed
-    #             :return: Cuts out a patch of size (|size|) located at (x, y) on
-    #                 input #sample_no in current batch.
-    #             """
-    #             sample_no, x, y = sxy
-    #             t = 2 ** (paddings + 1)
-    #             pad_marg_x = (size[0] // t) + 1 - (size[0] % t)
-    #             pad_marg_y = (size[1] // t) + 1 - (size[1] % t)
-    #             padding = [[0, 0],
-    #                        [pad_marg_x, pad_marg_x],
-    #                        [pad_marg_y, pad_marg_y],
-    #                        [0, 0]]
-    #             padded = tf.pad(img, padding)
-    #             return padded[sample_no, x:x + size[0], y:y + size[1], :]
-    #
-    #         # Store patches and responses in class-visible array to be retrieved later.
-    #         self.exciting_patches[layer_no][filter_no] = \
-    #             tf.map_fn(lambda sxy: safe_cut_patch(sxy,
-    #                                                  size=(self.kernel_size[0] * (2 ** layer_no),
-    #                                                        self.kernel_size[1] * (2 ** layer_no)),
-    #                                                  img=self.x,
-    #                                                  paddings=layer_no),
-    #                       top10_reshaped,
-    #                       dtype=tf.float32)
-    #         self.patches_responses[layer_no][filter_no] = top10_vals
-    #
-    #         # Flatten and concatenate the 10 patches to 2 dimensions for visualization.
-    #         flattened_patches_shape = [1] + \
-    #                                   [10 * self.kernel_size[0] * (2 ** layer_no),
-    #                                    self.kernel_size[1] * (2 ** layer_no)] + \
-    #                                   [1]
-    #         # Write patches to summary.
-    #         patch_name = "exciting_patches_filter{0}".format(filter_no)
-    #         flattened_exciting_patches = tf.reshape(self.exciting_patches[layer_no][filter_no],
-    #                                                 flattened_patches_shape,
-    #                                                 name=patch_name)
-    #         self.flattened_exciting_patches[layer_no][filter_no] = flattened_exciting_patches
-    #         tf.summary.image(patch_name,
-    #                          flattened_exciting_patches,
-    #                          family='exciting_layer{0}'.format(layer_no))
-    #
-    #     # Merge all summaries.
-    #     self.merged_summary = tf.summary.merge_all()
+    def _visualize_exciting_patches(self):
+        """
+        For each convolutional layer, visualizes patches that excite each filter the most.
+        """
+        # Initialize fetch handles for exciting patches and their respective responses.
+        self.exciting_patches = [[None] * k for k in self.filters_count]
+        self.patches_responses = [[None] * k for k in self.filters_count]
+        self.flattened_exciting_patches = [[None] * k for k in self.filters_count]
+        self.all_exciting_patches_at_layer = [None for _ in self.filters_count]
+
+        for layer_no in range(len(self.conv_layers)):
+            num_filters = self.filters_count[layer_no]
+            cur_conv_layer = self.conv_layers[layer_no]
+
+            for filter_no in range(num_filters):
+                # Find  e x c i t i n g  patches.
+                # Find top 10 responses to current filter, in the current mini-batch.
+                inp_x = IMGS_PER_FACE * IMG_SIZE // (2 ** layer_no)
+                inp_y = IMG_SIZE // (2 ** layer_no)
+                single_filtered_flattened = tf.reshape(cur_conv_layer[:, :, :, filter_no],
+                                                       [self.mb_size * inp_x * inp_y])
+                top10_vals, top10_indices = tf.nn.top_k(single_filtered_flattened,
+                                                        k=10,
+                                                        sorted=True)
+                top10_reshaped = tf.map_fn(lambda sxy: [sxy // (inp_x * inp_y), (sxy // inp_y) % inp_x, sxy % inp_y],
+                                           top10_indices,
+                                           dtype=[tf.int32, tf.int32, tf.int32])
+
+                # Find patches corresponding to the top 10 responses.
+
+                def safe_cut_patch(sxy, size, img, paddings):
+                    """
+                    :param (sample_no, x, y)@sxy
+                    :param size: size of patch to cut out
+                    :param img: image to cut it from
+                    :param paddings: number of paddings to be reversed
+                    :return: Cuts out a patch of size (|size|) located at (x, y) on
+                        input #sample_no in current batch.
+                    """
+                    sample_no, x, y = sxy
+                    t = 2 ** (paddings + 1)
+                    pad_marg_x = (size[0] // t) + 1 - (size[0] % t)
+                    pad_marg_y = (size[1] // t) + 1 - (size[1] % t)
+                    padding = [[0, 0],
+                               [pad_marg_x, pad_marg_x],
+                               [pad_marg_y, pad_marg_y],
+                               [0, 0]]
+                    padded = tf.pad(img, padding)
+                    return padded[sample_no, x:x + size[0], y:y + size[1], :]
+
+                # Store patches and responses in class-visible array to be retrieved later.
+                self.exciting_patches[layer_no][filter_no] = \
+                    tf.map_fn(lambda sxy: safe_cut_patch(sxy,
+                                                         size=(self.kernel_size[0] * (2 ** layer_no),
+                                                               self.kernel_size[1] * (2 ** layer_no)),
+                                                         img=self.x,
+                                                         paddings=layer_no),
+                              top10_reshaped,
+                              dtype=tf.float32)
+                self.patches_responses[layer_no][filter_no] = top10_vals
+
+                # Flatten and concatenate the 10 patches to 2 dimensions for visualization.
+                flattened_patches_shape = [1] + \
+                                          [10 * self.kernel_size[0] * (2 ** layer_no),
+                                           self.kernel_size[1] * (2 ** layer_no)] + \
+                                          [1]
+                # Write patches to summary.
+                patch_name = "exciting_patches_filter{0}".format(filter_no)
+                flattened_exciting_patches = tf.reshape(self.exciting_patches[layer_no][filter_no],
+                                                        flattened_patches_shape,
+                                                        name=patch_name)
+                self.flattened_exciting_patches[layer_no][filter_no] = flattened_exciting_patches
+                tf.summary.image(patch_name,
+                                 flattened_exciting_patches,
+                                 family='exciting_layer{0}'.format(layer_no))
+
+            # Merge all summaries.
 
     def _create_model(self):
         self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, 2 * IMG_SIZE, IMG_SIZE, 1])
@@ -366,6 +373,7 @@ class NeuralNet:
             self._create_model()
             # Add visualizations to computation graph.
             self._visualize_kernels()
+            self._visualize_exciting_patches()
 
             # Initialize variables.
             tf.global_variables_initializer().run()
