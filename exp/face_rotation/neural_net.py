@@ -17,6 +17,9 @@ from common.tools import show_image
 
 NUM_CLASSES = 129
 
+# How many images are concatenated in a single input example.
+IMGS_PER_FACE = 2
+
 
 class NeuralNet:
     # TODO: try initializing convolution filters with Gabor filters instead of random
@@ -25,13 +28,13 @@ class NeuralNet:
     mb_size = 32
 
     # Number of filters in each convolutional layer
-    conv_layers = [32, 64]
+    filters_count = [32, 64]
 
     # Size of kernel, common for each convolutional layer
     kernel_size = [5, 5]
 
     # Neurons count in each dense layer
-    dense_layers = [128, NUM_CLASSES]
+    dense_layers = [32, NUM_CLASSES]
 
     # Dropout after each dense layer (excluding last)
     dropout = 0.8
@@ -49,7 +52,7 @@ class NeuralNet:
 
     def __init__(self,
                  mb_size: Optional[int] = None,
-                 conv_layers: Optional[List[int]] = None,
+                 filters_count: Optional[List[int]] = None,
                  kernel_size: Optional[Tuple[int, int]] = None,
                  dense_layers: Optional[List[int]] = None,
                  learning_rate: Optional[float] = None,
@@ -59,8 +62,8 @@ class NeuralNet:
                  ):
         if mb_size is not None:
             self.mb_size = mb_size
-        if conv_layers is not None:
-            self.conv_layers = conv_layers
+        if filters_count is not None:
+            self.filters_count = filters_count
         if kernel_size is not None:
             self.kernel_size = kernel_size
         if dense_layers is not None:
@@ -86,6 +89,18 @@ class NeuralNet:
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
 
+    def _augment(self, augmenter: ia.meta) -> None:
+        """
+        :param augmenter:
+        :return: None, appends augmented images to the train set.
+        """
+        train_aug = np.ndarray.astype(augmenter.augment_images(np.ndarray.astype(self.x_train * 256, np.uint8)), np.float32)
+        train_aug = train_aug * (1 / 256)
+        self.x_train = np.concatenate([self.x_train, train_aug])
+        self.y_train = np.concatenate([self.y_train, self.y_train])
+        for i in range(5):
+            show_image(train_aug[i].reshape((IMGS_PER_FACE * IMG_SIZE, IMG_SIZE)))
+
     def _get_data(self, range_beg: int = 0, range_end: int = 52) -> None:
         """
         :param range_beg, range_end: only samples such that label \in [range_beg, range_end) will be
@@ -105,7 +120,7 @@ class NeuralNet:
         train_indices = []
         test_indices = []
 
-        # Filter out samples out of [range_beg, range_end)
+        # Filter out samples out of [range_beg, range_end).
         for i in range(len(self.y_train)):
             if range_end > np.argmax(self.y_train[i]) >= range_beg:
                 train_indices.append(i)
@@ -117,66 +132,43 @@ class NeuralNet:
         self.x_test = self.x_test[test_indices]
         self.y_test = self.y_test[test_indices]
 
-        # Image augmentation; removing random chunks from images.
-        seq = ia.Sequential([
-            ia.CoarseDropout(p=0.2, size_percent=0.05)
-        ])
-        train_aug = np.ndarray.astype(seq.augment_images(np.ndarray.astype(self.x_train * 256, np.uint8)), np.float32)
-        train_aug = train_aug * (1 / 256)
-        self.x_train = np.concatenate([self.x_train, train_aug])
-        self.y_train = np.concatenate([self.y_train, self.y_train])
+        # Image augmentation.
+        # aug1 = ia.CoarseSaltAndPepper(p=0.2, size_percent=0.05)
+        # aug2 = ia.CoarseSaltAndPepper(p=0.4, size_percent=0.05)
+        # aug3 = ia.PerspectiveTransform(scale=0.05)
+        # aug4 = ia.PerspectiveTransform(scale=0.075)
+        # aug5 = ia.Fliplr(1)
+        # self._augment(aug1)
+        # self._augment(aug2)
+        # self._augment(aug3)
+        # self._augment(aug4)
+        # self._augment(aug5)
 
         logging.info("Loaded data..")
 
-    def _create_model(self):
-        self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, 2 * IMG_SIZE, IMG_SIZE, 1])
-        self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, NUM_CLASSES])
-
-        # Initial pooling to reduce input size
-        signal = self.x
-        signal = tf.layers.max_pooling2d(inputs=signal,
-                                         pool_size=[2, 2],
-                                         strides=2)
-
+    def _visualize_kernels(self):
+        """
+        For each convolutional layer, visualizes filters and convolved images.
+        """
         for layer_no in range(len(self.conv_layers)):
-            num_filters = self.conv_layers[layer_no]
-            signal = tf.layers.batch_normalization(signal)
-
-            # Init weights with std.dev = sqrt(2 / N)
-            input_size = int(signal.get_shape()[1]) * int(signal.get_shape()[2]) * int(signal.get_shape()[3])
-            w_init = tf.initializers.random_normal(stddev=sqrt(2 / input_size))
-
-            cur_conv_layer = tf.layers.conv2d(inputs=signal,
-                                              filters=num_filters,
-                                              kernel_size=self.kernel_size,
-                                              kernel_initializer=w_init,
-                                              padding='same')
-            cur_pool_layer = tf.layers.max_pooling2d(inputs=cur_conv_layer,
-                                                     pool_size=[2, 2],
-                                                     strides=2)
-
-            signal = cur_pool_layer
-
-            # Write 2 summaries for each filter:
-            #  * kernel
-            #  * input image with applied convolution
+            num_filters = self.filters_count[layer_no]
             for filter_no in range(num_filters):
-                inp_x = 2 * IMG_SIZE // (2 ** (layer_no+1))
-                inp_y = IMG_SIZE // (2 ** (layer_no+1))
+                inp_x = IMGS_PER_FACE * IMG_SIZE // (2 ** layer_no)
+                inp_y = IMG_SIZE // (2 ** layer_no)
                 if layer_no == 0:
                     tmp_str = 'conv2d/kernel:0'
                 else:
                     tmp_str = 'conv2d_%d/kernel:0' % layer_no
                 kernel = [v for v in tf.global_variables() if v.name == tmp_str][0]
                 kernel = kernel[:, :, :, filter_no]
+                cur_conv_layer = self.conv_layers[layer_no]
                 if layer_no == 0:
                     kernel = tf.reshape(kernel, [1] + self.kernel_size + [1])
-                    applied = tf.reshape(cur_conv_layer[0, :, :, filter_no], [1, inp_x, inp_y, 1])
                 else:
-                    kernel = tf.reshape(kernel, [1] +\
-                                        [self.kernel_size[0], self.kernel_size[1] * self.conv_layers[layer_no-1]] +\
+                    kernel = tf.reshape(kernel, [1] + \
+                                        [self.kernel_size[0], self.kernel_size[1] * self.filters_count[layer_no - 1]] + \
                                         [1])
-                    applied = tf.reshape(cur_conv_layer[0, :, :, filter_no], [1, inp_x, inp_y, 1])
+                applied = tf.reshape(cur_conv_layer[0, :, :, filter_no], [1, inp_x, inp_y, 1])
                 tf.summary.image('conv{0}_filter{1}_kernel'.format(layer_no, filter_no),
                                  kernel,
                                  family='kernels_layer{0}'.format(layer_no),
@@ -185,9 +177,117 @@ class NeuralNet:
                                  applied,
                                  family='convolved_layer_{0}'.format(layer_no),
                                  max_outputs=1)
-
-        # Merge all summaries.
         self.merged_summary = tf.summary.merge_all()
+
+    def _visualize_exciting_patches(self):
+        """
+        For each convolutional layer, visualizes patches that excite each filter the most.
+        """
+        # Initialize fetch handles for exciting patches and their respective responses.
+        self.exciting_patches = [[None] * k for k in self.filters_count]
+        self.patches_responses = [[None] * k for k in self.filters_count]
+        self.flattened_exciting_patches = [[None] * k for k in self.filters_count]
+        self.all_exciting_patches_at_layer = [None for _ in self.filters_count]
+
+        for layer_no in range(len(self.conv_layers)):
+            num_filters = self.filters_count[layer_no]
+            cur_conv_layer = self.conv_layers[layer_no]
+
+            for filter_no in range(num_filters):
+                # Find  e x c i t i n g  patches.
+                # Find top 10 responses to current filter, in the current mini-batch.
+                inp_x = IMGS_PER_FACE * IMG_SIZE // (2 ** layer_no)
+                inp_y = IMG_SIZE // (2 ** layer_no)
+                single_filtered_flattened = tf.reshape(cur_conv_layer[:, :, :, filter_no],
+                                                       [self.mb_size * inp_x * inp_y])
+                top10_vals, top10_indices = tf.nn.top_k(single_filtered_flattened,
+                                                        k=10,
+                                                        sorted=True)
+                top10_reshaped = tf.map_fn(lambda sxy: [sxy // (inp_x * inp_y), (sxy // inp_y) % inp_x, sxy % inp_y],
+                                           top10_indices,
+                                           dtype=[tf.int32, tf.int32, tf.int32])
+
+                # Find patches corresponding to the top 10 responses.
+
+                def safe_cut_patch(sxy, size, img, paddings):
+                    """
+                    :param (sample_no, x, y)@sxy
+                    :param size: size of patch to cut out
+                    :param img: image to cut it from
+                    :param paddings: number of paddings to be reversed
+                    :return: Cuts out a patch of size (|size|) located at (x, y) on
+                        input #sample_no in current batch.
+                    """
+                    sample_no, x, y = sxy
+                    t = 2 ** (paddings + 1)
+                    pad_marg_x = (size[0] // t) + 1 - (size[0] % t)
+                    pad_marg_y = (size[1] // t) + 1 - (size[1] % t)
+                    padding = [[0, 0],
+                               [pad_marg_x, pad_marg_x],
+                               [pad_marg_y, pad_marg_y],
+                               [0, 0]]
+                    padded = tf.pad(img, padding)
+                    return padded[sample_no, x:x + size[0], y:y + size[1], :]
+
+                # Store patches and responses in class-visible array to be retrieved later.
+                self.exciting_patches[layer_no][filter_no] = \
+                    tf.map_fn(lambda sxy: safe_cut_patch(sxy,
+                                                         size=(self.kernel_size[0] * (2 ** layer_no),
+                                                               self.kernel_size[1] * (2 ** layer_no)),
+                                                         img=self.x,
+                                                         paddings=layer_no),
+                              top10_reshaped,
+                              dtype=tf.float32)
+                self.patches_responses[layer_no][filter_no] = top10_vals
+
+                # Flatten and concatenate the 10 patches to 2 dimensions for visualization.
+                flattened_patches_shape = [1] + \
+                                          [10 * self.kernel_size[0] * (2 ** layer_no),
+                                           self.kernel_size[1] * (2 ** layer_no)] + \
+                                          [1]
+                # Write patches to summary.
+                patch_name = "exciting_patches_filter{0}".format(filter_no)
+                flattened_exciting_patches = tf.reshape(self.exciting_patches[layer_no][filter_no],
+                                                        flattened_patches_shape,
+                                                        name=patch_name)
+                self.flattened_exciting_patches[layer_no][filter_no] = flattened_exciting_patches
+                tf.summary.image(patch_name,
+                                 flattened_exciting_patches,
+                                 family='exciting_layer{0}'.format(layer_no))
+
+            # Merge all summaries.
+
+    def _create_model(self):
+        self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, 2 * IMG_SIZE, IMG_SIZE, 1])
+        self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, NUM_CLASSES])
+        self.conv_layers = []
+
+        signal = self.x
+
+        for layer_no in range(len(self.filters_count)):
+            num_filters = self.filters_count[layer_no]
+            signal = tf.layers.batch_normalization(signal)
+
+            # Init weights with std.dev = sqrt(2 / N)
+            input_size = int(signal.get_shape()[1]) * int(signal.get_shape()[2]) * int(signal.get_shape()[3])
+            w_init = tf.initializers.random_normal(stddev=sqrt(2 / input_size))
+
+            # Convolutional layer
+            cur_conv_layer = tf.layers.conv2d(inputs=signal,
+                                              filters=num_filters,
+                                              kernel_size=self.kernel_size,
+                                              kernel_initializer=w_init,
+                                              padding='same')
+
+            # Reduce image dimensions in half.
+            cur_pool_layer = tf.layers.max_pooling2d(inputs=cur_conv_layer,
+                                                     pool_size=[2, 2],
+                                                     strides=2)
+
+            self.conv_layers.append(cur_conv_layer)
+
+            # Set pooled image as current signal
+            signal = cur_pool_layer
 
         signal = tf.reshape(signal, [self.mb_size, -1])
 
@@ -271,6 +371,9 @@ class NeuralNet:
         with tf.Session() as self.sess:
             # Initialize computation graph.
             self._create_model()
+            # Add visualizations to computation graph.
+            self._visualize_kernels()
+            self._visualize_exciting_patches()
 
             # Initialize variables.
             tf.global_variables_initializer().run()
@@ -307,5 +410,5 @@ class NeuralNet:
 
 
 if __name__ == '__main__':
-    net = NeuralNet(conv_layers=[64], min_label=51, max_label=78)
+    net = NeuralNet(mb_size=8, filters_count=[10, 10], min_label=78, max_label=98)
     net.train_and_evaluate()
