@@ -2,8 +2,9 @@
 
 
 from common.db_helper import DBHelper
-from controller.normalization import normalized
+from controller.normalization import normalized, hog_and_entropy
 import logging
+from common.tools import show_image
 
 
 if __name__ == '__main__':
@@ -33,12 +34,14 @@ if __name__ == '__main__':
     photos = []
     for database in helper.get_databases():
         if database.get_name() != 'www.vap.aau.dk':
-            photos += load_samples(database, limit=9, limit_per_person=3)
+            photos += load_samples(database, limit=3, limit_per_person=3)
 
     for face in photos:
         face = normalized(face)
-        face.show_grey()
-        face.show_depth()
+        face = hog_and_entropy(face)
+
+        inp = face.get_concat()
+        show_image(inp)
 
 
 

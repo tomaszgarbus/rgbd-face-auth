@@ -12,6 +12,11 @@ class Face:
     mask: np.ndarray((IMG_SIZE, IMG_SIZE), dtype=np.bool) = None
     landmarks = None
 
+    hog_grey_image: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
+    entropy_map_grey_image: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
+    entropy_map_depth_image: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
+    hog_depth_image: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
+
     """ list of points defining the face surface"""
     face_points: dict = None
     """ center of face """
@@ -53,6 +58,11 @@ class Face:
         # swapping coordinates to suitable format
         self.landmarks = {k: list([(x, y) for (y, x) in v]) for k, v in tmp.items()}
 
+    def get_concat(self) -> np.ndarray:
+        return tools.concat_images([self.grey_img, self.depth_img,
+                                    self.entropy_map_grey_image, self.entropy_map_depth_image,
+                                    self.hog_grey_image, self.hog_depth_image])
+
     def show_grey(self) -> None:
         tools.show_image(self.grey_img)
 
@@ -62,4 +72,10 @@ class Face:
     """ shows face with face points and azimuth"""
     def show_position(self) -> None:
         tools.show_position(self.grey_img, self.face_points, self.azimuth, self.face_center)
+
+    def show_map_and_entropy(self):
+        tools.show_image(self.entropy_map_grey_image)
+        tools.show_image(self.hog_grey_image)
+        tools.show_image(self.entropy_map_depth_image)
+        tools.show_image(self.hog_depth_image)
 

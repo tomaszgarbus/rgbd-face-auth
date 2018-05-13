@@ -7,6 +7,7 @@ from face_rotation.rotate import rotate_greyd_img, drop_corner_values
 from face_rotation.other import construct_face_points
 from face_rotation.find_angle import find_angle
 from face_rotation.recentre import recentre
+from face_rotation.structure_filters import get_hog_of, get_entropy_map_of
 
 
 def preprocessing(face: Face) -> None:
@@ -56,7 +57,14 @@ def normalized(face: Face) -> Face:
     recentre(face)
     #rotated_face.show_position()
 
+
+
     return rotated_face
     # tools.show_3d_plot(rotate.to_one_matrix(rotated_face))
 
-
+def hog_and_entropy(face: Face) -> Face:
+    face.hog_grey_image = get_hog_of(face.grey_img)
+    face.entropy_map_grey_image = get_entropy_map_of(face.grey_img)
+    face.hog_depth_image = get_hog_of(face.depth_img)
+    face.entropy_map_depth_image = get_entropy_map_of(face.depth_img)
+    return face

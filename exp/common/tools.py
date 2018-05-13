@@ -7,6 +7,7 @@ from matplotlib import cm
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 import logging
+from typing import List
 
 
 def rgb_skin_check(R: float, G: float, B: float) -> bool:
@@ -134,3 +135,26 @@ def rgb_image_to_gray_entropy(img: np.ndarray) -> np.ndarray:
     img_shape = img.shape
     ret = entropy(img.reshape(img_shape), disk(10)).reshape(img_shape[0], img_shape[1], 1)
     return ret
+
+
+def concat_images(images: List[np.ndarray]) -> np.ndarray:
+    def _concat2(img1:np.ndarray, img2: np.ndarray, ax=0):
+        if img1 is None:
+            return img2
+        elif img2 is None:
+            return img1
+        else:
+            return np.concatenate((img1, img2), axis=ax)
+
+    def _concat(img_list):
+        con = None
+        for img in img_list:
+            con = _concat2(con, img)
+        return con
+
+    if len(images) % 2 == 0:
+        con1 = _concat(images[::2])
+        con2 = _concat(images[1::2])
+        return _concat2(con1, con2, ax=1)
+
+    return _concat(images)
