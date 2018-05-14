@@ -6,7 +6,12 @@
     Size of the single image in both dimensions: width & height to be generally
     assumed in all code.
 """
-IMG_SIZE = 128
+IMG_SIZE = 64
+
+"""
+    Size of the input images to the neural network.
+"""
+NN_INPUT_SIZE = [3 * IMG_SIZE, 2 * IMG_SIZE]
 
 """
     Background color, after trimming the face.

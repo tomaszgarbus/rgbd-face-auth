@@ -12,13 +12,10 @@ from progress.bar import Bar
 from imgaug import augmenters as ia
 
 from common.db_helper import DB_LOCATION
-from common.constants import IMG_SIZE
+from common.constants import NN_INPUT_SIZE
 from common.tools import show_image
 
 NUM_CLASSES = 129
-
-# How many images are concatenated in a single input example.
-IMGS_PER_FACE = 2
 
 
 class NeuralNet:
@@ -99,7 +96,7 @@ class NeuralNet:
         self.x_train = np.concatenate([self.x_train, train_aug])
         self.y_train = np.concatenate([self.y_train, self.y_train])
         for i in range(5):
-            show_image(train_aug[i].reshape((IMGS_PER_FACE * IMG_SIZE, IMG_SIZE)))
+            show_image(train_aug[i].reshape(NN_INPUT_SIZE))
 
     def _get_data(self, range_beg: int = 0, range_end: int = 52) -> None:
         """
@@ -155,8 +152,8 @@ class NeuralNet:
             kernels = []
             applied_kernels = []
             for filter_no in range(num_filters):
-                inp_x = IMGS_PER_FACE * IMG_SIZE // (2 ** layer_no)
-                inp_y = IMG_SIZE // (2 ** layer_no)
+                inp_x = NN_INPUT_SIZE[0] // (2 ** layer_no)
+                inp_y = NN_INPUT_SIZE[1] // (2 ** layer_no)
                 if layer_no == 0:
                     tmp_str = 'conv2d/kernel:0'
                 else:
@@ -204,8 +201,8 @@ class NeuralNet:
 
             for filter_no in range(num_filters):
                 # Find top 10 responses to current filter, in the current mini-batch.
-                inp_x = IMGS_PER_FACE * IMG_SIZE // (2 ** layer_no)
-                inp_y = IMG_SIZE // (2 ** layer_no)
+                inp_x = NN_INPUT_SIZE[0] // (2 ** layer_no)
+                inp_y = NN_INPUT_SIZE[1] // (2 ** layer_no)
                 single_filtered_flattened = tf.reshape(cur_conv_layer[:, :, :, filter_no],
                                                        [self.mb_size * inp_x * inp_y])
                 top10_vals, top10_indices = tf.nn.top_k(single_filtered_flattened,
@@ -266,7 +263,7 @@ class NeuralNet:
             self.merged_summary = tf.summary.merge_all()
 
     def _create_model(self):
-        self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, 2 * IMG_SIZE, IMG_SIZE, 1])
+        self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size] + NN_INPUT_SIZE + [1])
         self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, NUM_CLASSES])
         self.conv_layers = []
 

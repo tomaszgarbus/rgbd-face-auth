@@ -1,19 +1,17 @@
 """
 Preprocessing the input images is very expensive, as we want to crop them to
-faces and calculate entropy and (TODO) HOGs of entropy maps.
+faces and calculate entropy and HOGs of entropy maps.
 Use this script to generate (X|Y)_(train|test).npy files and load them directly
 in main.py.
 """
 
-from common.db_helper import DBHelper, Database, DB_LOCATION
+from common.db_helper import DBHelper, DB_LOCATION
 import numpy as np
 from common.constants import IMG_SIZE
-from skimage.filters.rank import entropy
-from skimage.morphology import disk
 import os
 import logging
 
-from controller.normalization import normalized
+from controller.normalization import normalized, hog_and_entropy
 from common import tools
 
 def build_input_vector(face):
@@ -25,15 +23,10 @@ def build_input_vector(face):
         return None
     try:
         face = normalized(face)
+        face = hog_and_entropy(face)
     except ValueError:
         return None
-    (grey_face, depth_face) = (face.grey_img, face.depth_img)
-    tmp = np.zeros((2 * IMG_SIZE, IMG_SIZE))
-    entr_grey_face = entropy(grey_face, disk(5))
-    entr_depth_face = entropy(depth_face, disk(5))
-    tmp[0:IMG_SIZE] = depth_face
-    tmp[IMG_SIZE:IMG_SIZE * 2] = grey_face
-    return tmp
+    return face.get_concat()
 
 
 def load_database(database, offset, override_test_set=False):
@@ -47,7 +40,7 @@ def load_database(database, offset, override_test_set=False):
             y = offset + i + 1
             if x is None or y is None:
                 continue
-            # tools.show_image(x)
+            tools.show_image(x)
             if database.is_photo_in_test_set(i, j):
                 x_test.append(x)
                 y_test.append(y)
