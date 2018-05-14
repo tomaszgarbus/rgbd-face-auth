@@ -37,7 +37,7 @@ class NeuralNet:
     dense_layers = [32, NUM_CLASSES]
 
     # Dropout after each dense layer (excluding last)
-    dropout = 0.8
+    dropout = 0.5
 
     learning_rate = 0.2
     nb_epochs = 50000
@@ -152,6 +152,8 @@ class NeuralNet:
         """
         for layer_no in range(len(self.conv_layers)):
             num_filters = self.filters_count[layer_no]
+            kernels = []
+            applied_kernels = []
             for filter_no in range(num_filters):
                 inp_x = IMGS_PER_FACE * IMG_SIZE // (2 ** layer_no)
                 inp_y = IMG_SIZE // (2 ** layer_no)
@@ -168,6 +170,7 @@ class NeuralNet:
                     kernel = tf.reshape(kernel, [1] + \
                                         [self.kernel_size[0], self.kernel_size[1] * self.filters_count[layer_no - 1]] + \
                                         [1])
+                kernels.append(kernel)
                 applied = tf.reshape(cur_conv_layer[0, :, :, filter_no], [1, inp_x, inp_y, 1])
                 tf.summary.image('conv{0}_filter{1}_kernel'.format(layer_no, filter_no),
                                  kernel,
@@ -177,6 +180,12 @@ class NeuralNet:
                                  applied,
                                  family='convolved_layer_{0}'.format(layer_no),
                                  max_outputs=1)
+            concatenated_kernels = tf.concat(kernels, axis=2)
+            # Write concatenated patches to summary.
+            kernels_name = "kernels_layer{0}".format(layer_no)
+            tf.summary.image(kernels_name,
+                             concatenated_kernels,
+                             family='kernels_all_layers')
         self.merged_summary = tf.summary.merge_all()
 
     def _visualize_exciting_patches(self):
@@ -194,7 +203,6 @@ class NeuralNet:
             cur_conv_layer = self.conv_layers[layer_no]
 
             for filter_no in range(num_filters):
-                # Find  e x c i t i n g  patches.
                 # Find top 10 responses to current filter, in the current mini-batch.
                 inp_x = IMGS_PER_FACE * IMG_SIZE // (2 ** layer_no)
                 inp_y = IMG_SIZE // (2 ** layer_no)
@@ -207,21 +215,17 @@ class NeuralNet:
                                            top10_indices,
                                            dtype=[tf.int32, tf.int32, tf.int32])
 
-                # Find patches corresponding to the top 10 responses.
-
-                def safe_cut_patch(sxy, size, img, paddings):
+                def safe_cut_patch(sxy, size, img):
                     """
                     :param (sample_no, x, y)@sxy
                     :param size: size of patch to cut out
                     :param img: image to cut it from
-                    :param paddings: number of paddings to be reversed
                     :return: Cuts out a patch of size (|size|) located at (x, y) on
                         input #sample_no in current batch.
                     """
                     sample_no, x, y = sxy
-                    t = 2 ** (paddings + 1)
-                    pad_marg_x = (size[0] // t) + 1 - (size[0] % t)
-                    pad_marg_y = (size[1] // t) + 1 - (size[1] % t)
+                    pad_marg_x = (size[0] // 2) + 1 - (size[0] % 2)
+                    pad_marg_y = (size[1] // 2) + 1 - (size[1] % 2)
                     padding = [[0, 0],
                                [pad_marg_x, pad_marg_x],
                                [pad_marg_y, pad_marg_y],
@@ -229,13 +233,13 @@ class NeuralNet:
                     padded = tf.pad(img, padding)
                     return padded[sample_no, x:x + size[0], y:y + size[1], :]
 
+                # Find patches corresponding to the top 10 responses.
                 # Store patches and responses in class-visible array to be retrieved later.
                 self.exciting_patches[layer_no][filter_no] = \
                     tf.map_fn(lambda sxy: safe_cut_patch(sxy,
                                                          size=(self.kernel_size[0] * (2 ** layer_no),
                                                                self.kernel_size[1] * (2 ** layer_no)),
-                                                         img=self.x,
-                                                         paddings=layer_no),
+                                                         img=self.x),
                               top10_reshaped,
                               dtype=tf.float32)
                 self.patches_responses[layer_no][filter_no] = top10_vals
@@ -251,11 +255,15 @@ class NeuralNet:
                                                         flattened_patches_shape,
                                                         name=patch_name)
                 self.flattened_exciting_patches[layer_no][filter_no] = flattened_exciting_patches
-                tf.summary.image(patch_name,
-                                 flattened_exciting_patches,
-                                 family='exciting_layer{0}'.format(layer_no))
+            self.all_exciting_patches_at_layer[layer_no] = tf.concat(self.flattened_exciting_patches[layer_no], axis=2)
+            # Write concatenated patches to summary.
+            all_patches_name = "exciting_patches_layer{0}".format(layer_no)
+            tf.summary.image(all_patches_name,
+                             self.all_exciting_patches_at_layer[layer_no],
+                             family='exciting_all_layers')
 
             # Merge all summaries.
+            self.merged_summary = tf.summary.merge_all()
 
     def _create_model(self):
         self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, 2 * IMG_SIZE, IMG_SIZE, 1])
@@ -406,9 +414,10 @@ class NeuralNet:
                 bar.next()
 
                 if epoch_no % 1000 == 0:
-                    show_image(self._confusion_matrix)
+                    # show_image(self._confusion_matrix)
+                    pass
 
 
 if __name__ == '__main__':
-    net = NeuralNet(mb_size=8, filters_count=[10, 10], min_label=78, max_label=98)
+    net = NeuralNet(mb_size=8, filters_count=[10, 10, 10, 10], min_label=78, max_label=98)
     net.train_and_evaluate()
