@@ -184,6 +184,9 @@ def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
                 continue
             x = int(points[i, j, 0] * (IMG_SIZE - 1))
             y = int(points[i, j, 1] * (IMG_SIZE - 1))
+
+            if not face.mask[x, y]:
+                continue
             if x < 0 or y < 0 or x >= IMG_SIZE or y >= IMG_SIZE:
                 continue
             g = points[i, j, 3]

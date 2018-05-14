@@ -52,7 +52,7 @@ FRONT_SUF_FNAME = 'frontal_photo_suffixes.json'
 FACE_AZIMUTH = [0, 0, 1]
 
 """ smoothing iterations after rotation """
-SMOOTHEN_ITER = 15
+SMOOTHEN_ITER = 20
 
 """
     Assuming frontal position of the face, the range of visible depth
