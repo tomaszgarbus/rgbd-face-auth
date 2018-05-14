@@ -54,6 +54,7 @@ class NeuralNet:
                  dense_layers: Optional[List[int]] = None,
                  learning_rate: Optional[float] = None,
                  nb_epochs: Optional[int] = None,
+                 dropout_rate: Optional[int] = None,
                  min_label: int = 0,
                  max_label: int = NUM_CLASSES
                  ):
@@ -69,6 +70,8 @@ class NeuralNet:
             self.learning_rate = learning_rate
         if nb_epochs is not None:
             self.nb_epochs = nb_epochs
+        if dropout_rate is not None:
+            self.dropout = dropout_rate
 
         self._get_data(min_label, max_label)
 
@@ -319,6 +322,9 @@ class NeuralNet:
         cur_dropout_layer = tf.layers.dropout(inputs=signal,
                                               rate=self.dropout)
 
+        # Init weights with std.dev = sqrt(2 / N)
+        input_size = int(signal.get_shape()[1])
+        w_init = tf.initializers.random_normal(stddev=sqrt(2 / input_size))
         signal = cur_dropout_layer
         cur_layer = tf.layers.dense(inputs=signal,
                                     activation=tf.nn.sigmoid,
@@ -417,5 +423,8 @@ class NeuralNet:
 
 if __name__ == '__main__':
     # Test on eurecom only
-    net = NeuralNet(mb_size=16, filters_count=[10, 10, 10, 10], min_label=0, max_label=52)
+    net = NeuralNet(mb_size=16,
+                    filters_count=[10, 10],
+                    min_label=0,
+                    max_label=52)
     net.train_and_evaluate()
