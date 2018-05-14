@@ -164,8 +164,8 @@ class NeuralNet:
                 if layer_no == 0:
                     kernel = tf.reshape(kernel, [1] + self.kernel_size + [1])
                 else:
-                    kernel = tf.reshape(kernel, [1] + \
-                                        [self.kernel_size[0], self.kernel_size[1] * self.filters_count[layer_no - 1]] + \
+                    kernel = tf.reshape(kernel, [1] +\
+                                        [self.kernel_size[0], self.kernel_size[1] * self.filters_count[layer_no - 1]] +\
                                         [1])
                 kernels.append(kernel)
                 applied = tf.reshape(cur_conv_layer[0, :, :, filter_no], [1, inp_x, inp_y, 1])
@@ -416,5 +416,6 @@ class NeuralNet:
 
 
 if __name__ == '__main__':
-    net = NeuralNet(mb_size=8, filters_count=[10, 10, 10, 10], min_label=78, max_label=98)
+    # Test on eurecom only
+    net = NeuralNet(mb_size=16, filters_count=[10, 10, 10, 10], min_label=0, max_label=52)
     net.train_and_evaluate()

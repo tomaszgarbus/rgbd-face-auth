@@ -7,7 +7,7 @@ in main.py.
 
 from common.db_helper import DBHelper, DB_LOCATION
 import numpy as np
-from common.constants import IMG_SIZE
+from common.constants import NN_INPUT_SIZE
 import os
 import logging
 
@@ -40,7 +40,7 @@ def load_database(database, offset, override_test_set=False):
             y = offset + i + 1
             if x is None or y is None:
                 continue
-            tools.show_image(x)
+            # tools.show_image(x)
             if database.is_photo_in_test_set(i, j):
                 x_test.append(x)
                 y_test.append(y)
@@ -72,15 +72,15 @@ if __name__ == '__main__':
     # Reshape input
     TRAIN_SIZE = len(x_train)
     TEST_SIZE = len(x_test)
-    X_train = np.zeros((TRAIN_SIZE, 2 * IMG_SIZE, IMG_SIZE, 1))
+    X_train = np.zeros((TRAIN_SIZE, NN_INPUT_SIZE[0], NN_INPUT_SIZE[1], 1))
     Y_train = np.zeros((TRAIN_SIZE, TOTAL_SUBJECTS_COUNT))
-    X_test = np.zeros((TEST_SIZE, 2 * IMG_SIZE, IMG_SIZE, 1))
+    X_test = np.zeros((TEST_SIZE, NN_INPUT_SIZE[0], NN_INPUT_SIZE[1], 1))
     Y_test = np.zeros((TEST_SIZE, TOTAL_SUBJECTS_COUNT))
     for i in range(TRAIN_SIZE):
-        X_train[i] = x_train[i].reshape((2 * IMG_SIZE, IMG_SIZE, 1))
+        X_train[i] = x_train[i].reshape((NN_INPUT_SIZE[0], NN_INPUT_SIZE[1], 1))
         Y_train[i, y_train[i]-1] = 1
     for i in range(TEST_SIZE):
-        X_test[i] = x_test[i].reshape((2 * IMG_SIZE, IMG_SIZE, 1))
+        X_test[i] = x_test[i].reshape((NN_INPUT_SIZE[0], NN_INPUT_SIZE[1], 1))
         Y_test[i, y_test[i]-1] = 1
     x_train = []
     y_train = []
