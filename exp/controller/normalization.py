@@ -37,8 +37,11 @@ def preprocessing(face: Face) -> None:
     #face.show_depth()
 
 
-def normalized(face: Face) -> Face:
+def normalized(face: Face, rotate: bool = True) -> Face:
     preprocessing(face)
+
+    if not rotate:
+        return face
 
     # Find the angle
     rotation = find_angle(face)
