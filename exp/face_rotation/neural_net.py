@@ -36,7 +36,7 @@ class NeuralNet:
     # Dropout after each dense layer (excluding last)
     dropout = 0.5
 
-    learning_rate = 0.2
+    learning_rate = 0.02
     nb_epochs = 50000
 
     # History of accuracies on train set
@@ -133,13 +133,13 @@ class NeuralNet:
         self.y_test = self.y_test[test_indices]
 
         # Image augmentation.
-        # aug1 = ia.CoarseSaltAndPepper(p=0.2, size_percent=0.05)
-        # aug2 = ia.CoarseSaltAndPepper(p=0.4, size_percent=0.05)
+        aug1 = ia.CoarseSaltAndPepper(p=0.2, size_percent=0.30)
+        aug2 = ia.CoarseSaltAndPepper(p=0.4, size_percent=0.30)
         # aug3 = ia.PerspectiveTransform(scale=0.05)
         # aug4 = ia.PerspectiveTransform(scale=0.075)
         # aug5 = ia.Fliplr(1)
-        # self._augment(aug1)
-        # self._augment(aug2)
+        self._augment(aug1)
+        self._augment(aug2)
         # self._augment(aug3)
         # self._augment(aug4)
         # self._augment(aug5)
@@ -168,7 +168,7 @@ class NeuralNet:
                     kernel = tf.reshape(kernel, [1] + self.kernel_size + [1])
                 else:
                     kernel = tf.reshape(kernel, [1] +\
-                                        [self.kernel_size[0], self.kernel_size[1] * self.filters_count[layer_no - 1]] +\
+                                        [self.kernel_size[0] * self.filters_count[layer_no - 1], self.kernel_size[1]] +\
                                         [1])
                 kernels.append(kernel)
                 applied = tf.reshape(cur_conv_layer[0, :, :, filter_no], [1, inp_x, inp_y, 1])
@@ -180,13 +180,22 @@ class NeuralNet:
                                  applied,
                                  family='convolved_layer_{0}'.format(layer_no),
                                  max_outputs=1)
-            concatenated_kernels = tf.concat(kernels, axis=2)
+                applied_kernels.append(applied)
             # Write concatenated patches to summary.
+            concatenated_kernels = tf.concat(kernels, axis=2)
             kernels_name = "kernels_layer{0}".format(layer_no)
             tf.summary.image(kernels_name,
                              concatenated_kernels,
                              family='kernels_all_layers')
-        self.merged_summary = tf.summary.merge_all()
+            concatenated_applieds = tf.concat(applied_kernels, axis=2)
+            applieds_name = "convolved_layer{0}".format(layer_no)
+            tf.summary.image(applieds_name,
+                             concatenated_applieds,
+                             family='convolved_all_layers')
+
+        if self.conv_layers:
+            # Merge all visualizations of kernels.
+            self.merged_summary = tf.summary.merge_all()
 
     def _visualize_exciting_patches(self):
         """
@@ -265,6 +274,19 @@ class NeuralNet:
             # Merge all summaries.
             self.merged_summary = tf.summary.merge_all()
 
+    def _visualize_incorrect_answer_images(self):
+        correct = tf.boolean_mask(self.x, self.correct)
+        correct = tf.reshape(correct, shape=[1, -1, NN_INPUT_SIZE[1], 1])
+        correct = tf.concat([correct, tf.zeros(shape=[1, 1, NN_INPUT_SIZE[1], 1])], axis=1)
+        tf.summary.image('correct', correct)
+        incorrect = tf.boolean_mask(self.x, tf.logical_not(self.correct))
+        incorrect = tf.reshape(incorrect, shape=[1, -1, NN_INPUT_SIZE[1], 1])
+        incorrect = tf.concat([incorrect, tf.zeros(shape=[1, 1, NN_INPUT_SIZE[1], 1])], axis=1)
+        tf.summary.image('incorrect', incorrect)
+
+        # Merge all summaries.
+        self.merged_summary = tf.summary.merge_all()
+
     def _create_model(self):
         self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size] + NN_INPUT_SIZE + [1])
         self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, NUM_CLASSES])
@@ -277,6 +299,7 @@ class NeuralNet:
             signal = tf.layers.batch_normalization(signal)
 
             # Init weights with std.dev = sqrt(2 / N)
+            #
             input_size = int(signal.get_shape()[1]) * int(signal.get_shape()[2]) * int(signal.get_shape()[3])
             w_init = tf.initializers.random_normal(stddev=sqrt(2 / input_size))
 
@@ -333,40 +356,40 @@ class NeuralNet:
 
         self.preds = tf.argmax(signal, axis=1)
         self.loss = tf.losses.log_loss(self.y, signal)
-        self.accuracy = tf.reduce_mean(
-            tf.cast(tf.equal(tf.argmax(self.y, axis=1), tf.argmax(signal, axis=1)), tf.float32))
+        self.correct = tf.equal(tf.argmax(self.y, axis=1), tf.argmax(signal, axis=1))
+        self.accuracy = tf.reduce_mean(tf.cast(self.correct, tf.float32))
         self.train_op = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
 
         self.logger.info('list of variables {0}'.format(list(map(lambda x: x.name, tf.global_variables()))))
 
-    def train_on_batch(self, batch_x, batch_y, global_step=1):
+    def train_on_batch(self, batch_x, batch_y):
         """
         :return: [loss, accuracy]
         """
-
-        # Write summaries every 100 steps
-        if global_step % 100 == 0:
-            results = self.sess.run([self.loss, self.accuracy, self.merged_summary, self.train_op],
-                                    feed_dict={self.x: batch_x, self.y: batch_y})
-            msum = results[2]
-            self.writer.add_summary(msum, global_step=global_step)
-            self.writer.flush()
-        else:
-            results = self.sess.run([self.loss, self.accuracy, self.train_op],
-                                    feed_dict={self.x: batch_x, self.y: batch_y})
+        results = self.sess.run([self.loss, self.accuracy, self.train_op],
+                                feed_dict={self.x: batch_x, self.y: batch_y})
         self.accs.append(results[1])
         return results[:2]
 
-    def test_on_batch(self, batch_x, batch_y):
+    def test_on_batch(self, batch_x, batch_y, global_step=1):
         """
         Note that this function does not fetch |self.train_op|, so that the weights
         are not updated.
         :param batch_x:
         :param batch_y:
+        :param global_step:
         :return: [loss, accuracy]
         """
-        results = self.sess.run([self.loss, self.accuracy, self.preds],
-                                feed_dict={self.x: batch_x, self.y: batch_y})
+        if self.conv_layers:
+            # Write summary
+            results = self.sess.run([self.loss, self.accuracy, self.preds, self.merged_summary],
+                                    feed_dict={self.x: batch_x, self.y: batch_y})
+            msum = results[3]
+            self.writer.add_summary(msum, global_step=global_step)
+            self.writer.flush()
+        else:
+            results = self.sess.run([self.loss, self.accuracy, self.preds],
+                                    feed_dict={self.x: batch_x, self.y: batch_y})
         self.val_accs.append(results[1])
         # Update confusion matrix
         preds = results[2]
@@ -385,6 +408,7 @@ class NeuralNet:
             # Add visualizations to computation graph.
             self._visualize_kernels()
             self._visualize_exciting_patches()
+            self._visualize_incorrect_answer_images()
 
             # Initialize variables.
             tf.global_variables_initializer().run()
@@ -397,11 +421,11 @@ class NeuralNet:
 
             for epoch_no in range(self.nb_epochs):
                 # Train model on next batch
-
                 batch = sample(list(range(self.x_train.shape[0])), self.mb_size)
                 batch_x, batch_y = self.x_train[batch], self.y_train[batch]
-                results = self.train_on_batch(batch_x, batch_y, global_step=epoch_no)
+                results = self.train_on_batch(batch_x, batch_y)
 
+                # Update bar
                 bar.message = 'loss: {0[0]:.8f} acc: {0[1]:.3f} mean_acc: {1:.3f}'.\
                     format(results, np.mean(self.accs[-1000:]))
 
@@ -410,21 +434,26 @@ class NeuralNet:
                     bar = Bar('', max=100, suffix='%(index)d/%(max)d ETA: %(eta)ds')
                     batch_t = sample(list(range(self.x_test.shape[0])), self.mb_size)
                     batch_x_t, batch_y_t = self.x_test[batch_t], self.y_test[batch_t]
-                    test_results = self.test_on_batch(batch_x_t, batch_y_t)
+                    test_results = self.test_on_batch(batch_x_t, batch_y_t, global_step=epoch_no)
                     self.logger.info("(Test(batch):   Loss: {0[0]}, accuracy: {0[1]}, mean acc: {1}".
                                      format(test_results,
                                             np.mean(self.val_accs[-10:])))
                 bar.next()
 
-                if epoch_no % 1000 == 0:
-                    # show_image(self._confusion_matrix)
+                if epoch_no % 20000 == 0:
+                    show_image(self._confusion_matrix)
                     pass
+
+
 
 
 if __name__ == '__main__':
     # Test on eurecom only
-    net = NeuralNet(mb_size=16,
-                    filters_count=[10, 10],
+    net = NeuralNet(mb_size=8,
+                    kernel_size=[10, 10],
+                    filters_count=[10, 32],
+                    dense_layers=[32, 512, NUM_CLASSES],
+                    dropout_rate=0.7,
                     min_label=0,
                     max_label=52)
     net.train_and_evaluate()
