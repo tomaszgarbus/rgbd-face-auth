@@ -20,6 +20,7 @@ NUM_CLASSES = 129
 
 class NeuralNet:
     # TODO: try initializing convolution filters with Gabor filters instead of random
+    # TODO: lr decay
 
     # Mini batch size
     mb_size = 32
@@ -36,7 +37,7 @@ class NeuralNet:
     # Dropout after each dense layer (excluding last)
     dropout = 0.5
 
-    learning_rate = 0.02
+    learning_rate = 0.05
     nb_epochs = 50000
 
     # History of accuracies on train set
@@ -133,13 +134,13 @@ class NeuralNet:
         self.y_test = self.y_test[test_indices]
 
         # Image augmentation.
-        aug1 = ia.CoarseSaltAndPepper(p=0.2, size_percent=0.30)
-        aug2 = ia.CoarseSaltAndPepper(p=0.4, size_percent=0.30)
+        # aug1 = ia.CoarseSaltAndPepper(p=0.2, size_percent=0.30)
+        # aug2 = ia.CoarseSaltAndPepper(p=0.4, size_percent=0.30)
         # aug3 = ia.PerspectiveTransform(scale=0.05)
         # aug4 = ia.PerspectiveTransform(scale=0.075)
         # aug5 = ia.Fliplr(1)
-        self._augment(aug1)
-        self._augment(aug2)
+        # self._augment(aug1)
+        # self._augment(aug2)
         # self._augment(aug3)
         # self._augment(aug4)
         # self._augment(aug5)
@@ -233,8 +234,10 @@ class NeuralNet:
                         input #sample_no in current batch.
                     """
                     sample_no, x, y = sxy
-                    pad_marg_x = (size[0] // 2) + 1 - (size[0] % 2)
-                    pad_marg_y = (size[1] // 2) + 1 - (size[1] % 2)
+                    # pad_marg_x = (size[0] // 2) + 1 - (size[0] % 2)
+                    # pad_marg_y = (size[1] // 2) + 1 - (size[1] % 2)
+                    pad_marg_x = 2
+                    pad_marg_y = 2
                     padding = [[0, 0],
                                [pad_marg_x, pad_marg_x],
                                [pad_marg_y, pad_marg_y],
@@ -445,15 +448,11 @@ class NeuralNet:
                     pass
 
 
-
-
 if __name__ == '__main__':
     # Test on eurecom only
-    net = NeuralNet(mb_size=8,
-                    kernel_size=[10, 10],
+    net = NeuralNet(mb_size=16,
+                    kernel_size=[5, 5],
                     filters_count=[10, 32],
-                    dense_layers=[32, 512, NUM_CLASSES],
-                    dropout_rate=0.7,
                     min_label=0,
-                    max_label=52)
+                    max_label=78)
     net.train_and_evaluate()
