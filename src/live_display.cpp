@@ -1,6 +1,7 @@
 #include <string>
 
 #include <wx/bitmap.h>
+#include <wx/button.h>
 #include <wx/event.h>
 #include <wx/image.h>
 #include <wx/panel.h>
@@ -18,6 +19,8 @@
 
 // Constants
 
+char constexpr photos_directory[] = "../photos/";
+
 enum {
    ID_MIN_D          = 101,
    ID_MAX_D          = 102,
@@ -26,7 +29,10 @@ enum {
    ID_DISPLAY_COLOR  = 105,
    ID_DISPLAY_DEPTH  = 106,
    ID_DISPLAY_IR     = 107,
-   ID_DISPLAY_CUSTOM = 108
+   ID_DISPLAY_EXP    = 108,
+   ID_START_BTN      = 109,
+   ID_STOP_BTN       = 110,
+   ID_EXP_BTN        = 111
 };
 
 const size_t display_panel_width  = 512;
@@ -59,10 +65,15 @@ class SettingsPanel : public wxPanel {
    void on_max_slider_change(wxCommandEvent &event);
    void on_min_text_change(wxCommandEvent &event);
    void on_max_text_change(wxCommandEvent &event);
+   void on_photos_button_click(wxCommandEvent &event);
+   void on_exp_button_click(wxCommandEvent &event);
 
    wxPanel *m_parent;
    wxSlider *m_min_d, *m_max_d;
    wxTextCtrl *m_min_d_text, *m_max_d_text;
+   wxButton *m_photos_button, *m_exp_button;
+
+   bool taking_photos = false, showing_exp = false;
 };
 
 class MainWindow : public wxFrame {
@@ -84,13 +95,17 @@ SettingsPanel::SettingsPanel(wxPanel *parent)
         m_min_d(new wxSlider(this, ID_MIN_D, 500, 0, 10000, wxPoint(80, 10), wxSize(980, 15))),
         m_max_d(new wxSlider(this, ID_MAX_D, 4500, 0, 10000, wxPoint(80, 40), wxSize(980, 15))),
         m_min_d_text(new wxTextCtrl(this, ID_MIN_D_TEXT, "500", wxPoint(10, 10), wxSize(60, 15))),
-        m_max_d_text(new wxTextCtrl(this, ID_MAX_D_TEXT, "4500", wxPoint(10, 40), wxSize(60, 15))) {
+        m_max_d_text(new wxTextCtrl(this, ID_MAX_D_TEXT, "4500", wxPoint(10, 40), wxSize(60, 15))),
+        m_photos_button(new wxButton(this, ID_START_BTN, "Start photos", wxPoint(10, 70), wxSize(100, 20))),
+        m_exp_button(new wxButton(this, ID_STOP_BTN, "Turn on exp.", wxPoint(120, 70), wxSize(100, 20))) {
    m_min_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_min_slider_change, this);
    m_min_d->Bind(wxEVT_SCROLL_THUMBTRACK, &SettingsPanel::on_min_slider_change, this);
    m_max_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_max_slider_change, this);
    m_max_d->Bind(wxEVT_SCROLL_THUMBTRACK, &SettingsPanel::on_max_slider_change, this);
    m_min_d_text->Bind(wxEVT_TEXT, &SettingsPanel::on_min_text_change, this);
    m_max_d_text->Bind(wxEVT_TEXT, &SettingsPanel::on_max_text_change, this);
+   m_photos_button->Bind(wxEVT_BUTTON, &SettingsPanel::on_photos_button_click, this);
+   m_exp_button->Bind(wxEVT_BUTTON, &SettingsPanel::on_exp_button_click, this);
 }
 
 void SettingsPanel::on_min_slider_change(wxCommandEvent &event) {
@@ -143,6 +158,17 @@ void SettingsPanel::on_max_text_change(wxCommandEvent &event) {
    }
 }
 
+void SettingsPanel::on_photos_button_click(wxCommandEvent &event) {
+   taking_photos = !taking_photos;
+   m_photos_button->SetLabel(taking_photos ? "Stop photos" : "Start photos");
+}
+
+void SettingsPanel::on_exp_button_click(wxCommandEvent &event) {
+   showing_exp = !showing_exp;
+   m_exp_button->SetLabel(showing_exp ? "Turn off exp." : "Turn on exp.");
+   // TODO clear the experimental display? how?
+}
+
 DisplayPanel::DisplayPanel(wxPanel *parent, wxWindowID window_id, uint8_t *bitmap)
       : wxPanel(parent, window_id, wxPoint(0, 0), wxSize(display_panel_width, display_panel_height), wxBORDER_SUNKEN),
         bitmap(bitmap) {
@@ -163,7 +189,7 @@ MainWindow::MainWindow(
         m_display_color(new DisplayPanel(m_parent, ID_DISPLAY_COLOR, color_bitmap)),
         m_display_depth(new DisplayPanel(m_parent, ID_DISPLAY_DEPTH, depth_bitmap)),
         m_display_ir(new DisplayPanel(m_parent, ID_DISPLAY_IR, ir_bitmap)),
-        m_display_custom(new DisplayPanel(m_parent, ID_DISPLAY_CUSTOM, custom_bitmap)),
+        m_display_custom(new DisplayPanel(m_parent, ID_DISPLAY_EXP, custom_bitmap)),
         m_settings(new SettingsPanel(m_parent)) {
    auto hbox1 = new wxBoxSizer(wxHORIZONTAL), hbox2 = new wxBoxSizer(wxHORIZONTAL);
    hbox1->Add(m_display_color);
@@ -212,7 +238,7 @@ ElementT euclidian_norm(VectorT const vector) {
 template <typename VectorT, typename ElementT = double>
 ElementT vector_dot(VectorT const &v, VectorT const &w) {
    if (v.size() != w.size()) {
-      throw std::invalid_argument("v.size != w.szie // TODO explanation?");
+      throw std::invalid_argument("v.size != w.size // TODO explanation?");
    }
 
    ElementT ret = 0;
@@ -244,6 +270,23 @@ double calculate_reflectiveness_for_surface(std::array<std::array<Point3d const,
    return ret;
 }
 
+std::string make_filename(int which_kinect) {
+   auto current_time           = std::chrono::system_clock::now();
+   auto current_time_as_time_t = std::chrono::system_clock::to_time_t(current_time);
+
+   char current_time_char[100];
+   std::strftime(
+         current_time_char, sizeof(current_time_char), "%Y-%m-%d-%H-%M-%S", std::gmtime(&current_time_as_time_t));
+   std::string current_time_string = current_time_char;
+
+   current_time_string += '-';
+   std::string milliseconds = std::to_string(
+         std::chrono::duration_cast<std::chrono::milliseconds>(current_time.time_since_epoch()).count() % 1000);
+   current_time_string += std::string(3 - milliseconds.length(), '0') + milliseconds;
+
+   return photos_directory + current_time_string + "-kinect" + std::to_string(which_kinect);
+}
+
 // Kinect handling
 
 class MyKinectDevice : public KinectDevice {
@@ -258,6 +301,12 @@ class MyKinectDevice : public KinectDevice {
 void MyKinectDevice::frame_handler(Picture const &picture) const {
    if (window == nullptr) {
       return;
+   }
+
+   // TODO: give an fps setting, skip frame if too fast
+
+   if (window->m_settings->taking_photos) {
+      picture.save_all_to_files(make_filename(which_kinect));
    }
 
    if (picture.color_frame) {
@@ -364,7 +413,8 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       wxPostEvent(window->m_display_ir, wxCommandEvent(REFRESH_DISPLAY_EVENT));
    }
 
-   if ((picture.depth_frame || picture.ir_frame) && window->picture->depth_frame && window->picture->ir_frame
+   if (window->m_settings->showing_exp && (picture.depth_frame || picture.ir_frame)
+         && window->picture->depth_frame && window->picture->ir_frame
          && window->picture->depth_frame->pixels->width == window->picture->ir_frame->pixels->width
          && window->picture->depth_frame->pixels->height == window->picture->ir_frame->pixels->height) {
       auto frame_width  = window->picture->depth_frame->pixels->width,
