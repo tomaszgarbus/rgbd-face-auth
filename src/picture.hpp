@@ -89,9 +89,14 @@ Picture::ColorFrame::~ColorFrame() {
 }
 
 void Picture::ColorFrame::save_to_file(std::string const &filename) const {
-   cv::Mat image(cv::Size(static_cast<int>(pixels->width), static_cast<int>(pixels->height)), CV_8UC3,
-         (uint8_t *)(pixels->data()));
-   cv::imwrite(filename, image);
+   auto *pixels_copy = new Matrix<ColorPixel>(*pixels);
+   std::thread t([filename, pixels_copy]{
+      cv::Mat image(cv::Size(static_cast<int>(pixels_copy->width), static_cast<int>(pixels_copy->height)), CV_8UC3,
+            (uint8_t *)(pixels_copy->data()));
+      cv::imwrite(filename, image);
+      delete pixels_copy;
+   });
+   t.detach();
 }
 
 void Picture::ColorFrame::resize(size_t const width, size_t const height) {

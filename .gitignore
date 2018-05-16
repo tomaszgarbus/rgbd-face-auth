@@ -4,9 +4,10 @@
 !/.idea/codeStyles/Project.xml
 build/
 cmake-build-debug/
-/photos/
 sample_display
 **.depth
 **.ir
 **.jpg
+**.depth.gz
+**.ir.gz
 bin/*
