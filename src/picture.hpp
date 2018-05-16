@@ -140,7 +140,7 @@ Picture::DepthOrIrFrame::DepthOrIrFrame(const Picture::DepthOrIrFrame &src)
 
 Picture::DepthOrIrFrame::~DepthOrIrFrame() {
    delete pixels;
-   delete freenect2_frame;
+   // delete freenect2_frame;
 }
 
 void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {

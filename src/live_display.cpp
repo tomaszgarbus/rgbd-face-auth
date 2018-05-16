@@ -96,8 +96,8 @@ SettingsPanel::SettingsPanel(wxPanel *parent)
         m_max_d(new wxSlider(this, ID_MAX_D, 4500, 0, 10000, wxPoint(80, 40), wxSize(980, 15))),
         m_min_d_text(new wxTextCtrl(this, ID_MIN_D_TEXT, "500", wxPoint(10, 10), wxSize(60, 15))),
         m_max_d_text(new wxTextCtrl(this, ID_MAX_D_TEXT, "4500", wxPoint(10, 40), wxSize(60, 15))),
-        m_photos_button(new wxButton(this, ID_START_BTN, "Start photos", wxPoint(10, 70), wxSize(100, 20))),
-        m_exp_button(new wxButton(this, ID_STOP_BTN, "Turn on exp.", wxPoint(120, 70), wxSize(100, 20))) {
+        m_photos_button(new wxButton(this, ID_START_BTN, "Start photos", wxPoint(10, 70), wxSize(100, 50))),
+        m_exp_button(new wxButton(this, ID_STOP_BTN, "Turn on exp.", wxPoint(120, 70), wxSize(100, 50))) {
    m_min_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_min_slider_change, this);
    m_min_d->Bind(wxEVT_SCROLL_THUMBTRACK, &SettingsPanel::on_min_slider_change, this);
    m_max_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_max_slider_change, this);
@@ -184,7 +184,7 @@ void DisplayPanel::refresh_display(wxCommandEvent &event) {
 
 MainWindow::MainWindow(
       const wxString &title, uint8_t *color_bitmap, uint8_t *depth_bitmap, uint8_t *ir_bitmap, uint8_t *custom_bitmap)
-      : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(1500, 1000)),
+      : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(1500, 1050)),
         picture(new Picture(nullptr, nullptr, nullptr)), m_parent(new wxPanel(this, wxID_ANY)),
         m_display_color(new DisplayPanel(m_parent, ID_DISPLAY_COLOR, color_bitmap)),
         m_display_depth(new DisplayPanel(m_parent, ID_DISPLAY_DEPTH, depth_bitmap)),
@@ -257,17 +257,24 @@ double calculate_reflectiveness_for_surface(std::array<std::array<Point3d const,
       std::cerr << std::endl;
    }*/
 
-   std::array<double, 3> v{
+   std::array<double, 3> v1{
          {square[1][0].x - square[1][1].x, square[1][0].y - square[1][1].y, square[1][0].z - square[1][1].z}},
-         w{{square[1][2].x - square[1][2].x, square[1][2].y - square[1][2].y, square[1][2].z - square[1][1].z}};
+         w1{{square[1][2].x - square[1][1].x, square[1][2].y - square[1][1].y, square[1][2].z - square[1][1].z}};
 
-   double ret = vector_dot(v, w) / (euclidian_norm(v) * euclidian_norm(w));
+   std::array<double, 3> v2{
+         {square[0][1].x - square[1][1].x, square[0][1].y - square[1][1].y, square[0][1].z - square[1][1].z}},
+         w2{{square[2][1].x - square[1][1].x, square[2][1].y - square[1][1].y, square[2][1].z - square[1][1].z}};
 
-   if (ret != ret) {
-      return 0.5;
+   double const cos1 = vector_dot(v1, w1) / (euclidian_norm(v1) * euclidian_norm(w1));
+   double const cos2 = vector_dot(v2, w2) / (euclidian_norm(v2) * euclidian_norm(w2));
+
+   if (cos1 != cos1 || cos2 != cos2) {
+      return 2.0;
    }
 
-   return ret;
+   double const ang = (std::acos(cos1) + std::acos(cos2)) / 3.14;
+
+   return ang < 0.25 ? 0.5 : 2 * ang;
 }
 
 std::string make_filename(int which_kinect) {
@@ -453,7 +460,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
                      {{{points[i - 1][j - 1], points[i - 1][j], points[i - 1][j + 1]},
                            {points[i + 0][j - 1], points[i + 0][j], points[i + 0][j + 1]},
                            {points[i + 1][j - 1], points[i + 1][j], points[i + 1][j + 1]}}});
-               values[i][j] *= reflectiveness;
+               values[i][j] /= reflectiveness;
 
                max_value = std::max(max_value, values[i][j]);
             }
