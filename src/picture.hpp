@@ -150,7 +150,7 @@ Picture::DepthOrIrFrame::~DepthOrIrFrame() {
 
 void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {
    size_t pixels_size = pixels->height * pixels->width * sizeof(float);
-   char file_data[12 + pixels_size];
+   auto file_data = new char[12 + pixels_size];
    if (is_depth) {
       memcpy(file_data, "PHDE", 4);
    } else {
