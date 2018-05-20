@@ -90,7 +90,7 @@ Picture::ColorFrame::~ColorFrame() {
 
 void Picture::ColorFrame::save_to_file(std::string const &filename) const {
    auto *pixels_copy = new Matrix<ColorPixel>(*pixels);
-   std::thread t([filename, pixels_copy]{
+   std::thread t([filename, pixels_copy] {
       cv::Mat image(cv::Size(static_cast<int>(pixels_copy->width), static_cast<int>(pixels_copy->height)), CV_8UC3,
             (uint8_t *)(pixels_copy->data()));
       cv::imwrite(filename, image);
@@ -150,7 +150,7 @@ Picture::DepthOrIrFrame::~DepthOrIrFrame() {
 
 void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {
    size_t pixels_size = pixels->height * pixels->width * sizeof(float);
-   auto file_data = new char[12 + pixels_size];
+   auto file_data     = new char[12 + pixels_size];
    if (is_depth) {
       memcpy(file_data, "PHDE", 4);
    } else {
