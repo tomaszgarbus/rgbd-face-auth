@@ -22,7 +22,7 @@ def build_input_vector(face):
     if np.isnan(grey_face).any() or np.isnan(depth_face).any():
         return None
     try:
-        face = normalized(face)
+        face = normalized(face, rotate=False)
         face = hog_and_entropy(face)
     except ValueError:
         return None
@@ -89,10 +89,7 @@ if __name__ == '__main__':
 
     for i in range(len(X_train)):
         if np.isnan(X_train[i]).any():
-            # TODO: do something smarter - investigate how nan values sneaked into
-            # input data. This has probably happened when computing entropy maps
-            # (I think I saw a warning from numpy).
-            # The invalid images were: 2871, 2873, 2874
+            # TODO: check if nan values are still an issue
             X_train[i] = X_train[0]
             Y_train[i] = Y_train[0]
 
