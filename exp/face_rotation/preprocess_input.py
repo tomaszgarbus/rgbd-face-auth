@@ -14,6 +14,7 @@ import logging
 from controller.normalization import normalized, hog_and_entropy
 from common import tools
 
+
 def build_input_vector(face):
     """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
     (grey_face, depth_face) = (face.grey_img, face.depth_img)

@@ -93,8 +93,24 @@ def generate_mask(face: Face, points: list((float, float, float))) -> None:
     # Display the mask if you want
     # tools.show_image(mask)
 
+
+def generate_mask_from_skin(face: Face) -> None:
+    mask = np.zeros((IMG_SIZE, IMG_SIZE), dtype=np.bool)
+    for x in range(IMG_SIZE):
+        for y in range(IMG_SIZE):
+            r, g, b = face.rgb_img[x][y]
+            if tools.rgb_skin_check(r, g, b):
+                mask[x][y] = True
+
+    face.mask = mask
+
+    # Display the mask if you want
+    tools.show_image(face.rgb_img)
+    tools.show_image(mask)
+
+
 def cut_around_mask(face: Face,
-                      color: float = BGCOLOR) -> None:
+                    color: float = BGCOLOR) -> None:
     """
         Erases contents of original image around mask.
         :param face:
@@ -103,8 +119,8 @@ def cut_around_mask(face: Face,
     for x in range(IMG_SIZE):
         for y in range(IMG_SIZE):
             if not face.mask[x, y]:
-                face.depth_img[x, y] = BGCOLOR
-                face.grey_img[x, y] = BGCOLOR
+                face.depth_img[x, y] = color
+                face.grey_img[x, y] = color
 
 
 def trim_greyd(face: Face) -> None:
@@ -113,9 +129,14 @@ def trim_greyd(face: Face) -> None:
         :return: trimmed Face
     """
 
-    all_points = find_convex_hull(face)
+    # Approach 1: use face_recoginition library (better but slower)
+    # all_points = find_convex_hull(face)
+    # generate_mask(face, all_points)
 
-    generate_mask(face, all_points)
+    # Approach 2: use heuristics for finding skin pixels
+    generate_mask_from_skin(face)
+    # (just comment out the one you don't like)
+
     cut_around_mask(face)
 
     #tools.show_image(grey_img)

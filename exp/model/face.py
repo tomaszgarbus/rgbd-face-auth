@@ -1,5 +1,6 @@
 import numpy as np
 import face_recognition
+from typing import Optional
 
 from common import tools
 from common.constants import IMG_SIZE
@@ -8,6 +9,7 @@ from common.constants import IMG_SIZE
 class Face:
     grey_img: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
     depth_img: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
+    rgb_img: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
     """ maps pixels which belong to the face """
     mask: np.ndarray((IMG_SIZE, IMG_SIZE), dtype=np.bool) = None
     landmarks = None
@@ -26,9 +28,10 @@ class Face:
 
     preprocessed: tuple = False
 
-    def __init__(self, grey_img: np.array, depth_img: np.array):
+    def __init__(self, grey_img: np.array, depth_img: np.array, rgb_img: Optional[np.array] = None):
         self.grey_img = grey_img
         self.depth_img = depth_img
+        self.rgb_img = rgb_img
         if self.grey_img is not None and self.depth_img is not None:
             assert self.depth_img.shape == self.grey_img.shape == (IMG_SIZE, IMG_SIZE)
             self._preprocess_landmarks()

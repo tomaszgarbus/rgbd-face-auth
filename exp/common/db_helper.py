@@ -48,7 +48,7 @@ def photo_to_greyd_face(color_photo: np.ndarray, depth_photo: np.ndarray) -> Fac
         if not face_recognition.face_landmarks((grey_face * 256).astype(np.uint8)):
             return Face(None, None)
 
-        return Face(grey_face, depth_face)
+        return Face(grey_face, depth_face, color_face)
     else:
         # Face couldn't be detected
         return Face(None, None)
