@@ -90,17 +90,21 @@ class NeuralNet:
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
 
-    def _augment(self, augmenter: ia.meta) -> None:
+    def _augment(self, augmenters: [ia.meta]) -> None:
         """
-        :param augmenter:
+        :param augmenters:
         :return: None, appends augmented images to the train set.
         """
-        train_aug = np.ndarray.astype(augmenter.augment_images(np.ndarray.astype(self.x_train * 256, np.uint8)), np.float32)
-        train_aug = train_aug * (1 / 256)
-        self.x_train = np.concatenate([self.x_train, train_aug])
-        self.y_train = np.concatenate([self.y_train, self.y_train])
-        for i in range(5):
-            show_image(train_aug[i].reshape(NN_INPUT_SIZE))
+        train_augs = []
+        for augmenter in augmenters:
+            cur_aug = np.ndarray.astype(augmenter.augment_images(np.ndarray.astype(self.x_train * 256, np.uint8)),
+                                        np.float32)
+            cur_aug = cur_aug * (1 / 256)
+            # Display augmented input, if you want
+            show_image(cur_aug[0].reshape(NN_INPUT_SIZE))
+            train_augs.append(cur_aug)
+        self.x_train = np.concatenate([self.x_train] + train_augs)
+        self.y_train = np.concatenate([self.y_train] * (1 + len(train_augs)))
 
     def _get_data(self, range_beg: int = 0, range_end: int = 52) -> None:
         """
@@ -132,18 +136,23 @@ class NeuralNet:
         self.y_train = self.y_train[train_indices]
         self.x_test = self.x_test[test_indices]
         self.y_test = self.y_test[test_indices]
+        show_image(self.x_train[0].reshape(NN_INPUT_SIZE))
 
         # Image augmentation.
-        # aug1 = ia.CoarseSaltAndPepper(p=0.2, size_percent=0.30)
-        # aug2 = ia.CoarseSaltAndPepper(p=0.4, size_percent=0.30)
-        # aug3 = ia.PerspectiveTransform(scale=0.05)
-        # aug4 = ia.PerspectiveTransform(scale=0.075)
-        # aug5 = ia.Fliplr(1)
-        # self._augment(aug1)
-        # self._augment(aug2)
-        # self._augment(aug3)
-        # self._augment(aug4)
-        # self._augment(aug5)
+        augs = [
+            ia.CoarseSaltAndPepper(p=0.2, size_percent=0.30),
+            ia.CoarseSaltAndPepper(p=0.4, size_percent=0.30),
+            ia.Pad(px=(3, 0, 0, 0)),
+            ia.Pad(px=(0, 3, 0, 0)),
+            ia.Pad(px=(0, 0, 3, 0)),
+            ia.Pad(px=(0, 0, 0, 3)),
+            ia.GaussianBlur(sigma=0.25),
+            ia.GaussianBlur(sigma=0.5),
+            ia.GaussianBlur(sigma=1),
+            ia.GaussianBlur(sigma=2),
+            ia.PiecewiseAffine(scale=0.007)
+        ]
+        self._augment(augs)
 
         logging.info("Loaded data..")
 
@@ -354,7 +363,8 @@ class NeuralNet:
         signal = cur_dropout_layer
         cur_layer = tf.layers.dense(inputs=signal,
                                     activation=tf.nn.sigmoid,
-                                    units=self.dense_layers[-1])
+                                    units=self.dense_layers[-1],
+                                    kernel_initializer=w_init)
         signal = cur_layer
 
         self.preds = tf.argmax(signal, axis=1)
@@ -452,7 +462,8 @@ if __name__ == '__main__':
     # Test on eurecom only
     net = NeuralNet(mb_size=16,
                     kernel_size=[5, 5],
-                    filters_count=[10, 32],
+                    filters_count=[20, 20, 20],
+                    dense_layers=[NUM_CLASSES],
                     min_label=0,
-                    max_label=78)
+                    max_label=52)
     net.train_and_evaluate()
