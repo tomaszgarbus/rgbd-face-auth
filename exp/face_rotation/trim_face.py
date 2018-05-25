@@ -130,11 +130,11 @@ def trim_greyd(face: Face) -> None:
     """
 
     # Approach 1: use face_recoginition library (better but slower)
-    # all_points = find_convex_hull(face)
-    # generate_mask(face, all_points)
+    all_points = find_convex_hull(face)
+    generate_mask(face, all_points)
 
     # Approach 2: use heuristics for finding skin pixels
-    generate_mask_from_skin(face)
+    # generate_mask_from_skin(face)
     # (just comment out the one you don't like)
 
     cut_around_mask(face)

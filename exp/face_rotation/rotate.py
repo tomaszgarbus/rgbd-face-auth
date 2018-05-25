@@ -26,9 +26,7 @@ def _rz(theta: float) -> np.ndarray((3, 3)):
                      [0, 0, 1]])
 
 
-def drop_corner_values(face: Face,
-                       lower_threshold : float = 0.1,
-                       upper_threshold : float = 0.98) -> None:
+def drop_corner_values(face: Face) -> None:
     """
         Erase those pixels which are too close or to far to be treated as
         valuable data.
@@ -36,8 +34,15 @@ def drop_corner_values(face: Face,
     depth_median = np.median(face.depth_img[face.mask])
     face.depth_img[face.mask] -= depth_median
     depth_stdev = np.std(face.depth_img[face.mask])
+    # |allowed_dist| is the distance from the center in the maximum metric
+    # which allows the any depth values
+    allowed_dist = 6
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
+            if abs(i - IMG_SIZE // 2) < allowed_dist and abs(j - IMG_SIZE // 2) < allowed_dist:
+                # Too close to the center of the face to drop those values
+                # (might be a very pointy nose).
+                continue
             if abs(face.depth_img[i, j]) >= depth_stdev:
                 face.depth_img[i, j] = 0
 

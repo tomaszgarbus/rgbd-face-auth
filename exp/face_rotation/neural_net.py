@@ -101,7 +101,7 @@ class NeuralNet:
                                         np.float32)
             cur_aug = cur_aug * (1 / 256)
             # Display augmented input, if you want
-            show_image(cur_aug[0].reshape(NN_INPUT_SIZE))
+            # show_image(cur_aug[0].reshape(NN_INPUT_SIZE))
             train_augs.append(cur_aug)
         self.x_train = np.concatenate([self.x_train] + train_augs)
         self.y_train = np.concatenate([self.y_train] * (1 + len(train_augs)))
