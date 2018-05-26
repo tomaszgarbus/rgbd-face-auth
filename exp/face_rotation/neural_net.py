@@ -150,6 +150,8 @@ class NeuralNet:
             ia.GaussianBlur(sigma=0.5),
             ia.GaussianBlur(sigma=1),
             ia.GaussianBlur(sigma=2),
+            ia.Affine(rotate=-2),
+            ia.Affine(rotate=2),
             ia.PiecewiseAffine(scale=0.007)
         ]
         self._augment(augs)
@@ -243,8 +245,6 @@ class NeuralNet:
                         input #sample_no in current batch.
                     """
                     sample_no, x, y = sxy
-                    # pad_marg_x = (size[0] // 2) + 1 - (size[0] % 2)
-                    # pad_marg_y = (size[1] // 2) + 1 - (size[1] % 2)
                     pad_marg_x = 2
                     pad_marg_y = 2
                     padding = [[0, 0],
@@ -325,7 +325,8 @@ class NeuralNet:
             # Reduce image dimensions in half.
             cur_pool_layer = tf.layers.max_pooling2d(inputs=cur_conv_layer,
                                                      pool_size=[2, 2],
-                                                     strides=2)
+                                                     strides=2,
+                                                     padding='valid')
 
             self.conv_layers.append(cur_conv_layer)
 
@@ -384,14 +385,14 @@ class NeuralNet:
         self.accs.append(results[1])
         return results[:2]
 
-    def test_on_batch(self, batch_x, batch_y, global_step=1):
+    def test_on_batch(self, batch_x, batch_y, global_step=1) -> Tuple[float, float]:
         """
         Note that this function does not fetch |self.train_op|, so that the weights
         are not updated.
         :param batch_x:
         :param batch_y:
         :param global_step:
-        :return: [loss, accuracy]
+        :return: (loss, accuracy)
         """
         if self.conv_layers:
             # Write summary
@@ -409,7 +410,24 @@ class NeuralNet:
         for i in range(self.mb_size):
             self._confusion_matrix[np.argmax(batch_y[i]), preds[i]] += 1.
 
-        return results[:2]
+        return tuple(results[:2])
+
+    def validate(self) -> Tuple[float, float]:
+        """
+        :return: (loss, accuracy)
+        """
+        losses = []
+        accs = []
+        for batch_no in range(self.x_test.shape[0] // self.mb_size):
+            # TODO(Tomek): handle the remainder (e.g. by replacing mb_size with 1 in
+            # TODO(Tomek): model definitions)
+            loss, acc = self.test_on_batch(self.x_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size],
+                                           self.y_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size])
+            losses.append(loss)
+            accs.append(acc)
+        loss = np.mean(losses)
+        acc = np.mean(accs)
+        return loss, acc
 
     def train_and_evaluate(self) -> None:
         """
@@ -448,22 +466,25 @@ class NeuralNet:
                     batch_t = sample(list(range(self.x_test.shape[0])), self.mb_size)
                     batch_x_t, batch_y_t = self.x_test[batch_t], self.y_test[batch_t]
                     test_results = self.test_on_batch(batch_x_t, batch_y_t, global_step=epoch_no)
-                    self.logger.info("(Test(batch):   Loss: {0[0]}, accuracy: {0[1]}, mean acc: {1}".
+                    self.logger.info("Test(batch):   Loss: {0[0]}, accuracy: {0[1]}, mean acc: {1}".
                                      format(test_results,
                                             np.mean(self.val_accs[-10:])))
                 bar.next()
 
                 if epoch_no % 20000 == 0:
+                    if epoch_no:
+                        loss, acc = self.validate()
+                        self.logger.info("Validation results: Loss: {0}, accuracy: {1}".format(loss, acc))
                     show_image(self._confusion_matrix)
-                    pass
 
 
 if __name__ == '__main__':
     # Test on eurecom only
     net = NeuralNet(mb_size=16,
                     kernel_size=[5, 5],
-                    filters_count=[20, 20, 20],
+                    filters_count=[10, 20, 20],
                     dense_layers=[NUM_CLASSES],
+                    dropout_rate=0.5,
                     min_label=0,
                     max_label=52)
     net.train_and_evaluate()
