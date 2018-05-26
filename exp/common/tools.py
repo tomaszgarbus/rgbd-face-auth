@@ -9,6 +9,8 @@ from skimage.morphology import disk
 import logging
 from typing import List
 
+from common.constants import SHOW_PLOTS
+
 
 def rgb_skin_check(R: float, G: float, B: float) -> bool:
     """
@@ -91,11 +93,15 @@ def color_image_to_face(img: np.ndarray) -> None:
 
 
 def show_image(img: np.ndarray) -> None:
+    if not SHOW_PLOTS:
+        return
     plt.imshow(img)
     plt.show()
 
 
 def show_position(image: np.ndarray, landmarks: dict, azimuth: tuple, face_center: tuple):
+    if not SHOW_PLOTS:
+        return
     img = np.copy(image)
     mxx = img.shape[0] - 1
     mxy = img.shape[1] - 1
@@ -125,6 +131,8 @@ def show_3d_plot(X: np.ndarray) -> None:
         :param X: must be 3 dimensional numpy array, with last dimension
         of size >= 3
     """
+    if not SHOW_PLOTS:
+        return
     a3d = Axes3D(plt.figure())
     a3d.plot_surface(X[:, :, 0], X[:, :, 1], X[:, :, 2], cmap=cm.coolwarm, )
     plt.show()

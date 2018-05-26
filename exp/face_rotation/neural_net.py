@@ -19,9 +19,6 @@ NUM_CLASSES = 129
 
 
 class NeuralNet:
-    # TODO: try initializing convolution filters with Gabor filters instead of random
-    # TODO: lr decay
-
     # Mini batch size
     mb_size = 32
 
@@ -51,11 +48,11 @@ class NeuralNet:
     def __init__(self,
                  mb_size: Optional[int] = None,
                  filters_count: Optional[List[int]] = None,
-                 kernel_size: Optional[Tuple[int, int]] = None,
+                 kernel_size: Optional[List[int]] = None,
                  dense_layers: Optional[List[int]] = None,
                  learning_rate: Optional[float] = None,
                  nb_epochs: Optional[int] = None,
-                 dropout_rate: Optional[int] = None,
+                 dropout_rate: Optional[float] = None,
                  min_label: int = 0,
                  max_label: int = NUM_CLASSES
                  ):
@@ -136,6 +133,7 @@ class NeuralNet:
         self.y_train = self.y_train[train_indices]
         self.x_test = self.x_test[test_indices]
         self.y_test = self.y_test[test_indices]
+        # Show first input if you want
         show_image(self.x_train[0].reshape(NN_INPUT_SIZE))
 
         # Image augmentation.
@@ -299,11 +297,7 @@ class NeuralNet:
         # Merge all summaries.
         self.merged_summary = tf.summary.merge_all()
 
-    def _create_model(self):
-        self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size] + NN_INPUT_SIZE + [1])
-        self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, NUM_CLASSES])
-        self.conv_layers = []
-
+    def _create_convolutional_layers(self) -> None:
         signal = self.x
 
         for layer_no in range(len(self.filters_count)):
@@ -329,21 +323,22 @@ class NeuralNet:
                                                      padding='valid')
 
             self.conv_layers.append(cur_conv_layer)
+            self.pool_layers.append(cur_pool_layer)
 
             # Set pooled image as current signal
             signal = cur_pool_layer
 
+        return signal
+
+    def _create_dense_layers(self) -> None:
+        signal = self.x if not self.pool_layers else self.pool_layers[-1]
         signal = tf.reshape(signal, [self.mb_size, -1])
 
         for num_neurons in self.dense_layers[:-1]:
             signal = tf.layers.batch_normalization(signal)
 
-            cur_dropout_layer = tf.layers.dropout(inputs=signal,
-                                                  rate=self.dropout)
-
-            signal = cur_dropout_layer
-
             # Init weights with std.dev = sqrt(2 / N)
+            # https://www.cv-foundation.org/openaccess/content_iccv_2015/papers/He_Delving_Deep_into_ICCV_2015_paper.pdf?spm=5176.100239.blogcont55892.28.pm8zm1&file=He_Delving_Deep_into_ICCV_2015_paper.pdf
             input_size = int(signal.get_shape()[1])
             w_init = tf.initializers.random_normal(stddev=sqrt(2 / input_size))
 
@@ -354,27 +349,39 @@ class NeuralNet:
 
             signal = cur_dense_layer
 
-        # Apply last dense layer, with dropout
-        cur_dropout_layer = tf.layers.dropout(inputs=signal,
-                                              rate=self.dropout)
+            # Apply dropout
+            cur_dropout_layer = tf.layers.dropout(inputs=signal,
+                                                  rate=self.dropout)
+
+            signal = cur_dropout_layer
 
         # Init weights with std.dev = sqrt(2 / N)
         input_size = int(signal.get_shape()[1])
         w_init = tf.initializers.random_normal(stddev=sqrt(2 / input_size))
-        signal = cur_dropout_layer
         cur_layer = tf.layers.dense(inputs=signal,
                                     activation=tf.nn.sigmoid,
                                     units=self.dense_layers[-1],
                                     kernel_initializer=w_init)
-        signal = cur_layer
+        self.output_layer = cur_layer
 
-        self.preds = tf.argmax(signal, axis=1)
-        self.loss = tf.losses.log_loss(self.y, signal)
-        self.correct = tf.equal(tf.argmax(self.y, axis=1), tf.argmax(signal, axis=1))
+    def _create_training_objectives(self) -> None:
+        self.preds = tf.argmax(self.output_layer, axis=1)
+        self.loss = tf.losses.log_loss(self.y, self.output_layer)
+        self.correct = tf.equal(tf.argmax(self.y, axis=1), tf.argmax(self.output_layer, axis=1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct, tf.float32))
         self.train_op = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
 
         self.logger.info('list of variables {0}'.format(list(map(lambda x: x.name, tf.global_variables()))))
+
+    def _create_model(self):
+        self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size] + NN_INPUT_SIZE + [1])
+        self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, NUM_CLASSES])
+        self.conv_layers = []
+        self.pool_layers = []
+
+        self._create_convolutional_layers()
+        self._create_dense_layers()
+        self._create_training_objectives()
 
     def train_on_batch(self, batch_x, batch_y):
         """
@@ -462,6 +469,8 @@ class NeuralNet:
 
                 if epoch_no % 100 == 0:
                     bar.finish()
+                    self.logger.info("Epoch {epoch_no}/{nb_epochs}".format(epoch_no=epoch_no,
+                                                                           nb_epochs=self.nb_epochs))
                     bar = Bar('', max=100, suffix='%(index)d/%(max)d ETA: %(eta)ds')
                     batch_t = sample(list(range(self.x_test.shape[0])), self.mb_size)
                     batch_x_t, batch_y_t = self.x_test[batch_t], self.y_test[batch_t]
@@ -475,6 +484,7 @@ class NeuralNet:
                     if epoch_no:
                         loss, acc = self.validate()
                         self.logger.info("Validation results: Loss: {0}, accuracy: {1}".format(loss, acc))
+                    # Dipslay confusion matrix
                     show_image(self._confusion_matrix)
 
 
@@ -482,9 +492,11 @@ if __name__ == '__main__':
     # Test on eurecom only
     net = NeuralNet(mb_size=16,
                     kernel_size=[5, 5],
+                    nb_epochs=1000*1000,
                     filters_count=[10, 20, 20],
                     dense_layers=[NUM_CLASSES],
                     dropout_rate=0.5,
+                    learning_rate=0.005,
                     min_label=0,
                     max_label=52)
     net.train_and_evaluate()

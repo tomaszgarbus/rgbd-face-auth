@@ -66,4 +66,14 @@ SMOOTHEN_ITER = 20
 """
 DEPTH_TO_WIDTH_RATIO = 0.5
 
-CENTER_DEST = (1/2, 1/5)  # where center should be
+"""
+    Where center should be
+"""
+CENTER_DEST = (1/2, 1/5)
+
+"""
+    Determines whether it is allowed to display plots to the user.
+    (Note that if you run code from console, displaying plots
+    blocks the execution)
+"""
+SHOW_PLOTS = False
