@@ -7,6 +7,7 @@ from common import tools
 from common.constants import IMG_SIZE, BGCOLOR
 from model.face import Face
 
+
 def find_convex_hull_vertices(grey_img: np.ndarray) -> list:
     """
         :param grey_img:
@@ -98,26 +99,28 @@ def generate_mask_from_skin(face: Face) -> None:
     from itertools import product
 
     mask = np.zeros((IMG_SIZE, IMG_SIZE), dtype=np.bool)
-    mark  = np.zeros((IMG_SIZE, IMG_SIZE, 3), dtype=np.float)
+    mark = np.zeros((IMG_SIZE, IMG_SIZE, 3), dtype=np.float)
 
     for x, y in product(range(IMG_SIZE), range(IMG_SIZE)):
         r, g, b = face.rgb_img[x][y]
         mark[x][y] = tools.rgb_skin_mark(r, g, b)
 
-    probe = [mark[x][y] for x, y in product(range(2*IMG_SIZE//4, 3*IMG_SIZE//4, 8), range(2*IMG_SIZE//4, 3*IMG_SIZE//4, 8))]
-    probe.sort(key =(lambda x : x[0]**2+x[1]**2+x[2]**2 ))
+    probe = [mark[x][y] for x, y in product(range(2*IMG_SIZE//4, 3*IMG_SIZE//4, 8),
+                                            range(2*IMG_SIZE//4, 3*IMG_SIZE//4, 8))]
+    probe.sort(key=(lambda x: x[0]**2 + x[1]**2 + x[2]**2))
     A, B, C = probe[len(probe)//2]
 
     for x, y in product(range(IMG_SIZE), range(IMG_SIZE)):
         a, b, c = mark[x][y]
         mi = 0.918
         ma = 1.092
-        mask[x][y] = (a >= 0.3 * A and a <= 4 * A) and  (b >= mi * B and b <= ma * B)  and (c >= mi*C and c <= ma*C)
+        mask[x][y] = 0.3 * A <= a <= 4 * A and mi * B <= b <= ma * B and mi*C <= c <= ma*C
 
     face.mask = mask
 
     # Display the mask if you want
     tools.show_image(tools.pic_with_applied_mask(face.rgb_img, mask))
+
 
 def cut_around_mask(face: Face,
                     color: float = BGCOLOR) -> None:
@@ -133,20 +136,21 @@ def cut_around_mask(face: Face,
                 face.grey_img[x, y] = color
 
 
-def trim_greyd(face: Face) -> None:
+def trim_greyd(face: Face, method: str='convex_hull') -> None:
     """
         :param face
+        :param method: either 'convex_hull' or 'skin_detection'
         :return: trimmed Face
     """
-
-    # Approach 1: use face_recoginition library (better but slower)
-    #all_points = find_convex_hull(face)
-    #generate_mask(face, all_points)
-
-    # Approach 2: use heuristics for finding skin pixels
-    generate_mask_from_skin(face)
-    # (just comment out the one you don't like)
-
+    if method == 'convex_hull':
+        # Approach 1: use face_recognition library (better but slower)
+        all_points = find_convex_hull(face)
+        generate_mask(face, all_points)
+    elif method == 'skin_detection':
+        # Approach 2: use heuristics for finding skin pixels
+        generate_mask_from_skin(face)
+    else:
+        raise ValueError("Argument 'method' must be either 'convex_hull or 'skin_detection")
     cut_around_mask(face)
 
     #tools.show_image(grey_img)

@@ -11,6 +11,7 @@ from typing import List
 
 from common.constants import SHOW_PLOTS
 
+
 def rgb_skin_mark(R: float, G: float, B: float) -> (float, float, float):
     """
         Based on "Human Skin Detection by Visible and Near-Infrared Imaging"
@@ -33,6 +34,7 @@ def rgb_skin_mark(R: float, G: float, B: float) -> (float, float, float):
     # return 77 <= Cb and Cb <= 127 and 133 <= Cr and Cr <= 173
     return (Y, Cb, Cr)
 
+
 # TODO : Add types
 def pic_with_applied_mask(pic, mask):
     ret = np.copy(pic)
@@ -42,14 +44,13 @@ def pic_with_applied_mask(pic, mask):
     for x in range(len(pic)):
         for y in range(len(pic[0])):
             if mask[x][y]:
-                ret[x][y] = (255,int(ret[x][y][1]/1.4),int(ret[x][y][2]/1.4))
+                ret[x][y] = (255, int(ret[x][y][1]/1.4), int(ret[x][y][2]/1.4))
 
     return ret
 
-def load_color_image_from_file(filename: str, skin_only: bool = False):
-    ret = np.array(PIL.Image.open(filename), dtype='uint8')
 
-    return ret
+def load_color_image_from_file(filename: str):
+    return np.array(PIL.Image.open(filename), dtype='uint8')
 
 
 def load_depth_photo(path: str) -> np.ndarray:
@@ -83,13 +84,13 @@ def rgb_image_resize(img: np.ndarray, size: tuple((int, int))) -> np.ndarray:
     return np.array(tmp)
 
 
-def gray_image_resize(img: np.ndarray, size: tuple) -> None:
+def gray_image_resize(img: np.ndarray, size: tuple) -> np.ndarray:
     tmp = PIL.Image.fromarray(img, mode='F')
     tmp = tmp.resize(size)
     return np.array(tmp)
 
 
-def color_image_to_face(img: np.ndarray) -> None:
+def color_image_to_face(img: np.ndarray) -> np.ndarray:
     coords = face_recognition.face_locations(img)
     if len(coords) == 1:
         (x1,y1,x2,y2) = coords[0]

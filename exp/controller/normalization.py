@@ -10,7 +10,8 @@ from face_rotation.recentre import recentre
 from face_rotation.structure_filters import get_hog_of, get_entropy_map_of
 
 
-def preprocessing(face: Face) -> None:
+def preprocessing(face: Face,
+                  trim_method: str = 'convex_hull') -> None:
     if face.preprocessed:
         return
     face.preprocessed = True
@@ -20,7 +21,7 @@ def preprocessing(face: Face) -> None:
     #face.show_depth()
 
     # Trim face
-    trim_greyd(face)
+    trim_greyd(face, method=trim_method)
 
     # Display trimmed photo
     #face.show_grey()
@@ -37,8 +38,10 @@ def preprocessing(face: Face) -> None:
     #face.show_depth()
 
 
-def normalized(face: Face, rotate: bool = True) -> Face:
-    preprocessing(face)
+def normalized(face: Face,
+               rotate: bool = True,
+               trim_method: str = 'convex_hull') -> Face:
+    preprocessing(face, trim_method=trim_method)
 
     if not rotate:
         return face
