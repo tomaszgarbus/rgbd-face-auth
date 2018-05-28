@@ -95,19 +95,29 @@ def generate_mask(face: Face, points: list((float, float, float))) -> None:
 
 
 def generate_mask_from_skin(face: Face) -> None:
+    from itertools import product
+
     mask = np.zeros((IMG_SIZE, IMG_SIZE), dtype=np.bool)
-    for x in range(IMG_SIZE):
-        for y in range(IMG_SIZE):
-            r, g, b = face.rgb_img[x][y]
-            if tools.rgb_skin_check(r, g, b):
-                mask[x][y] = True
+    mark  = np.zeros((IMG_SIZE, IMG_SIZE, 3), dtype=np.float)
+
+    for x, y in product(range(IMG_SIZE), range(IMG_SIZE)):
+        r, g, b = face.rgb_img[x][y]
+        mark[x][y] = tools.rgb_skin_mark(r, g, b)
+
+    probe = [mark[x][y] for x, y in product(range(2*IMG_SIZE//4, 3*IMG_SIZE//4, 8), range(2*IMG_SIZE//4, 3*IMG_SIZE//4, 8))]
+    probe.sort(key =(lambda x : x[0]**2+x[1]**2+x[2]**2 ))
+    A, B, C = probe[len(probe)//2]
+
+    for x, y in product(range(IMG_SIZE), range(IMG_SIZE)):
+        a, b, c = mark[x][y]
+        mi = 0.918
+        ma = 1.092
+        mask[x][y] = (a >= 0.3 * A and a <= 4 * A) and  (b >= mi * B and b <= ma * B)  and (c >= mi*C and c <= ma*C)
 
     face.mask = mask
 
     # Display the mask if you want
-    tools.show_image(face.rgb_img)
-    tools.show_image(mask)
-
+    tools.show_image(tools.pic_with_applied_mask(face.rgb_img, mask))
 
 def cut_around_mask(face: Face,
                     color: float = BGCOLOR) -> None:
@@ -130,11 +140,11 @@ def trim_greyd(face: Face) -> None:
     """
 
     # Approach 1: use face_recoginition library (better but slower)
-    all_points = find_convex_hull(face)
-    generate_mask(face, all_points)
+    #all_points = find_convex_hull(face)
+    #generate_mask(face, all_points)
 
     # Approach 2: use heuristics for finding skin pixels
-    # generate_mask_from_skin(face)
+    generate_mask_from_skin(face)
     # (just comment out the one you don't like)
 
     cut_around_mask(face)

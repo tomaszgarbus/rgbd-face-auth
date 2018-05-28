@@ -11,8 +11,7 @@ from typing import List
 
 from common.constants import SHOW_PLOTS
 
-
-def rgb_skin_check(R: float, G: float, B: float) -> bool:
+def rgb_skin_mark(R: float, G: float, B: float) -> (float, float, float):
     """
         Based on "Human Skin Detection by Visible and Near-Infrared Imaging"
         by Yusuke Kanzawa, Yoshikatsu Kimura, Takashi Naito
@@ -24,24 +23,31 @@ def rgb_skin_check(R: float, G: float, B: float) -> bool:
         [Cb] = [128] + [-0.148, -0.291,  0.439] x [G]
         [Cr]   [128]   [ 0.439, -0.368, -0.071]   [B]
 
-        skin_pixel implies: Cb in [77; 127] and Cr in [133; 173]
+        In paper skin_pixel implies: Cb in [77; 127] and Cr in [133; 173]
     """
 
-    _  =  16 +    0.257 * R +    0.504 * G +    0.098 * B
+    Y  =  16 +    0.257 * R +    0.504 * G +    0.098 * B
     Cb = 128 + (-0.148) * R + (-0.291) * G +    0.439 * B
     Cr = 128 +    0.439 * R + (-0.368) * G + (-0.071) * B
 
-    return 77 <= Cb and Cb <= 127 and 133 <= Cr and Cr <= 173
+    # return 77 <= Cb and Cb <= 127 and 133 <= Cr and Cr <= 173
+    return (Y, Cb, Cr)
 
+# TODO : Add types
+def pic_with_applied_mask(pic, mask):
+    ret = np.copy(pic)
+
+    assert len(pic) == len(mask) and len(pic[0]) == len(mask[0]), "Mask must have same size as pic"
+
+    for x in range(len(pic)):
+        for y in range(len(pic[0])):
+            if mask[x][y]:
+                ret[x][y] = (255,int(ret[x][y][1]/1.4),int(ret[x][y][2]/1.4))
+
+    return ret
 
 def load_color_image_from_file(filename: str, skin_only: bool = False):
     ret = np.array(PIL.Image.open(filename), dtype='uint8')
-
-    if skin_only:
-        for row in ret:
-            for pixel in row:
-                if not rgb_skin_check(pixel[0], pixel[1], pixel[2]):
-                    pixel *= 0
 
     return ret
 
