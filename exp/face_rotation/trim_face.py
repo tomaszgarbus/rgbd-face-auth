@@ -114,7 +114,7 @@ def generate_mask_from_skin(face: Face) -> None:
         a, b, c = mark[x][y]
         mi = 0.918
         ma = 1.092
-        mask[x][y] = 0.3 * A <= a <= 4 * A and mi * B <= b <= ma * B and mi*C <= c <= ma*C
+        mask[x][y] = (0.3 * A <= a <= 4 * A) and (mi * B <= b <= ma * B) and (mi*C <= c <= ma*C)
 
     face.mask = mask
 
