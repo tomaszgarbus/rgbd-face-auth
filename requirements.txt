@@ -1,0 +1,10 @@
+numpy
+tensorflow-gpu # consider: tf-nightly-gpu
+scipy
+scikit-image
+face_recognition
+keras
+progress
+opencv-python
+imgaug # consider: git+https://github.com/aleju/imgaug
+
