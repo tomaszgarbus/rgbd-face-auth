@@ -8,6 +8,7 @@ from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 import sys
+import logging
 from common.db_helper import DB_LOCATION
 
 from common.constants import IMG_SIZE
