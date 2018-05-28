@@ -1,10 +1,8 @@
 # RGB+D face authentication
 
-## Style guide
+## Requirements
 
-### Requirements
-
-To run our code, you need few programs and libraries.
+To run our code, you need a few programs and libraries.
 Code was writen for Linux.
 
 ```
@@ -19,6 +17,10 @@ https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html to
 find informations about installation).
 You may try calculations on CPU (no gpu tensor-flow) but GPU is hardly recommended
 and only tested verssion.
+
+
+
+## Style guide
 
 ### C++
 
