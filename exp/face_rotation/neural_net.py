@@ -6,7 +6,7 @@ import numpy as np
 import logging
 import tensorflow as tf
 from math import sqrt
-from random import sample
+from random import sample, choice
 from typing import Optional, List, Tuple
 from progress.bar import Bar
 from imgaug import augmenters as ia
@@ -43,6 +43,28 @@ class NeuralNet:
     # History of accuracies on test set
     val_accs = []
 
+    # Whether or not augmentation should be performed when choosing next
+    # batch (as opposed to augmenting the entire
+    augment_on_the_fly = True
+
+    # Image augmenters
+    augmenters = [
+        ia.Noop(),
+        ia.CoarseSaltAndPepper(p=0.2, size_percent=0.30),
+        ia.CoarseSaltAndPepper(p=0.4, size_percent=0.30),
+        ia.Pad(px=(3, 0, 0, 0)),
+        ia.Pad(px=(0, 3, 0, 0)),
+        ia.Pad(px=(0, 0, 3, 0)),
+        ia.Pad(px=(0, 0, 0, 3)),
+        ia.GaussianBlur(sigma=0.25),
+        ia.GaussianBlur(sigma=0.5),
+        ia.GaussianBlur(sigma=1),
+        ia.GaussianBlur(sigma=2),
+        ia.Affine(rotate=-2),
+        ia.Affine(rotate=2),
+        ia.PiecewiseAffine(scale=0.007)
+    ]
+
     _confusion_matrix = np.zeros((NUM_CLASSES, NUM_CLASSES))
 
     def __init__(self,
@@ -53,6 +75,8 @@ class NeuralNet:
                  learning_rate: Optional[float] = None,
                  nb_epochs: Optional[int] = None,
                  dropout_rate: Optional[float] = None,
+                 augment_on_the_fly: Optional[bool] = None,
+                 augmenters: Optional[List[ia.Augmenter]] = None,
                  min_label: int = 0,
                  max_label: int = NUM_CLASSES
                  ):
@@ -70,6 +94,10 @@ class NeuralNet:
             self.nb_epochs = nb_epochs
         if dropout_rate is not None:
             self.dropout = dropout_rate
+        if augment_on_the_fly is not None:
+            self.augment_on_the_fly = augment_on_the_fly
+        if augmenters is not None:
+            self.augmenters = augmenters
 
         self._get_data(min_label, max_label)
 
@@ -87,13 +115,27 @@ class NeuralNet:
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
 
-    def _augment(self, augmenters: [ia.meta]) -> None:
+    def _augment_single_input(self, inp_x: np.ndarray):
         """
-        :param augmenters:
+        Augments single input with given augmenter.
+        :param inp_x: single input
+        :return: augmented input
+        """
+        augmenter = choice(self.augmenters)
+        inp_x = inp_x.reshape([1] + list(inp_x.shape))
+        augmented = np.ndarray.astype(augmenter.augment_images(np.ndarray.astype(inp_x * 256, np.uint8)),
+                                    np.float32)
+        augmented = augmented * (1 / 256)
+        augmented = augmented.reshape(inp_x.shape[1:])
+        return augmented
+
+    def _augment_train_set(self) -> None:
+        """
+        Augments entire training set with all augmenters.
         :return: None, appends augmented images to the train set.
         """
         train_augs = []
-        for augmenter in augmenters:
+        for augmenter in self.augmenters:
             cur_aug = np.ndarray.astype(augmenter.augment_images(np.ndarray.astype(self.x_train * 256, np.uint8)),
                                         np.float32)
             cur_aug = cur_aug * (1 / 256)
@@ -137,22 +179,8 @@ class NeuralNet:
         show_image(self.x_train[0].reshape(NN_INPUT_SIZE))
 
         # Image augmentation.
-        augs = [
-            ia.CoarseSaltAndPepper(p=0.2, size_percent=0.30),
-            ia.CoarseSaltAndPepper(p=0.4, size_percent=0.30),
-            ia.Pad(px=(3, 0, 0, 0)),
-            ia.Pad(px=(0, 3, 0, 0)),
-            ia.Pad(px=(0, 0, 3, 0)),
-            ia.Pad(px=(0, 0, 0, 3)),
-            ia.GaussianBlur(sigma=0.25),
-            ia.GaussianBlur(sigma=0.5),
-            ia.GaussianBlur(sigma=1),
-            ia.GaussianBlur(sigma=2),
-            ia.Affine(rotate=-2),
-            ia.Affine(rotate=2),
-            ia.PiecewiseAffine(scale=0.007)
-        ]
-        self._augment(augs)
+        if not self.augment_on_the_fly:
+            self._augment_train_set()
 
         logging.info("Loaded data..")
 
@@ -436,6 +464,14 @@ class NeuralNet:
         acc = np.mean(accs)
         return loss, acc
 
+    def _next_training_batch(self) -> (np.ndarray, np.ndarray):
+        batch = sample(list(range(self.x_train.shape[0])), self.mb_size)
+        batch_x, batch_y = self.x_train[batch], self.y_train[batch]
+        if self.augment_on_the_fly:
+            for sample_no in range(self.mb_size):
+                batch_x[sample_no] = self._augment_single_input(batch_x[sample_no])
+        return batch_x, batch_y
+
     def train_and_evaluate(self) -> None:
         """
         Train and evaluate model.
@@ -459,8 +495,7 @@ class NeuralNet:
 
             for epoch_no in range(self.nb_epochs):
                 # Train model on next batch
-                batch = sample(list(range(self.x_train.shape[0])), self.mb_size)
-                batch_x, batch_y = self.x_train[batch], self.y_train[batch]
+                batch_x, batch_y = self._next_training_batch()
                 results = self.train_on_batch(batch_x, batch_y)
 
                 # Update bar
@@ -496,7 +531,7 @@ if __name__ == '__main__':
                     filters_count=[10, 20, 20],
                     dense_layers=[NUM_CLASSES],
                     dropout_rate=0.5,
-                    learning_rate=0.005,
+                    learning_rate=0.05,
                     min_label=0,
-                    max_label=52)
+                    max_label=78)
     net.train_and_evaluate()
