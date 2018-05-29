@@ -428,7 +428,7 @@ class NeuralNet:
 
         return tuple(results[:2])
 
-    def validate(self) -> Tuple[float, float]:
+    def validate(self, global_step) -> Tuple[float, float]:
         """
         :return: (loss, accuracy)
         """
@@ -438,7 +438,8 @@ class NeuralNet:
             # TODO(Tomek): handle the remainder (e.g. by replacing mb_size with 1 in
             # TODO(Tomek): model definitions)
             loss, acc = self.test_on_batch(self.x_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size],
-                                           self.y_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size])
+                                           self.y_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size],
+                                           global_step=global_step)
             losses.append(loss)
             accs.append(acc)
         loss = np.mean(losses)
@@ -492,7 +493,7 @@ class NeuralNet:
                 bar = Bar('', max=self.steps_per_epoch, suffix='%(index)d/%(max)d ETA: %(eta)ds')
 
                 # Validate
-                loss, acc = self.validate()
+                loss, acc = self.validate(global_step=epoch_no)
                 self.logger.info("Validation results: Loss: {0}, accuracy: {1}".format(loss, acc))
                 # Dipslay confusion matrix
                 show_image(self._confusion_matrix)
