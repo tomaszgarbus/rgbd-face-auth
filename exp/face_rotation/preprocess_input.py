@@ -13,7 +13,7 @@ import logging
 
 from controller.normalization import normalized, hog_and_entropy
 from common import tools
-
+from progress.bar import Bar
 
 def build_input_vector(face):
     """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
@@ -34,12 +34,13 @@ def load_database(database, offset, override_test_set=False):
     logging.info('Loading database %s' % database.get_name())
     for i in range(database.subjects_count()):
         logging.info('Subject {0}/{1}'.format(i, database.subjects_count()))
+        bar = Bar('Subject ' + str(i), max=database.imgs_per_subject(i))
         for j in range(database.imgs_per_subject(i)):
-            logging.info('Photo %d/%d' % (j, database.imgs_per_subject(i)))
             face = database.load_greyd_face(i, j)
             x = build_input_vector(face)
             y = offset + i + 1
             if x is None or y is None:
+                bar.next()
                 continue
             # tools.show_image(x)
             if database.is_photo_in_test_set(i, j):
@@ -50,7 +51,8 @@ def load_database(database, offset, override_test_set=False):
                 x_train.append(x)
                 y_train.append(y)
 
-
+            bar.next()
+        bar.finish()
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
