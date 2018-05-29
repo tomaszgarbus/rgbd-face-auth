@@ -1,46 +1,19 @@
 This directory contains experiments related to face detection, normalization and recognition. 
 
 # Database
-Most of the code in here assumes that you have a symbolic link under `/exp/database`, which
+Most of the code in here assumes that you have:
+* a symbolic link under `/exp/database`, which
 links to the unzipped latest (`face_rgbd_data_light_v3.zip`) version of our database.
+* Eurecom dataset extracted to `/exp/database` 
 
 Should you want to create any processed files in your experiments, please write them to
 `/exp/database/gen` and append the name of your experiment as a prefix (e.g.
-`/exp/database/gen/no_normalization_X_train.npy`).
+`/exp/database/gen/my_experiment_X_train.npy`).
 
-# Common
-Directory `common` contains code used by all experiments. You can write new functions to `tools.py`
-or `db_helper.py`, if they may be useful in more than one experiment. Be mindful not to change the
-code already used by some experiments.
-
-## DBHelper
-`DBHelper` and `Database` classes in `db_helper.py` file are utilities for not only scanning and
-loading the dataset, but it also has a helper function to cut out the faces from the images, using
-external library.
-
-# Experiment 1: No normalization
-This experiment was inspired by the paper http://www.iab-rubric.org/papers/PID2857163.pdf
-Tested approach was to cut out faces from the images, using external library, add entropy maps and
-run simple CNNs. Despite using smaller dataset, less preprocessing (no saliency maps or HOGs)
-and very little experiments with the network model itself, we achieved very similar top1 accuracy
-as the paper - around 0.89 categorical accuracy.
-
-Thus, we found that running filters on the input images is not enough. Moving on to a smarter
-normalization.
-
-### Running
-To run this experiment, execute the following, in `/exp` directory:
-
-`python -m no_normalization.preprocess_input` This may take a **lot** of time. It will read the
-dataset, crop each image to face and store numpy arrays in files
-`database/gen/no_normalization_X_train.npy, database/gen/no_normalization_Y_train.npy,
-database/gen/no_normalization_X_test.npy, database/gen/no_normalization_Y_test.npy`.
-
-`python -m no_normalization.main` will read the preprocessed arrays from `database/gen`
-and test a simple CNN model on those.
-
-# Experiment 2: Face rotation
-**TODO** In this approach, we want to find landmarks on the face and use them to calculate the
-angle of the face. Then, we will rotate the face to a frontal position. Thanks to depth images,
-we can represent the face as a cloud of points (X, Y, Z, R, G, B) and rotate with simple transformation
-once the angle is found. 
+# Inside `/exp/experiments`
+All experiments are here. You can create your own as long as they don't affect other directories in any way.
+## Creating your experiment
+1. Choose a name for your experiment, from now on we refer to it as "`{my_name}`"
+2. Create a directory named "`/exp/experiments/{my_exp}`"
+2. Do whatever you want *inside* this directory. If you wish to generate any larger temporary files, they
+must match the pattern "`/exp/database/gen/{my_exp}_*`".

@@ -1,7 +1,3 @@
-"""
-Simple CNN for RGB+D face recognition.
-"""
-
 import numpy as np
 import logging
 import tensorflow as tf
@@ -12,40 +8,16 @@ from progress.bar import Bar
 from imgaug import augmenters as ia
 
 from common.db_helper import DB_LOCATION
-from common.constants import NN_INPUT_SIZE
+from common.constants import NUM_CLASSES
 from common.tools import show_image
-
-NUM_CLASSES = 129
 
 
 class NeuralNet:
-    # Mini batch size
-    mb_size = 32
-
-    # Number of filters in each convolutional layer
-    filters_count = [32, 64]
-
-    # Size of kernel, common for each convolutional layer
-    kernel_size = [5, 5]
-
-    # Neurons count in each dense layer
-    dense_layers = [32, NUM_CLASSES]
-
-    # Dropout after each dense layer (excluding last)
-    dropout = 0.5
-
-    learning_rate = 0.05
-    nb_epochs = 50000
-
     # History of accuracies on train set
     accs = []
 
     # History of accuracies on test set
     val_accs = []
-
-    # Whether or not augmentation should be performed when choosing next
-    # batch (as opposed to augmenting the entire
-    augment_on_the_fly = True
 
     # Image augmenters
     augmenters = [
@@ -68,34 +40,43 @@ class NeuralNet:
     _confusion_matrix = np.zeros((NUM_CLASSES, NUM_CLASSES))
 
     def __init__(self,
-                 mb_size: Optional[int] = None,
-                 filters_count: Optional[List[int]] = None,
-                 kernel_size: Optional[List[int]] = None,
-                 dense_layers: Optional[List[int]] = None,
-                 learning_rate: Optional[float] = None,
-                 nb_epochs: Optional[int] = None,
-                 dropout_rate: Optional[float] = None,
-                 augment_on_the_fly: Optional[bool] = None,
+                 experiment_name: str,
+                 # Input shape
+                 input_shape: Tuple[int, int, int],
+                 # Mini batch size
+                 mb_size: Optional = 32,
+                 # Number of filters in each convolutional layer
+                 filters_count: List[int] = [32, 64],
+                 # Size of kernel, common for each convolutional layer
+                 kernel_size: List[int] =[5, 5],
+                 # Neurons count in each dense layer
+                 dense_layers: List[int] = [32, NUM_CLASSES],
+                 # Learning rate
+                 learning_rate: float = 0.005,
+                 # Number of epochs
+                 nb_epochs: int = 50000,
+                 # Steps per epoch. Each |steps_per_epoch| epochs net is evaluated on val set.
+                 steps_per_epoch: int = 1000,
+                 # Dropout after each dense layer (excluding last)
+                 dropout_rate: float = 0.5,
+                 # Whether or not augmentation should be performed when choosing next
+                 # batch (as opposed to augmenting the entire
+                 augment_on_the_fly=True,
                  augmenters: Optional[List[ia.Augmenter]] = None,
                  min_label: int = 0,
                  max_label: int = NUM_CLASSES
                  ):
-        if mb_size is not None:
-            self.mb_size = mb_size
-        if filters_count is not None:
-            self.filters_count = filters_count
-        if kernel_size is not None:
-            self.kernel_size = kernel_size
-        if dense_layers is not None:
-            self.dense_layers = dense_layers
-        if learning_rate is not None:
-            self.learning_rate = learning_rate
-        if nb_epochs is not None:
-            self.nb_epochs = nb_epochs
-        if dropout_rate is not None:
-            self.dropout = dropout_rate
-        if augment_on_the_fly is not None:
-            self.augment_on_the_fly = augment_on_the_fly
+        self.experiment_name = experiment_name
+        self.input_shape = input_shape
+        self.mb_size = mb_size
+        self.filters_count = filters_count
+        self.kernel_size = kernel_size
+        self.dense_layers = dense_layers
+        self.learning_rate = learning_rate
+        self.nb_epochs = nb_epochs
+        self.steps_per_epoch = steps_per_epoch
+        self.dropout = dropout_rate
+        self.augment_on_the_fly = augment_on_the_fly
         if augmenters is not None:
             self.augmenters = augmenters
 
@@ -157,10 +138,10 @@ class NeuralNet:
 
         # Load stored numpy arrays from files.
         logging.info("Loading data..")
-        self.x_train = np.load(DB_LOCATION + '/gen/face_rotation_X_train.npy')
-        self.y_train = np.load(DB_LOCATION + '/gen/face_rotation_Y_train.npy')
-        self.x_test = np.load(DB_LOCATION + '/gen/face_rotation_X_test.npy')
-        self.y_test = np.load(DB_LOCATION + '/gen/face_rotation_Y_test.npy')
+        self.x_train = np.load(DB_LOCATION + '/gen/' + self.experiment_name + '_X_train.npy')
+        self.y_train = np.load(DB_LOCATION + '/gen/' + self.experiment_name + '_Y_train.npy')
+        self.x_test = np.load(DB_LOCATION + '/gen/' + self.experiment_name + '_X_test.npy')
+        self.y_test = np.load(DB_LOCATION + '/gen/' + self.experiment_name + '_Y_test.npy')
         train_indices = []
         test_indices = []
 
@@ -176,7 +157,7 @@ class NeuralNet:
         self.x_test = self.x_test[test_indices]
         self.y_test = self.y_test[test_indices]
         # Show first input if you want
-        show_image(self.x_train[0].reshape(NN_INPUT_SIZE))
+        show_image(self.x_train[0].reshape([self.input_shape[0], self.input_shape[1] * self.input_shape[2]]))
 
         # Image augmentation.
         if not self.augment_on_the_fly:
@@ -193,8 +174,8 @@ class NeuralNet:
             kernels = []
             applied_kernels = []
             for filter_no in range(num_filters):
-                inp_x = NN_INPUT_SIZE[0] // (2 ** layer_no)
-                inp_y = NN_INPUT_SIZE[1] // (2 ** layer_no)
+                inp_x = self.input_shape[0] // (2 ** layer_no)
+                inp_y = self.input_shape[1] // (2 ** layer_no)
                 if layer_no == 0:
                     tmp_str = 'conv2d/kernel:0'
                 else:
@@ -251,8 +232,8 @@ class NeuralNet:
 
             for filter_no in range(num_filters):
                 # Find top 10 responses to current filter, in the current mini-batch.
-                inp_x = NN_INPUT_SIZE[0] // (2 ** layer_no)
-                inp_y = NN_INPUT_SIZE[1] // (2 ** layer_no)
+                inp_x = self.input_shape[0] // (2 ** layer_no)
+                inp_y = self.input_shape[1] // (2 ** layer_no)
                 single_filtered_flattened = tf.reshape(cur_conv_layer[:, :, :, filter_no],
                                                        [self.mb_size * inp_x * inp_y])
                 top10_vals, top10_indices = tf.nn.top_k(single_filtered_flattened,
@@ -314,12 +295,12 @@ class NeuralNet:
 
     def _visualize_incorrect_answer_images(self):
         correct = tf.boolean_mask(self.x, self.correct)
-        correct = tf.reshape(correct, shape=[1, -1, NN_INPUT_SIZE[1], 1])
-        correct = tf.concat([correct, tf.zeros(shape=[1, 1, NN_INPUT_SIZE[1], 1])], axis=1)
+        correct = tf.reshape(correct, shape=[1, -1, self.input_shape[1], 1])
+        correct = tf.concat([correct, tf.zeros(shape=[1, 1, self.input_shape[1], 1])], axis=1)
         tf.summary.image('correct', correct)
         incorrect = tf.boolean_mask(self.x, tf.logical_not(self.correct))
-        incorrect = tf.reshape(incorrect, shape=[1, -1, NN_INPUT_SIZE[1], 1])
-        incorrect = tf.concat([incorrect, tf.zeros(shape=[1, 1, NN_INPUT_SIZE[1], 1])], axis=1)
+        incorrect = tf.reshape(incorrect, shape=[1, -1, self.input_shape[1], 1])
+        incorrect = tf.concat([incorrect, tf.zeros(shape=[1, 1, self.input_shape[1], 1])], axis=1)
         tf.summary.image('incorrect', incorrect)
 
         # Merge all summaries.
@@ -402,7 +383,7 @@ class NeuralNet:
         self.logger.info('list of variables {0}'.format(list(map(lambda x: x.name, tf.global_variables()))))
 
     def _create_model(self):
-        self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size] + NN_INPUT_SIZE + [1])
+        self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size] + list(self.input_shape))
         self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, NUM_CLASSES])
         self.conv_layers = []
         self.pool_layers = []
@@ -491,47 +472,27 @@ class NeuralNet:
             self.writer = tf.summary.FileWriter(logdir='conv_vis')
 
             # Initialize progress bar.
-            bar = Bar('', max=100, suffix='%(index)d/%(max)d ETA: %(eta)ds')
+            bar = Bar('', max=self.steps_per_epoch, suffix='%(index)d/%(max)d ETA: %(eta)ds')
 
             for epoch_no in range(self.nb_epochs):
-                # Train model on next batch
-                batch_x, batch_y = self._next_training_batch()
-                results = self.train_on_batch(batch_x, batch_y)
+                self.logger.info("Epoch {epoch_no}/{nb_epochs}".format(epoch_no=epoch_no,
+                                                                       nb_epochs=self.nb_epochs))
+                for step_no in range(self.steps_per_epoch):
+                    # Train model on next batch
+                    batch_x, batch_y = self._next_training_batch()
+                    results = self.train_on_batch(batch_x, batch_y)
 
-                # Update bar
-                bar.message = 'loss: {0[0]:.8f} acc: {0[1]:.3f} mean_acc: {1:.3f}'.\
-                    format(results, np.mean(self.accs[-1000:]))
+                    # Update bar
+                    bar.message = 'loss: {0[0]:.8f} acc: {0[1]:.3f} mean_acc: {1:.3f}'. \
+                        format(results, np.mean(self.accs[-1000:]), )
+                    bar.next()
 
-                if epoch_no % 100 == 0:
-                    bar.finish()
-                    self.logger.info("Epoch {epoch_no}/{nb_epochs}".format(epoch_no=epoch_no,
-                                                                           nb_epochs=self.nb_epochs))
-                    bar = Bar('', max=100, suffix='%(index)d/%(max)d ETA: %(eta)ds')
-                    batch_t = sample(list(range(self.x_test.shape[0])), self.mb_size)
-                    batch_x_t, batch_y_t = self.x_test[batch_t], self.y_test[batch_t]
-                    test_results = self.test_on_batch(batch_x_t, batch_y_t, global_step=epoch_no)
-                    self.logger.info("Test(batch):   Loss: {0[0]}, accuracy: {0[1]}, mean acc: {1}".
-                                     format(test_results,
-                                            np.mean(self.val_accs[-10:])))
-                bar.next()
+                # Re-initialize progress bar
+                bar.finish()
+                bar = Bar('', max=self.steps_per_epoch, suffix='%(index)d/%(max)d ETA: %(eta)ds')
 
-                if epoch_no % 20000 == 0:
-                    if epoch_no:
-                        loss, acc = self.validate()
-                        self.logger.info("Validation results: Loss: {0}, accuracy: {1}".format(loss, acc))
-                    # Dipslay confusion matrix
-                    show_image(self._confusion_matrix)
-
-
-if __name__ == '__main__':
-    # Test on eurecom only
-    net = NeuralNet(mb_size=16,
-                    kernel_size=[5, 5],
-                    nb_epochs=1000*1000,
-                    filters_count=[10, 20, 20],
-                    dense_layers=[NUM_CLASSES],
-                    dropout_rate=0.5,
-                    learning_rate=0.05,
-                    min_label=0,
-                    max_label=78)
-    net.train_and_evaluate()
+                # Validate
+                loss, acc = self.validate()
+                self.logger.info("Validation results: Loss: {0}, accuracy: {1}".format(loss, acc))
+                # Dipslay confusion matrix
+                show_image(self._confusion_matrix)

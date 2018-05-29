@@ -9,11 +9,6 @@
 IMG_SIZE = 64
 
 """
-    Size of the input images to the neural network.
-"""
-NN_INPUT_SIZE = [3 * IMG_SIZE, 2 * IMG_SIZE]
-
-"""
     Background color, after trimming the face.
 """
 BGCOLOR = 0
@@ -77,3 +72,8 @@ CENTER_DEST = (1/2, 1/5)
     blocks the execution)
 """
 SHOW_PLOTS = False
+
+"""
+    Number of classes (different subjects in the dataset).
+"""
+NUM_CLASSES = 129

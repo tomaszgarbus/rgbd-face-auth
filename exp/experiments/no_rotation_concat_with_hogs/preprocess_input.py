@@ -4,16 +4,15 @@ faces and calculate entropy and HOGs of entropy maps.
 Use this script to generate (X|Y)_(train|test).npy files and load them directly
 in main.py.
 """
-
-from common.db_helper import DBHelper, DB_LOCATION
 import numpy as np
-from common.constants import NN_INPUT_SIZE
 import os
 import logging
-
-from controller.normalization import normalized, hog_and_entropy
-from common import tools
 from progress.bar import Bar
+
+from common.db_helper import Database, DBHelper, DB_LOCATION
+from experiments.no_rotation_concat_with_hogs.constants import EXP_NAME, NN_INPUT_SIZE
+from controller.normalization import normalized, hog_and_entropy
+
 
 def build_input_vector(face):
     """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
@@ -30,7 +29,7 @@ def build_input_vector(face):
     return face.get_concat()
 
 
-def load_database(database, offset, override_test_set=False):
+def load_database(database: Database, offset: int):
     logging.info('Loading database %s' % database.get_name())
     for i in range(database.subjects_count()):
         logging.info('Subject {0}/{1}'.format(i, database.subjects_count()))
@@ -46,13 +45,15 @@ def load_database(database, offset, override_test_set=False):
             if database.is_photo_in_test_set(i, j):
                 x_test.append(x)
                 y_test.append(y)
-                #tools.show_image(x)
+                # tools.show_image(x)
             else:
                 x_train.append(x)
                 y_train.append(y)
 
             bar.next()
         bar.finish()
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
@@ -100,7 +101,7 @@ if __name__ == '__main__':
     if not os.path.isdir(DB_LOCATION + '/gen'):
         os.makedirs(DB_LOCATION + '/gen')
 
-    np.save(DB_LOCATION + '/gen/face_rotation_X_train', X_train)
-    np.save(DB_LOCATION + '/gen/face_rotation_Y_train', Y_train)
-    np.save(DB_LOCATION + '/gen/face_rotation_X_test', X_test)
-    np.save(DB_LOCATION + '/gen/face_rotation_Y_test', Y_test)
+    np.save(DB_LOCATION + '/gen/' + EXP_NAME + '_X_train', X_train)
+    np.save(DB_LOCATION + '/gen/' + EXP_NAME + '_Y_train', Y_train)
+    np.save(DB_LOCATION + '/gen/' + EXP_NAME + '_X_test', X_test)
+    np.save(DB_LOCATION + '/gen/' + EXP_NAME + '_Y_test', Y_test)
