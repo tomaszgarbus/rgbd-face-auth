@@ -1,4 +1,4 @@
-# RGB+D face authentication
+# Novelty face authentication with liveness detection using depth and IR camera
 
 ## Style guide
 
