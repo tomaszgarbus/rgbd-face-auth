@@ -19,7 +19,7 @@ class InputPreprocessor:
                  nn_input_size: Tuple[int, int, int],
                  build_input_vector: Callable[[Face], np.ndarray]):
         self.exp_name = exp_name
-        self.self.nn_input_size = nn_input_size
+        self.nn_input_size = nn_input_size
         self.build_input_vector = build_input_vector
         self.x_train = []
         self.y_train = []
