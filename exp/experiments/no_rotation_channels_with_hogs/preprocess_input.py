@@ -4,6 +4,7 @@
     Use this script to generate (X|Y)_(train|test).npy files and load them directly
     in main.py.
 """
+
 import numpy as np
 import os
 import logging
@@ -11,7 +12,7 @@ from progress.bar import Bar
 
 from common.constants import NUM_CLASSES
 from common.db_helper import Database, DBHelper, DB_LOCATION
-from experiments.no_rotation_concat_with_hogs.constants import EXP_NAME, NN_INPUT_SIZE
+from experiments.no_rotation_channels_with_hogs.constants import EXP_NAME, NN_INPUT_SIZE
 from controller.normalization import normalized, hog_and_entropy
 
 
@@ -27,7 +28,7 @@ def build_input_vector(face):
         face = hog_and_entropy(face)
     except ValueError:
         return None
-    return face.get_concat()
+    return face.get_channels()
 
 
 def load_database(database: Database, offset: int):
@@ -68,7 +69,7 @@ if __name__ == '__main__':
 
     sum_offset = 0
     for database in helper.get_databases():
-        if database.get_name() != 'www.vap.aau.dk':
+        if database.get_name() not in ['www.vap.aau.dk', 'superface_dataset']:
             load_database(database, sum_offset)
             sum_offset += database.subjects_count()
 

@@ -66,6 +66,16 @@ class Face:
                                     self.entropy_map_grey_image, self.entropy_map_depth_image,
                                     self.hog_grey_image, self.hog_depth_image])
 
+    def get_channels(self) -> np.ndarray:
+        channels = np.zeros((IMG_SIZE, IMG_SIZE, 6))
+        channels[:, :, 0] = self.grey_img
+        channels[:, :, 1] = self.depth_img
+        channels[:, :, 2] = self.entropy_map_grey_image
+        channels[:, :, 3] = self.entropy_map_depth_image
+        channels[:, :, 4] = self.hog_grey_image
+        channels[:, :, 5] = self.hog_depth_image
+        return channels
+
     def show_grey(self) -> None:
         tools.show_image(self.grey_img)
 
