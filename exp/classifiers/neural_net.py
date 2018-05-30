@@ -184,7 +184,7 @@ class NeuralNet:
                 kernel = kernel[:, :, :, filter_no]
                 cur_conv_layer = self.conv_layers[layer_no]
                 if layer_no == 0:
-                    kernel = tf.reshape(kernel, [1] + self.kernel_size + [1])
+                    kernel = tf.reshape(kernel, [1, self.kernel_size[0] * self.input_shape[-1], self.kernel_size[1], 1])
                 else:
                     kernel = tf.reshape(kernel, [1] +\
                                         [self.kernel_size[0] * self.filters_count[layer_no - 1], self.kernel_size[1]] +\
@@ -267,7 +267,7 @@ class NeuralNet:
                     tf.map_fn(lambda sxy: safe_cut_patch(sxy,
                                                          size=(self.kernel_size[0] * (2 ** layer_no),
                                                                self.kernel_size[1] * (2 ** layer_no)),
-                                                         img=self.x),
+                                                         img=tf.expand_dims(self.x[:, :, :, 0], axis=-1)),
                               top10_reshaped,
                               dtype=tf.float32)
                 self.patches_responses[layer_no][filter_no] = top10_vals
@@ -295,12 +295,14 @@ class NeuralNet:
 
     def _visualize_incorrect_answer_images(self):
         correct = tf.boolean_mask(self.x, self.correct)
-        correct = tf.reshape(correct, shape=[1, -1, self.input_shape[1], 1])
-        correct = tf.concat([correct, tf.zeros(shape=[1, 1, self.input_shape[1], 1])], axis=1)
+        correct = tf.transpose(correct, perm=[0, 1, 3, 2])
+        correct = tf.reshape(correct, shape=[1, -1, self.input_shape[1] * self.input_shape[2], 1])
+        correct = tf.concat([correct, tf.zeros(shape=[1, 1, self.input_shape[1] * self.input_shape[2], 1])], axis=1)
         tf.summary.image('correct', correct)
         incorrect = tf.boolean_mask(self.x, tf.logical_not(self.correct))
-        incorrect = tf.reshape(incorrect, shape=[1, -1, self.input_shape[1], 1])
-        incorrect = tf.concat([incorrect, tf.zeros(shape=[1, 1, self.input_shape[1], 1])], axis=1)
+        incorrect = tf.transpose(incorrect, perm=[0, 1, 3, 2])
+        incorrect = tf.reshape(incorrect, shape=[1, -1, self.input_shape[1] * self.input_shape[2], 1])
+        incorrect = tf.concat([incorrect, tf.zeros(shape=[1, 1, self.input_shape[1] * self.input_shape[2], 1])], axis=1)
         tf.summary.image('incorrect', incorrect)
 
         # Merge all summaries.
