@@ -1,8 +1,6 @@
 """
-    Preprocessing the input images is very expensive, as we want to crop them to
-    faces and calculate entropy and HOGs of entropy maps.
-    Use this script to generate (X|Y)_(train|test).npy files and load them directly
-    in main.py.
+    1 channel, 6 concatenated images:
+    grey, depth, grey_entropy, depth_entropy, hog of grey_entropy, hog of depth_entropy
 """
 import numpy as np
 
