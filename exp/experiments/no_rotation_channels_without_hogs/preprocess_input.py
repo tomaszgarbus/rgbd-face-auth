@@ -1,6 +1,6 @@
 """
     Preprocessing the input images is very expensive, as we want to crop them to
-    faces and calculate entropy and HOGs of entropy maps.
+    faces and calculate entropy maps.
     Use this script to generate (X|Y)_(train|test).npy files and load them directly
     in main.py.
 """
@@ -17,7 +17,6 @@ from controller.normalization import normalized, hog_and_entropy
 
 
 def build_input_vector(face):
-    """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
     (grey_face, depth_face) = (face.grey_img, face.depth_img)
     if grey_face is None or depth_face is None:
         return None
