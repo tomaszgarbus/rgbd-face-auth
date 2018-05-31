@@ -1,8 +1,11 @@
 #ifndef PICTURE_HPP
 #define PICTURE_HPP
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <thread>
 
 #include <libfreenect2/libfreenect2.hpp>
 #include <opencv/cv.hpp>

@@ -18,12 +18,6 @@ include(${wxWidgets_USE_FILE})
 set(BASIC_SOURCE_FILES src/basic_types.hpp src/picture.hpp)
 set(LIBKINECT_SOURCE_FILES src/libkinect.hpp)
 
-add_executable(take_photo src/take_photo.cpp ${BASIC_SOURCE_FILES} ${LIBKINECT_SOURCE_FILES})
-target_link_libraries(take_photo freenect)
-target_link_libraries(take_photo ${OpenCV_LIBS})
-target_link_libraries(take_photo ${freenect2_LIBRARIES})
-target_link_libraries(take_photo ${ZLIB_LIBRARIES})
-
 add_executable(live_display src/live_display.cpp ${BASIC_SOURCE_FILES} ${LIBKINECT_SOURCE_FILES})
 target_link_libraries(live_display freenect)
 target_link_libraries(live_display ${OpenCV_LIBS})
