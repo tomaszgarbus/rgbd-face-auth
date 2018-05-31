@@ -46,6 +46,8 @@ class Picture::ColorFrame {
    void save_to_file(std::string const &filename) const;
    void resize(size_t width, size_t height);
 
+   std::chrono::time_point<std::chrono::system_clock> time_received = std::chrono::system_clock::now();
+
    Matrix<ColorPixel> *pixels = nullptr;
 };
 
@@ -61,6 +63,8 @@ class Picture::DepthOrIrFrame {
 
    Matrix<float> *pixels = nullptr;
    bool is_depth;  // false means that it's an IR photo
+
+   std::chrono::time_point<std::chrono::system_clock> time_received = std::chrono::system_clock::now();
 
    libfreenect2::Frame *freenect2_frame = nullptr;
 };
@@ -82,7 +86,7 @@ Picture::ColorFrame::ColorFrame(std::string const &filename) {
 }
 
 Picture::ColorFrame::ColorFrame(const Picture::ColorFrame &src)
-      : pixels(new Matrix<Picture::ColorFrame::ColorPixel>(*src.pixels)) {}
+      : pixels(new Matrix<Picture::ColorFrame::ColorPixel>(*src.pixels)), time_received(src.time_received) {}
 
 Picture::ColorFrame::~ColorFrame() {
    delete pixels;
@@ -141,7 +145,8 @@ Picture::DepthOrIrFrame::DepthOrIrFrame(std::string const &filename) {
 }
 
 Picture::DepthOrIrFrame::DepthOrIrFrame(const Picture::DepthOrIrFrame &src)
-      : pixels(new Matrix<float>(*src.pixels)), is_depth(src.is_depth), freenect2_frame(src.freenect2_frame) {}
+      : pixels(new Matrix<float>(*src.pixels)), is_depth(src.is_depth), freenect2_frame(src.freenect2_frame),
+        time_received(src.time_received) {}
 
 Picture::DepthOrIrFrame::~DepthOrIrFrame() {
    delete pixels;

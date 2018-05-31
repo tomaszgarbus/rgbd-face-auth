@@ -1,4 +1,5 @@
 #include <string>
+#include <sys/stat.h>
 
 #include <wx/bitmap.h>
 #include <wx/button.h>
@@ -19,21 +20,24 @@
 
 // Constants
 
-char constexpr photos_directory[] = "../photos/";
+char constexpr photos_directory[] = "../photos/";  // should end with '/'
 
 enum {
-   ID_MIN_D         = 101,
-   ID_MAX_D         = 102,
-   ID_MIN_D_TEXT    = 103,
-   ID_MAX_D_TEXT    = 104,
-   ID_DISPLAY_COLOR = 105,
-   ID_DISPLAY_DEPTH = 106,
-   ID_DISPLAY_IR    = 107,
-   ID_DISPLAY_EXP   = 108,
-   ID_PHOTOS_BTN    = 109,
-   ID_EXP_BTN       = 110,
-   ID_FPS_TEXT      = 111,
-   ID_FPS_BTN       = 112
+   ID_MIN_D           = 101,
+   ID_MAX_D           = 102,
+   ID_MIN_D_TEXT      = 103,
+   ID_MAX_D_TEXT      = 104,
+   ID_DISPLAY_COLOR   = 105,
+   ID_DISPLAY_DEPTH   = 106,
+   ID_DISPLAY_IR      = 107,
+   ID_DISPLAY_EXP     = 108,
+   ID_PHOTOS_BTN      = 109,
+   ID_EXP_BTN         = 110,
+   ID_FPS_TEXT        = 111,
+   ID_FPS_BTN         = 112,
+   ID_USERID_TEXT     = 113,
+   ID_USERID_SET_BTN  = 114,
+   ID_USERID_RAND_BTN = 115
 };
 
 const size_t display_panel_width  = 512;
@@ -57,7 +61,6 @@ class DisplayPanel : public wxPanel {
    void refresh_display(wxCommandEvent &event);
 
    uint8_t *bitmap;
-   std::chrono::time_point<std::chrono::steady_clock> last_frame_time = std::chrono::steady_clock::now();
 };
 
 class SettingsPanel : public wxPanel {
@@ -71,13 +74,16 @@ class SettingsPanel : public wxPanel {
    void on_photos_button_click(wxCommandEvent &event);
    void on_exp_button_click(wxCommandEvent &event);
    void on_fps_button_click(wxCommandEvent &event);
+   void on_userid_set_button_click(wxCommandEvent &event);
+   void on_userid_random_button_click(wxCommandEvent &event);
 
    wxPanel *m_parent;
    wxSlider *m_min_d, *m_max_d;
-   wxTextCtrl *m_min_d_text, *m_max_d_text, *m_fps_text;
-   wxButton *m_photos_button, *m_exp_button, *m_fps_button;
+   wxTextCtrl *m_min_d_text, *m_max_d_text, *m_fps_text, *m_userid_text;
+   wxButton *m_photos_button, *m_exp_button, *m_fps_button, *m_userid_set_button, *m_userid_random_button;
 
-   int max_fps        = default_max_fps;
+   int max_fps         = default_max_fps;
+   std::string user_id = "000000";
    bool taking_photos = false, showing_exp = false;
 };
 
@@ -92,6 +98,9 @@ class MainWindow : public wxFrame {
    bool display_exp_clear = true;
    SettingsPanel *m_settings;
    Picture *picture;
+
+   std::chrono::time_point<std::chrono::system_clock> last_shown_color, last_shown_de_ir;
+   Picture::DepthOrIrFrame *buffer_depth, *buffer_ir;
 };
 
 // Definitions
@@ -106,7 +115,10 @@ SettingsPanel::SettingsPanel(wxPanel *parent)
         m_exp_button(new wxButton(this, ID_EXP_BTN, "Turn on exp.", wxPoint(120, 70), wxSize(100, 50))),
         m_fps_text(
               new wxTextCtrl(this, ID_FPS_TEXT, std::to_string(default_max_fps), wxPoint(230, 70), wxSize(100, 50))),
-        m_fps_button(new wxButton(this, ID_FPS_BTN, "Set max. FPS", wxPoint(340, 70), wxSize(100, 50))) {
+        m_fps_button(new wxButton(this, ID_FPS_BTN, "Set max. FPS", wxPoint(340, 70), wxSize(100, 50))),
+        m_userid_text(new wxTextCtrl(this, ID_USERID_TEXT, "000000", wxPoint(450, 70), wxSize(100, 50))),
+        m_userid_set_button(new wxButton(this, ID_USERID_SET_BTN, "Set ID", wxPoint(560, 70), wxSize(100, 50))),
+        m_userid_random_button(new wxButton(this, ID_USERID_RAND_BTN, "Random", wxPoint(670, 70), wxSize(100, 50))) {
    m_min_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_min_slider_change, this);
    m_min_d->Bind(wxEVT_SCROLL_THUMBTRACK, &SettingsPanel::on_min_slider_change, this);
    m_max_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_max_slider_change, this);
@@ -116,6 +128,8 @@ SettingsPanel::SettingsPanel(wxPanel *parent)
    m_photos_button->Bind(wxEVT_BUTTON, &SettingsPanel::on_photos_button_click, this);
    m_exp_button->Bind(wxEVT_BUTTON, &SettingsPanel::on_exp_button_click, this);
    m_fps_button->Bind(wxEVT_BUTTON, &SettingsPanel::on_fps_button_click, this);
+   m_userid_set_button->Bind(wxEVT_BUTTON, &SettingsPanel::on_userid_set_button_click, this);
+   m_userid_random_button->Bind(wxEVT_BUTTON, &SettingsPanel::on_userid_random_button_click, this);
 }
 
 void SettingsPanel::on_min_slider_change(wxCommandEvent &event) {
@@ -184,6 +198,31 @@ void SettingsPanel::on_fps_button_click(wxCommandEvent &event) {
       return;
    }
    max_fps = static_cast<uint32_t>(new_max_fps);
+}
+
+void SettingsPanel::on_userid_set_button_click(wxCommandEvent &event) {
+   user_id = m_userid_text->GetValue();
+   struct stat sb {};
+   stat((photos_directory + user_id).c_str(), &sb);
+   if (!S_ISDIR(sb.st_mode)) {
+      mkdir((std::string(photos_directory) + user_id).c_str(), 0775);
+   }
+}
+
+void SettingsPanel::on_userid_random_button_click(wxCommandEvent &event) {
+   std::random_device rd;
+   std::mt19937 gen(rd());
+   std::uniform_int_distribution<> dis(100000, 999999);
+   int new_id;
+   struct stat sb {};
+   do {
+      new_id = dis(gen);
+      sb     = {};
+      stat((photos_directory + std::to_string(new_id)).c_str(), &sb);
+   } while (S_ISDIR(sb.st_mode));
+   user_id = std::to_string(new_id);
+   m_userid_text->SetValue(user_id);
+   mkdir((photos_directory + user_id).c_str(), 0775);
 }
 
 DisplayPanel::DisplayPanel(wxPanel *parent, wxWindowID window_id, uint8_t *bitmap)
@@ -294,21 +333,19 @@ double calculate_reflectiveness_for_surface(std::array<std::array<Point3d const,
    return ang < 0.25 ? 0.5 : 2 * ang;
 }
 
-std::string make_filename(int which_kinect) {
-   auto current_time           = std::chrono::system_clock::now();
-   auto current_time_as_time_t = std::chrono::system_clock::to_time_t(current_time);
-
+std::string make_filename(
+      int which_kinect, std::chrono::time_point<std::chrono::system_clock> time_point, std::string user_id) {
+   auto time_point_as_time_t = std::chrono::system_clock::to_time_t(time_point);
    char current_time_char[100];
-   std::strftime(
-         current_time_char, sizeof(current_time_char), "%Y-%m-%d-%H-%M-%S", std::gmtime(&current_time_as_time_t));
+   std::strftime(current_time_char, sizeof(current_time_char), "%Y-%m-%d-%H-%M-%S", std::gmtime(&time_point_as_time_t));
    std::string current_time_string = current_time_char;
 
    current_time_string += '-';
    std::string milliseconds = std::to_string(
-         std::chrono::duration_cast<std::chrono::milliseconds>(current_time.time_since_epoch()).count() % 1000);
+         std::chrono::duration_cast<std::chrono::milliseconds>(time_point.time_since_epoch()).count() % 1000);
    current_time_string += std::string(3 - milliseconds.length(), '0') + milliseconds;
 
-   return photos_directory + current_time_string + "-kinect" + std::to_string(which_kinect);
+   return photos_directory + user_id + "/" + current_time_string + "-kinect" + std::to_string(which_kinect);
 }
 
 // Kinect handling
@@ -327,18 +364,26 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       return;
    }
 
-   // TODO: give an fps setting, skip frame if too fast
+   std::cerr << "frame_handler" << std::endl;
 
-   std::string filename = make_filename(which_kinect);
+   if (picture.color_frame) {
+      std::cerr << "Received color" << std::endl;
+   } else if (picture.depth_frame) {
+      std::cerr << "Received depth" << std::endl;
+   } else if (picture.ir_frame) {
+      std::cerr << "Received ir" << std::endl;
+   }
 
    if (picture.color_frame
-         && std::chrono::steady_clock::now() - window->m_display_color->last_frame_time
-                  > std::chrono::milliseconds(1000 / window->m_settings->max_fps)) {
+         && picture.color_frame->time_received - window->last_shown_color
+                  >= std::chrono::milliseconds(1000 / window->m_settings->max_fps)) {
 
-      window->m_display_color->last_frame_time = std::chrono::steady_clock::now();
+      window->last_shown_color = std::chrono::system_clock::now();
 
       if (window->m_settings->taking_photos) {
-         picture.color_frame->save_to_file(filename);
+         std::string filename =
+               make_filename(which_kinect, picture.color_frame->time_received, window->m_settings->user_id);
+         picture.color_frame->save_to_file(filename + ".png");
       }
 
       delete window->picture->color_frame;
@@ -368,18 +413,52 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       wxPostEvent(window->m_display_color, wxCommandEvent(REFRESH_DISPLAY_EVENT));
    }
 
-   if (picture.depth_frame
-         && std::chrono::steady_clock::now() - window->m_display_depth->last_frame_time
-                  > std::chrono::milliseconds(1000 / window->m_settings->max_fps)) {
+   if (picture.depth_frame) {
+      delete window->buffer_depth;
+      window->buffer_depth = new Picture::DepthOrIrFrame(*picture.depth_frame);
+      std::cerr << "Buffered depth" << std::endl;
+   } else if (picture.ir_frame) {
+      delete window->buffer_ir;
+      window->buffer_ir = new Picture::DepthOrIrFrame(*picture.ir_frame);
+      std::cerr << "Buffered ir" << std::endl;
+   }
 
-      window->m_display_depth->last_frame_time = std::chrono::steady_clock::now();
+   Picture::DepthOrIrFrame *depth_frame = window->buffer_depth, *ir_frame = window->buffer_ir;
 
+   if (!depth_frame || !ir_frame) {
+      std::cerr << "No depth or ir frame" << std::endl;
+      return;
+   }
+
+   if (std::min(depth_frame->time_received, ir_frame->time_received) - window->last_shown_de_ir
+         < std::chrono::milliseconds(1000 / window->m_settings->max_fps)) {
+      std::cerr << "Too fast, would break fps limit" << std::endl;
+      return;
+   }
+
+   if (depth_frame->time_received - ir_frame->time_received > std::chrono::milliseconds(5)
+         || depth_frame->time_received - ir_frame->time_received < std::chrono::milliseconds(-5)) {
+      std::cerr << "Depth and ir frame not synchronized, skipping" << std::endl;
+      return;
+   }
+
+   std::cerr << "Went through, showing frames" << std::endl;
+
+   window->last_shown_de_ir = std::chrono::system_clock::now();
+
+   if (!depth_frame->is_depth || ir_frame->is_depth) {
+      throw std::runtime_error("Something went wrong with buffering frames.");
+   }
+
+   if (true) {
+      std::cerr << "Showing depth frame" << std::endl;
       if (window->m_settings->taking_photos) {
-         picture.depth_frame->save_to_file(filename);
+         std::string filename = make_filename(which_kinect, depth_frame->time_received, window->m_settings->user_id);
+         depth_frame->save_to_file(filename + ".depth");
       }
 
       delete window->picture->depth_frame;
-      window->picture->depth_frame = new Picture::DepthOrIrFrame(*picture.depth_frame);
+      window->picture->depth_frame = new Picture::DepthOrIrFrame(*depth_frame);
 
       auto frame_size = fit_to_size(window->picture->depth_frame->pixels->width,
             window->picture->depth_frame->pixels->height, display_panel_width, display_panel_height);
@@ -420,18 +499,15 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       wxPostEvent(window->m_display_depth, wxCommandEvent(REFRESH_DISPLAY_EVENT));
    }
 
-   if (picture.ir_frame
-         && std::chrono::steady_clock::now() - window->m_display_ir->last_frame_time
-                  > std::chrono::milliseconds(1000 / window->m_settings->max_fps)) {
-
-      window->m_display_ir->last_frame_time = std::chrono::steady_clock::now();
-
+   if (true) {
+      std::cerr << "Showing ir frame" << std::endl;
       if (window->m_settings->taking_photos) {
-         picture.ir_frame->save_to_file(filename);
+         std::string filename = make_filename(which_kinect, ir_frame->time_received, window->m_settings->user_id);
+         ir_frame->save_to_file(filename + ".ir");
       }
 
       delete window->picture->ir_frame;
-      window->picture->ir_frame = new Picture::DepthOrIrFrame(*picture.ir_frame);
+      window->picture->ir_frame = new Picture::DepthOrIrFrame(*ir_frame);
 
       auto frame_size = fit_to_size(window->picture->ir_frame->pixels->width, window->picture->ir_frame->pixels->height,
             display_panel_width, display_panel_height);
@@ -476,7 +552,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       wxPostEvent(window->m_display_exp, wxCommandEvent(REFRESH_DISPLAY_EVENT));
    }
 
-   if (window->m_settings->showing_exp && (picture.depth_frame || picture.ir_frame) && window->picture->depth_frame
+   if (window->m_settings->showing_exp && (depth_frame || ir_frame) && window->picture->depth_frame
          && window->picture->ir_frame
          && window->picture->depth_frame->pixels->width == window->picture->ir_frame->pixels->width
          && window->picture->depth_frame->pixels->height == window->picture->ir_frame->pixels->height) {
