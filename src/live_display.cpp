@@ -83,7 +83,7 @@ class SettingsPanel : public wxPanel {
    wxButton *m_photos_button, *m_exp_button, *m_fps_button, *m_userid_set_button, *m_userid_random_button;
 
    int max_fps = default_max_fps;
-   std::string user_id = "000000";
+   std::string userid = "000000";
    bool taking_photos = false, showing_exp = false;
 };
 
@@ -94,10 +94,13 @@ class MainWindow : public wxFrame {
    explicit MainWindow(const wxString &title, uint8_t *color_bitmap, uint8_t *depth_bitmap, uint8_t *ir_bitmap,
          uint8_t *custom_bitmap);
 
+   void on_window_close(wxCloseEvent &event);
+
    DisplayPanel *m_display_color, *m_display_depth, *m_display_ir, *m_display_exp;
    bool display_exp_clear = true;
    SettingsPanel *m_settings;
    Picture *picture;
+   KinectDevice *kinect_device;
 
    std::chrono::time_point<std::chrono::system_clock> last_shown_color, last_shown_de_ir;
    Picture::DepthOrIrFrame *buffer_depth, *buffer_ir;
@@ -118,7 +121,8 @@ SettingsPanel::SettingsPanel(wxPanel *parent)
         m_fps_button(new wxButton(this, ID_FPS_BTN, "Set max. FPS", wxPoint(340, 70), wxSize(100, 50))),
         m_userid_text(new wxTextCtrl(this, ID_USERID_TEXT, "000000", wxPoint(450, 70), wxSize(100, 50))),
         m_userid_set_button(new wxButton(this, ID_USERID_SET_BTN, "Set ID", wxPoint(560, 70), wxSize(100, 50))),
-        m_userid_random_button(new wxButton(this, ID_USERID_RAND_BTN, "Random", wxPoint(670, 70), wxSize(100, 50))) {
+        m_userid_random_button(
+              new wxButton(this, ID_USERID_RAND_BTN, "Random && set", wxPoint(670, 70), wxSize(100, 50))) {
    m_min_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_min_slider_change, this);
    m_min_d->Bind(wxEVT_SCROLL_THUMBTRACK, &SettingsPanel::on_min_slider_change, this);
    m_max_d->Bind(wxEVT_SCROLL_CHANGED, &SettingsPanel::on_max_slider_change, this);
@@ -201,12 +205,12 @@ void SettingsPanel::on_fps_button_click(wxCommandEvent &event) {
 }
 
 void SettingsPanel::on_userid_set_button_click(wxCommandEvent &event) {
-   user_id = m_userid_text->GetValue();
    struct stat sb {};
-   stat((photos_directory + user_id).c_str(), &sb);
+   stat((photos_directory + m_userid_text->GetValue()).c_str(), &sb);
    if (!S_ISDIR(sb.st_mode)) {
-      mkdir((std::string(photos_directory) + user_id).c_str(), 0775);
+      mkdir((std::string(photos_directory) + m_userid_text->GetValue()).c_str(), 0775);
    }
+   userid = m_userid_text->GetValue();
 }
 
 void SettingsPanel::on_userid_random_button_click(wxCommandEvent &event) {
@@ -220,9 +224,9 @@ void SettingsPanel::on_userid_random_button_click(wxCommandEvent &event) {
       sb = {};
       stat((photos_directory + std::to_string(new_id)).c_str(), &sb);
    } while (S_ISDIR(sb.st_mode));
-   user_id = std::to_string(new_id);
-   m_userid_text->SetValue(user_id);
-   mkdir((photos_directory + user_id).c_str(), 0775);
+   mkdir((photos_directory + std::to_string(new_id)).c_str(), 0775);
+   m_userid_text->SetValue(std::to_string(new_id));
+   userid = std::to_string(new_id);
 }
 
 DisplayPanel::DisplayPanel(wxPanel *parent, wxWindowID window_id, uint8_t *bitmap)
@@ -247,6 +251,8 @@ MainWindow::MainWindow(
         m_display_ir(new DisplayPanel(m_parent, ID_DISPLAY_IR, ir_bitmap)),
         m_display_exp(new DisplayPanel(m_parent, ID_DISPLAY_EXP, custom_bitmap)),
         m_settings(new SettingsPanel(m_parent)) {
+   this->Bind(wxEVT_CLOSE_WINDOW, &MainWindow::on_window_close, this);
+
    auto hbox1 = new wxBoxSizer(wxHORIZONTAL), hbox2 = new wxBoxSizer(wxHORIZONTAL);
    hbox1->Add(m_display_color);
    hbox1->Add(m_display_depth);
@@ -260,6 +266,11 @@ MainWindow::MainWindow(
 
    m_parent->SetSizer(vbox);
    Centre();
+}
+
+void MainWindow::on_window_close(wxCloseEvent &event) {
+   kinect_device->close();
+   event.Skip();
 }
 
 // Utils
@@ -364,15 +375,13 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       return;
    }
 
-   std::cerr << "frame_handler" << std::endl;
-
-   if (picture.color_frame) {
-      std::cerr << "Received color" << std::endl;
-   } else if (picture.depth_frame) {
-      std::cerr << "Received depth" << std::endl;
-   } else if (picture.ir_frame) {
-      std::cerr << "Received ir" << std::endl;
-   }
+   // if (picture.color_frame) {
+   //   std::cerr << "Received color" << std::endl;
+   //} else if (picture.depth_frame) {
+   //   std::cerr << "Received depth" << std::endl;
+   //} else if (picture.ir_frame) {
+   //   std::cerr << "Received ir" << std::endl;
+   //}
 
    if (picture.color_frame
          && picture.color_frame->time_received - window->last_shown_color
@@ -382,7 +391,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
 
       if (window->m_settings->taking_photos) {
          std::string filename =
-               make_filename(which_kinect, picture.color_frame->time_received, window->m_settings->user_id);
+               make_filename(which_kinect, picture.color_frame->time_received, window->m_settings->userid);
          picture.color_frame->save_to_file(filename + ".png");
       }
 
@@ -416,33 +425,33 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
    if (picture.depth_frame) {
       delete window->buffer_depth;
       window->buffer_depth = new Picture::DepthOrIrFrame(*picture.depth_frame);
-      std::cerr << "Buffered depth" << std::endl;
+      // std::cerr << "Buffered depth" << std::endl;
    } else if (picture.ir_frame) {
       delete window->buffer_ir;
       window->buffer_ir = new Picture::DepthOrIrFrame(*picture.ir_frame);
-      std::cerr << "Buffered ir" << std::endl;
+      // std::cerr << "Buffered ir" << std::endl;
    }
 
    Picture::DepthOrIrFrame *depth_frame = window->buffer_depth, *ir_frame = window->buffer_ir;
 
    if (!depth_frame || !ir_frame) {
-      std::cerr << "No depth or ir frame" << std::endl;
+      // std::cerr << "No depth or ir frame" << std::endl;
       return;
    }
 
    if (std::min(depth_frame->time_received, ir_frame->time_received) - window->last_shown_de_ir
          < std::chrono::milliseconds(1000 / window->m_settings->max_fps)) {
-      std::cerr << "Too fast, would break fps limit" << std::endl;
+      // std::cerr << "Too fast, would break fps limit" << std::endl;
       return;
    }
 
    if (depth_frame->time_received - ir_frame->time_received > std::chrono::milliseconds(5)
          || depth_frame->time_received - ir_frame->time_received < std::chrono::milliseconds(-5)) {
-      std::cerr << "Depth and ir frame not synchronized, skipping" << std::endl;
+      // std::cerr << "Depth and ir frame not synchronized, skipping" << std::endl;
       return;
    }
 
-   std::cerr << "Went through, showing frames" << std::endl;
+   // std::cerr << "Went through, showing frames" << std::endl;
 
    window->last_shown_de_ir = std::chrono::system_clock::now();
 
@@ -451,9 +460,9 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
    }
 
    if (true) {
-      std::cerr << "Showing depth frame" << std::endl;
+      // std::cerr << "Showing depth frame" << std::endl;
       if (window->m_settings->taking_photos) {
-         std::string filename = make_filename(which_kinect, depth_frame->time_received, window->m_settings->user_id);
+         std::string filename = make_filename(which_kinect, depth_frame->time_received, window->m_settings->userid);
          depth_frame->save_to_file(filename + ".depth");
       }
 
@@ -496,13 +505,15 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
          }
       }
 
+      delete[] int_pixels;
+
       wxPostEvent(window->m_display_depth, wxCommandEvent(REFRESH_DISPLAY_EVENT));
    }
 
    if (true) {
-      std::cerr << "Showing ir frame" << std::endl;
+      // std::cerr << "Showing ir frame" << std::endl;
       if (window->m_settings->taking_photos) {
-         std::string filename = make_filename(which_kinect, ir_frame->time_received, window->m_settings->user_id);
+         std::string filename = make_filename(which_kinect, ir_frame->time_received, window->m_settings->userid);
          ir_frame->save_to_file(filename + ".ir");
       }
 
@@ -566,7 +577,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
             freenect2_device->getIrCameraParams(), freenect2_device->getColorCameraParams());
       // TODO: need to double check the impact of undistortDepth on the depth frame.
       libfreenect2::Frame undistorted(frame_width, frame_height, 4);
-      registration.undistortDepth(window->picture->depth_frame->freenect2_frame, &undistorted);
+      registration.undistortDepth(window->picture->depth_frame->freenect2_frame.get(), &undistorted);
       Matrix<Point3d> points(frame_height, frame_width);
       Matrix<double> distance(frame_height, frame_width);
 
@@ -649,6 +660,7 @@ bool AppMain::OnInit() {
 
    MainWindow *window =
          new MainWindow(wxT("Live Kinect display"), color_bitmap, depth_bitmap, ir_bitmap, custom_bitmap);
+   window->kinect_device = kinect_device;
    window->Show(true);
 
    kinect_device->window = window;

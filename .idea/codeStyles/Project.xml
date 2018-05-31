@@ -38,6 +38,7 @@
       </extensions>
     </Objective-C-extensions>
     <codeStyleSettings language="ObjectiveC">
+      <option name="LINE_COMMENT_AT_FIRST_COLUMN" value="false" />
       <indentOptions>
         <option name="INDENT_SIZE" value="3" />
         <option name="CONTINUATION_INDENT_SIZE" value="6" />

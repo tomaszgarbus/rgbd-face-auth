@@ -66,7 +66,7 @@ class Picture::DepthOrIrFrame {
 
    std::chrono::time_point<std::chrono::system_clock> time_received = std::chrono::system_clock::now();
 
-   libfreenect2::Frame *freenect2_frame = nullptr;
+   std::shared_ptr<libfreenect2::Frame> freenect2_frame = nullptr;
 };
 
 // Definitions - ColorFrame
@@ -150,7 +150,6 @@ Picture::DepthOrIrFrame::DepthOrIrFrame(const Picture::DepthOrIrFrame &src)
 
 Picture::DepthOrIrFrame::~DepthOrIrFrame() {
    delete pixels;
-   // delete freenect2_frame;
 }
 
 void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {
@@ -175,6 +174,7 @@ void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {
    if (gzclose(gz_file) != Z_OK) {
       throw std::runtime_error("gzclose() did not correctly close file " + filename + ".gz");
    }
+   delete[] file_data;
 }
 
 void Picture::DepthOrIrFrame::resize(size_t width, size_t height) {

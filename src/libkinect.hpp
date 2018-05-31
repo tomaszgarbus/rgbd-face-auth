@@ -22,6 +22,7 @@ class KinectDevice {
 
    void start_streams(bool color, bool depth, bool ir);
    void stop_streams();
+   void close();
    virtual void frame_handler(Picture const &picture) const = 0;
 
    int which_kinect = 0;  // 1 or 2 set in constructor
@@ -103,21 +104,7 @@ KinectDevice::KinectDevice(int device_number = 0) {
 
 KinectDevice::~KinectDevice() {
    stop_streams();
-   if (which_kinect == 1) {
-      if (freenect_close_device(freenect1_device) != 0) {
-         std::cerr << "A problem occured in freenect_close_device()\n";
-      }
-      if (freenect_shutdown(freenect1_context) != 0) {
-         std::cerr << "A problem occured in freenect_shutdown()\n";
-      }
-   } else if (which_kinect == 2) {
-      if (!freenect2_device->stop()) {
-         std::cerr << "A problem occured in freenect2_device->stop()\n";
-      }
-      if (!freenect2_device->close()) {
-         std::cerr << "A problem occured in freenect2_device->close()\n";
-      }
-   }
+   close();
 }
 
 void KinectDevice::start_streams(bool color, bool depth, bool ir) {
@@ -224,6 +211,10 @@ void KinectDevice::stop_streams() {
    ir_running = false;
 }
 
+void KinectDevice::close() {
+   stop_streams();
+}
+
 void KinectDevice::kinect1_process_events() {
    while (freenect_process_events(freenect1_context) == 0) {
       if (!kinect1_run_event_loop.test_and_set()) {
@@ -294,10 +285,10 @@ bool KinectDevice::Kinect2DepthAndIrListener::onNewFrame(libfreenect2::Frame::Ty
    Picture picture;
    if (type == libfreenect2::Frame::Type::Depth) {
       picture.depth_frame = new Picture::DepthOrIrFrame(pixels, true);
-      picture.depth_frame->freenect2_frame = frame;
+      picture.depth_frame->freenect2_frame = std::shared_ptr<libfreenect2::Frame>(frame);
    } else if (type == libfreenect2::Frame::Type::Ir) {
       picture.ir_frame = new Picture::DepthOrIrFrame(pixels, false);
-      picture.ir_frame->freenect2_frame = frame;
+      picture.ir_frame->freenect2_frame = std::shared_ptr<libfreenect2::Frame>(frame);
    } else {
       std::cerr << "Kinect2DepthAndIrListener::onNewFrame() received an unexcepted video format.\n";
       return false;
