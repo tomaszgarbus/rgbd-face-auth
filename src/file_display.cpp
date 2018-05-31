@@ -148,16 +148,16 @@ void DisplayPanel::refresh_display(wxCommandEvent &event) {
    if (max_depth - min_depth < 1.0) {
       max_depth = min_depth + 1.0f;
    }
-   size_t width    = frame->pixels->width;
-   size_t height   = frame->pixels->height;
+   size_t width = frame->pixels->width;
+   size_t height = frame->pixels->height;
    auto int_pixels = new uint8_t[width * height];
    for (size_t i = 0; i < width * height; ++i) {
-      float val     = 255.0f * (frame->pixels->data()[i] - min_depth) / (max_depth - min_depth);
-      val           = std::min(val, 255.0f);
-      val           = std::max(val, 0.0f);
+      float val = 255.0f * (frame->pixels->data()[i] - min_depth) / (max_depth - min_depth);
+      val = std::min(val, 255.0f);
+      val = std::max(val, 0.0f);
       int_pixels[i] = static_cast<uint8_t>(val);
       if (!frame->is_depth) {
-         bitmap[3 * i]     = int_pixels[i];
+         bitmap[3 * i] = int_pixels[i];
          bitmap[3 * i + 1] = int_pixels[i];
          bitmap[3 * i + 2] = int_pixels[i];
       }
@@ -168,8 +168,8 @@ void DisplayPanel::refresh_display(wxCommandEvent &event) {
       cv::applyColorMap(current_image, destination_image, cv::COLORMAP_RAINBOW);
       for (size_t i = 0; i < height; ++i) {
          for (size_t j = 0; j < width; ++j) {
-            auto pixel                      = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
-            bitmap[3 * (i * width + j)]     = pixel[2];
+            auto pixel = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
+            bitmap[3 * (i * width + j)] = pixel[2];
             bitmap[3 * (i * width + j) + 1] = pixel[1];
             bitmap[3 * (i * width + j) + 2] = pixel[0];
          }
@@ -191,15 +191,15 @@ MainWindow::MainWindow(const wxString &title, Picture::DepthOrIrFrame *frame)
    }
    if (frame->is_depth) {
       min_slider_default = 500;
-      slider_max         = static_cast<int>(max_value);
+      slider_max = static_cast<int>(max_value);
       max_slider_default = std::min(1500, slider_max);
    } else {
       min_slider_default = 0;
       max_slider_default = static_cast<int>(max_value);
-      slider_max         = max_slider_default;
+      slider_max = max_slider_default;
    }
    m_settings = new SettingsPanel(m_parent, this, min_slider_default, max_slider_default, slider_max);
-   auto vbox  = new wxBoxSizer(wxVERTICAL);
+   auto vbox = new wxBoxSizer(wxVERTICAL);
    vbox->Add(m_display, 1, wxEXPAND | wxALL, 5);
    vbox->Add(m_settings, 1, wxEXPAND | wxALL, 5);
    m_parent->SetSizer(vbox);
@@ -221,7 +221,7 @@ bool AppMain::OnInit() {
 }
 
 int main(int argc, char **argv) {
-   auto app   = new AppMain();
+   auto app = new AppMain();
    app->frame = new Picture::DepthOrIrFrame(argv[1]);
    wxApp::SetInstance(app);
    return wxEntry(argc, argv);

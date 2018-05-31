@@ -23,26 +23,26 @@
 char constexpr photos_directory[] = "../photos/";  // should end with '/'
 
 enum {
-   ID_MIN_D           = 101,
-   ID_MAX_D           = 102,
-   ID_MIN_D_TEXT      = 103,
-   ID_MAX_D_TEXT      = 104,
-   ID_DISPLAY_COLOR   = 105,
-   ID_DISPLAY_DEPTH   = 106,
-   ID_DISPLAY_IR      = 107,
-   ID_DISPLAY_EXP     = 108,
-   ID_PHOTOS_BTN      = 109,
-   ID_EXP_BTN         = 110,
-   ID_FPS_TEXT        = 111,
-   ID_FPS_BTN         = 112,
-   ID_USERID_TEXT     = 113,
-   ID_USERID_SET_BTN  = 114,
+   ID_MIN_D = 101,
+   ID_MAX_D = 102,
+   ID_MIN_D_TEXT = 103,
+   ID_MAX_D_TEXT = 104,
+   ID_DISPLAY_COLOR = 105,
+   ID_DISPLAY_DEPTH = 106,
+   ID_DISPLAY_IR = 107,
+   ID_DISPLAY_EXP = 108,
+   ID_PHOTOS_BTN = 109,
+   ID_EXP_BTN = 110,
+   ID_FPS_TEXT = 111,
+   ID_FPS_BTN = 112,
+   ID_USERID_TEXT = 113,
+   ID_USERID_SET_BTN = 114,
    ID_USERID_RAND_BTN = 115
 };
 
-const size_t display_panel_width  = 512;
+const size_t display_panel_width = 512;
 const size_t display_panel_height = 424;
-const uint32_t default_max_fps    = 10;
+const uint32_t default_max_fps = 10;
 
 wxDEFINE_EVENT(REFRESH_DISPLAY_EVENT, wxCommandEvent);
 
@@ -82,7 +82,7 @@ class SettingsPanel : public wxPanel {
    wxTextCtrl *m_min_d_text, *m_max_d_text, *m_fps_text, *m_userid_text;
    wxButton *m_photos_button, *m_exp_button, *m_fps_button, *m_userid_set_button, *m_userid_random_button;
 
-   int max_fps         = default_max_fps;
+   int max_fps = default_max_fps;
    std::string user_id = "000000";
    bool taking_photos = false, showing_exp = false;
 };
@@ -217,7 +217,7 @@ void SettingsPanel::on_userid_random_button_click(wxCommandEvent &event) {
    struct stat sb {};
    do {
       new_id = dis(gen);
-      sb     = {};
+      sb = {};
       stat((photos_directory + std::to_string(new_id)).c_str(), &sb);
    } while (S_ISDIR(sb.st_mode));
    user_id = std::to_string(new_id);
@@ -280,7 +280,7 @@ std::pair<size_t, size_t> fit_to_size(size_t width, size_t height, size_t max_wi
 template <typename VectorT, typename ElementT = double>
 ElementT euclidian_norm(VectorT const vector) {
    size_t length = 0;
-   ElementT ret  = 0;
+   ElementT ret = 0;
 
    for (auto const &x : vector) {
       ret += x * x;
@@ -391,7 +391,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
 
       auto frame_size = fit_to_size(window->picture->color_frame->pixels->width,
             window->picture->color_frame->pixels->height, display_panel_width, display_panel_height);
-      size_t frame_width  = frame_size.first;
+      size_t frame_width = frame_size.first;
       size_t frame_height = frame_size.second;
 
       if (frame_width != window->picture->color_frame->pixels->width
@@ -462,7 +462,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
 
       auto frame_size = fit_to_size(window->picture->depth_frame->pixels->width,
             window->picture->depth_frame->pixels->height, display_panel_width, display_panel_height);
-      size_t frame_width  = frame_size.first;
+      size_t frame_width = frame_size.first;
       size_t frame_height = frame_size.second;
 
       if (frame_width != window->picture->depth_frame->pixels->width
@@ -490,7 +490,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
             auto pixel = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
-            window->m_display_depth->bitmap[3 * (i * display_panel_width + j)]     = pixel[2];
+            window->m_display_depth->bitmap[3 * (i * display_panel_width + j)] = pixel[2];
             window->m_display_depth->bitmap[3 * (i * display_panel_width + j) + 1] = pixel[1];
             window->m_display_depth->bitmap[3 * (i * display_panel_width + j) + 2] = pixel[0];
          }
@@ -511,7 +511,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
 
       auto frame_size = fit_to_size(window->picture->ir_frame->pixels->width, window->picture->ir_frame->pixels->height,
             display_panel_width, display_panel_height);
-      size_t frame_width  = frame_size.first;
+      size_t frame_width = frame_size.first;
       size_t frame_height = frame_size.second;
 
       if (frame_width != window->picture->ir_frame->pixels->width
@@ -529,7 +529,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
             auto pixel_value = static_cast<uint8_t>(255.0 * (*window->picture->ir_frame->pixels)[i][j] / max_value);
-            window->m_display_ir->bitmap[3 * (i * display_panel_width + j)]     = pixel_value;
+            window->m_display_ir->bitmap[3 * (i * display_panel_width + j)] = pixel_value;
             window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
             window->m_display_ir->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
          }
@@ -556,7 +556,7 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
          && window->picture->ir_frame
          && window->picture->depth_frame->pixels->width == window->picture->ir_frame->pixels->width
          && window->picture->depth_frame->pixels->height == window->picture->ir_frame->pixels->height) {
-      auto frame_width  = window->picture->depth_frame->pixels->width,
+      auto frame_width = window->picture->depth_frame->pixels->width,
            frame_height = window->picture->depth_frame->pixels->height;
 
       Matrix<double> values(frame_height, frame_width);
@@ -607,14 +607,14 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       for (size_t i = 0; i < frame_height; ++i) {
          for (size_t j = 0; j < frame_width; ++j) {
             auto pixel_value = static_cast<uint8_t>(std::min(255.0, 255.0 * values[i][j] / max_value));
-            float min_red    = 255.0f * static_cast<float>(window->m_settings->m_min_d->GetValue()) / 10000.0f;
-            float max_red    = 255.0f * static_cast<float>(window->m_settings->m_max_d->GetValue()) / 10000.0f;
+            float min_red = 255.0f * static_cast<float>(window->m_settings->m_min_d->GetValue()) / 10000.0f;
+            float max_red = 255.0f * static_cast<float>(window->m_settings->m_max_d->GetValue()) / 10000.0f;
             if (pixel_value >= min_red && pixel_value <= max_red) {
-               window->m_display_exp->bitmap[3 * (i * display_panel_width + j)]     = 255;
+               window->m_display_exp->bitmap[3 * (i * display_panel_width + j)] = 255;
                window->m_display_exp->bitmap[3 * (i * display_panel_width + j) + 1] = 0;
                window->m_display_exp->bitmap[3 * (i * display_panel_width + j) + 2] = 0;
             } else {
-               window->m_display_exp->bitmap[3 * (i * display_panel_width + j)]     = pixel_value;
+               window->m_display_exp->bitmap[3 * (i * display_panel_width + j)] = pixel_value;
                window->m_display_exp->bitmap[3 * (i * display_panel_width + j) + 1] = pixel_value;
                window->m_display_exp->bitmap[3 * (i * display_panel_width + j) + 2] = pixel_value;
             }
@@ -636,14 +636,14 @@ class AppMain : public wxApp {
 };
 
 bool AppMain::OnInit() {
-   auto *color_bitmap  = new uint8_t[display_panel_width * display_panel_height * 3];
-   auto *depth_bitmap  = new uint8_t[display_panel_width * display_panel_height * 3];
-   auto *ir_bitmap     = new uint8_t[display_panel_width * display_panel_height * 3];
+   auto *color_bitmap = new uint8_t[display_panel_width * display_panel_height * 3];
+   auto *depth_bitmap = new uint8_t[display_panel_width * display_panel_height * 3];
+   auto *ir_bitmap = new uint8_t[display_panel_width * display_panel_height * 3];
    auto *custom_bitmap = new uint8_t[display_panel_width * display_panel_height * 3];
    for (size_t i = 0; i < display_panel_width * display_panel_height * 3; ++i) {
-      color_bitmap[i]  = 0;
-      depth_bitmap[i]  = 0;
-      ir_bitmap[i]     = 0;
+      color_bitmap[i] = 0;
+      depth_bitmap[i] = 0;
+      ir_bitmap[i] = 0;
       custom_bitmap[i] = 0;
    }
 
@@ -662,15 +662,15 @@ int main(int argc, char **argv) {
    if (kinect_device->which_kinect == 1) {
       use_color = false;
       use_depth = true;
-      use_ir    = true;
+      use_ir = true;
    } else {
       use_color = true;
       use_depth = true;
-      use_ir    = true;
+      use_ir = true;
    }
    kinect_device->start_streams(use_color, use_depth, use_ir);
 
-   auto app           = new AppMain();
+   auto app = new AppMain();
    app->kinect_device = kinect_device;
    wxApp::SetInstance(app);
    return wxEntry(argc, argv);

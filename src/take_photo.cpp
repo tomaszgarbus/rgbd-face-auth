@@ -13,7 +13,7 @@
 char constexpr photos_directory[] = "../photos/";
 
 std::string get_current_time() {
-   auto current_time           = std::chrono::system_clock::now();
+   auto current_time = std::chrono::system_clock::now();
    auto current_time_as_time_t = std::chrono::system_clock::to_time_t(current_time);
 
    char current_time_char[100];

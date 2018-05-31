@@ -27,9 +27,9 @@ class Picture {
    void save_all_to_files(std::string const &base_filename) const;
    void resize_all(size_t width, size_t height);
 
-   ColorFrame *color_frame     = nullptr;
+   ColorFrame *color_frame = nullptr;
    DepthOrIrFrame *depth_frame = nullptr;
-   DepthOrIrFrame *ir_frame    = nullptr;
+   DepthOrIrFrame *ir_frame = nullptr;
 };
 
 class Picture::ColorFrame {
@@ -79,7 +79,7 @@ Picture::ColorFrame::ColorFrame(std::string const &filename) {
    pixels = new Matrix<ColorPixel>(height, width);
    for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
-         auto pixel      = image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
+         auto pixel = image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
          (*pixels)[i][j] = ColorPixel{pixel[0], pixel[1], pixel[2]};
       }
    }
@@ -112,7 +112,7 @@ void Picture::ColorFrame::resize(size_t const width, size_t const height) {
    pixels = new Matrix<ColorPixel>(height, width);
    for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
-         auto pixel      = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
+         auto pixel = destination_image.at<cv::Vec3b>(static_cast<int>(i), static_cast<int>(j));
          (*pixels)[i][j] = ColorPixel{pixel[0], pixel[1], pixel[2]};
       }
    }
@@ -155,7 +155,7 @@ Picture::DepthOrIrFrame::~DepthOrIrFrame() {
 
 void Picture::DepthOrIrFrame::save_to_file(std::string const &filename) const {
    size_t pixels_size = pixels->height * pixels->width * sizeof(float);
-   auto file_data     = new char[12 + pixels_size];
+   auto file_data = new char[12 + pixels_size];
    if (is_depth) {
       memcpy(file_data, "PHDE", 4);
    } else {
@@ -186,7 +186,7 @@ void Picture::DepthOrIrFrame::resize(size_t width, size_t height) {
    pixels = new Matrix<float>(height, width);
    for (size_t i = 0; i < height; ++i) {
       for (size_t j = 0; j < width; ++j) {
-         auto pixel      = destination_image.at<float>(static_cast<int>(i), static_cast<int>(j));
+         auto pixel = destination_image.at<float>(static_cast<int>(i), static_cast<int>(j));
          (*pixels)[i][j] = pixel;
       }
    }
