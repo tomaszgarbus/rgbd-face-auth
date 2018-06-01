@@ -85,8 +85,6 @@ class InputPreprocessor:
                 cur_aug = np.ndarray.astype(augmenter.augment_images(np.ndarray.astype(X_train * 256, np.uint8)),
                                             np.float32)
                 cur_aug = cur_aug * (1 / 256)
-                # Display augmented input, if you want
-                # show_image(cur_aug[0].reshape(NN_INPUT_SIZE))
                 train_augs.append(cur_aug)
             X_train = np.concatenate([X_train] + train_augs)
             Y_train = np.concatenate([Y_train] * (1 + len(train_augs)))
