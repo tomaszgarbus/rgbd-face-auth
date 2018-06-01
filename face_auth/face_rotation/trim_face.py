@@ -101,20 +101,21 @@ def generate_mask_from_skin(face: Face) -> None:
     mask = np.zeros((IMG_SIZE, IMG_SIZE), dtype=np.bool)
     mark = np.zeros((IMG_SIZE, IMG_SIZE, 3), dtype=np.float)
 
-    for x, y in product(range(IMG_SIZE), range(IMG_SIZE)):
-        r, g, b = face.rgb_img[x][y]
-        mark[x][y] = tools.rgb_skin_mark(r, g, b)
+    for x, y in product(range(IMG_SIZE), range(IMG_SIZE)): 
+        mark[x][y] = tools.rgb_skin_mark(*(face.rgb_img[x][y]))
 
     probe = [mark[x][y] for x, y in product(range(2*IMG_SIZE//4, 3*IMG_SIZE//4, 8),
                                             range(2*IMG_SIZE//4, 3*IMG_SIZE//4, 8))]
     probe.sort(key=(lambda x: x[0]**2 + x[1]**2 + x[2]**2))
-    A, B, C = probe[len(probe)//2]
+
+    # Mark of middle [probably] SKIN element
+    mid_y, mid_cr, mid_cy = probe[len(probe)//2]
 
     for x, y in product(range(IMG_SIZE), range(IMG_SIZE)):
-        a, b, c = mark[x][y]
-        mi = 0.918
-        ma = 1.092
-        mask[x][y] = (0.3 * A <= a <= 4 * A) and (mi * B <= b <= ma * B) and (mi*C <= c <= ma*C)
+        y, cr, cy = mark[x][y]
+        l_bound = 0.918
+        u_bound = 1.092
+        mask[x][y] = (0.3 * mid_y <= y <= 4 * mid_y) and (l_bound * mid_cr <= cr <= u_bound * mid_cr) and (l_bound * mid_cy <= cy <= u_bound * mid_cy)
 
     face.mask = mask
 
