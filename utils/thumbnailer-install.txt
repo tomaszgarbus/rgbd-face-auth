@@ -1,4 +1,3 @@
-xdg-mime install depth-mime.xml
-xdg-mime install ir-mime.xml
+xdg-mime install depth-ir-mime.xml
 sudo cp depth-ir.thumbnailer /usr/share/thumbnailers/
 sudo cp ../build/thumbnailer /usr/bin/depth-ir-thumbnailer
