@@ -83,7 +83,7 @@ class SettingsPanel : public wxPanel {
    wxButton *m_photos_button, *m_exp_button, *m_fps_button, *m_userid_set_button, *m_userid_random_button;
 
    int max_fps = default_max_fps;
-   std::string userid = "000000";
+   std::string userid = "";
    bool taking_photos = false, showing_exp = false;
 };
 
@@ -119,7 +119,7 @@ SettingsPanel::SettingsPanel(wxPanel *parent)
         m_fps_text(
               new wxTextCtrl(this, ID_FPS_TEXT, std::to_string(default_max_fps), wxPoint(230, 70), wxSize(100, 50))),
         m_fps_button(new wxButton(this, ID_FPS_BTN, "Set max. FPS", wxPoint(340, 70), wxSize(100, 50))),
-        m_userid_text(new wxTextCtrl(this, ID_USERID_TEXT, "000000", wxPoint(450, 70), wxSize(100, 50))),
+        m_userid_text(new wxTextCtrl(this, ID_USERID_TEXT, "", wxPoint(450, 70), wxSize(100, 50))),
         m_userid_set_button(new wxButton(this, ID_USERID_SET_BTN, "Set ID", wxPoint(560, 70), wxSize(100, 50))),
         m_userid_random_button(
               new wxButton(this, ID_USERID_RAND_BTN, "Random && set", wxPoint(670, 70), wxSize(100, 50))) {
