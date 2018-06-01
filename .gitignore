@@ -5,3 +5,8 @@
 build/
 cmake-build-debug/
 /photos/
+
+# (La)TeX
+*.aux
+*.pdf
+*.log
