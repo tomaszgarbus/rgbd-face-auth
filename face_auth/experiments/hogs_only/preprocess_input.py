@@ -43,4 +43,4 @@ if __name__ == '__main__':
     preprocessor = InputPreprocessor(exp_name=EXP_NAME,
                                      nn_input_size=INPUT_SIZE,
                                      build_input_vector=build_input_vector)
-    preprocessor.preprocess(augmenters=augmenters)
+    preprocessor.preprocess()

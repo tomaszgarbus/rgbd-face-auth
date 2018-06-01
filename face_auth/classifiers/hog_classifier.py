@@ -20,7 +20,7 @@ class HogFaceClassifier:
     svc_pipeline = Pipeline([
         #('preprocess', FunctionTransformer(getFaceHog)),
         ('classifier', SVC(
-            C=200, kernel='rbf',
+            C=1, kernel='rbf',
             gamma=1, shrinking=True,
             probability=True, tol=0.001, cache_size=200,
             class_weight='balanced', max_iter=-1, verbose=0))

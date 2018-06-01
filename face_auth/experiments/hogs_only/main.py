@@ -23,11 +23,11 @@ if __name__ == '__main__':
     x_train = x_train.reshape(train_shape[0], train_shape[1])
     x_test = x_test.reshape(test_shape[0], test_shape[1])
 
-    score = classifier.test(x_train, from_hot_one(y_train))
+#    score = classifier.test(x_train, from_hot_one(y_train))
+
+    classifier.fit(x_train, from_hot_one(y_train))
+    ys = classifier.prediction(x_test)
+    score = accuracy_score(from_hot_one(y_test), ys)
     print("score is " + str(score))
-#    classifier.fit(x_train, from_hot_one(y_train))
-#    ys = classifier.prediction(x_test)
-#    score = accuracy_score(from_hot_one(y_test), ys)
-#    print("score is " + score)
 
 
