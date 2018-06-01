@@ -17,7 +17,7 @@ class InputPreprocessor:
     def __init__(self,
                  exp_name: str,
                  nn_input_size: Tuple[int, int, int],
-                 build_input_vector: Callable[[Face], np.ndarray]):
+                 build_input_vector):
         self.exp_name = exp_name
         self.nn_input_size = nn_input_size
         self.build_input_vector = build_input_vector
@@ -52,7 +52,7 @@ class InputPreprocessor:
 
     def preprocess(self):
         logging.basicConfig(level=logging.INFO)
-    
+
         # Load data
         x_train = []
         y_train = []

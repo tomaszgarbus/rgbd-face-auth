@@ -68,9 +68,12 @@ def normalized(face: Face,
     return rotated_face
     # tools.show_3d_plot(rotate.to_one_matrix(rotated_face))
 
+
 def hog_and_entropy(face: Face) -> Face:
-    face.hog_grey_image = get_hog_of(face.grey_img)
+    face.hog_grey_image, fdg = get_hog_of(face.grey_img)
+    face.hog_grey_fd = fdg
     face.entropy_map_grey_image = get_entropy_map_of(face.grey_img)
-    face.hog_depth_image = get_hog_of(face.depth_img)
+    face.hog_depth_image, fdd = get_hog_of(face.depth_img)
+    face.hog_depth_fd = fdd
     face.entropy_map_depth_image = get_entropy_map_of(face.depth_img)
     return face

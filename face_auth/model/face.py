@@ -14,10 +14,12 @@ class Face:
     mask: np.ndarray((IMG_SIZE, IMG_SIZE), dtype=np.bool) = None
     landmarks = None
 
-    hog_grey_image: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
     entropy_map_grey_image: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
     entropy_map_depth_image: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
     hog_depth_image: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
+    hog_grey_image: np.ndarray((IMG_SIZE, IMG_SIZE)) = None
+    hog_depth_fd: np.ndarray = None
+    hog_grey_fd: np.ndarray = None
 
     """ list of points defining the face surface"""
     face_points: dict = None
@@ -65,6 +67,9 @@ class Face:
         return tools.concat_images([self.grey_img, self.depth_img,
                                     self.entropy_map_grey_image, self.entropy_map_depth_image,
                                     self.hog_grey_image, self.hog_depth_image])
+
+    def get_fd_desc(self):
+        return np.concatenate((self.hog_grey_fd, self.hog_depth_fd), axis=0)
 
     def get_channels(self) -> np.ndarray:
         channels = np.zeros((IMG_SIZE, IMG_SIZE, 6))
