@@ -1,4 +1,3 @@
-
 from common.db_helper import DB_LOCATION
 from common.tools import show_image
 import numpy as np

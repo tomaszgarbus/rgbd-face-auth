@@ -6,9 +6,9 @@ import numpy as np
 import os
 import logging
 from progress.bar import Bar
-from typing import Callable, Tuple
+from typing import Tuple, Optional, List
+from imgaug import augmenters as ia
 
-from model.face import Face
 from common.constants import NUM_CLASSES
 from common.db_helper import Database, DBHelper, DB_LOCATION
 
@@ -50,7 +50,7 @@ class InputPreprocessor:
                 bar.next()
             bar.finish()
 
-    def preprocess(self):
+    def preprocess(self, augmenters: Optional[List[ia.Augmenter]] = None):
         logging.basicConfig(level=logging.INFO)
     
         helper = DBHelper()
@@ -74,6 +74,22 @@ class InputPreprocessor:
         for i in range(TEST_SIZE):
             X_test[i] = self.x_test[i].reshape((self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
             Y_test[i, self.y_test[i]-1] = 1
+
+        if augmenters is not None:
+            # TODO(tomek): some progress bar for augmenting
+            logging.info('Running augmenters')
+            # Augments entire training set with supplied augmenters
+            train_augs = []
+            for augmenter in augmenters:
+                print(augmenter)
+                cur_aug = np.ndarray.astype(augmenter.augment_images(np.ndarray.astype(X_train * 256, np.uint8)),
+                                            np.float32)
+                cur_aug = cur_aug * (1 / 256)
+                # Display augmented input, if you want
+                # show_image(cur_aug[0].reshape(NN_INPUT_SIZE))
+                train_augs.append(cur_aug)
+            X_train = np.concatenate([X_train] + train_augs)
+            Y_train = np.concatenate([Y_train] * (1 + len(train_augs)))
     
         for i in range(len(X_train)):
             if np.isnan(X_train[i]).any():
