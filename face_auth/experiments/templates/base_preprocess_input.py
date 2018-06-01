@@ -52,12 +52,6 @@ class InputPreprocessor:
 
     def preprocess(self):
         logging.basicConfig(level=logging.INFO)
-
-        # Load data
-        x_train = []
-        y_train = []
-        x_test = []
-        y_test = []
     
         helper = DBHelper()
     
@@ -68,22 +62,18 @@ class InputPreprocessor:
                 sum_offset += database.subjects_count()
     
         # Reshape input
-        TRAIN_SIZE = len(x_train)
-        TEST_SIZE = len(x_test)
+        TRAIN_SIZE = len(self.x_train)
+        TEST_SIZE = len(self.x_test)
         X_train = np.zeros((TRAIN_SIZE, self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
         Y_train = np.zeros((TRAIN_SIZE, NUM_CLASSES))
         X_test = np.zeros((TEST_SIZE, self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
         Y_test = np.zeros((TEST_SIZE, NUM_CLASSES))
         for i in range(TRAIN_SIZE):
-            X_train[i] = x_train[i].reshape((self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
-            Y_train[i, y_train[i]-1] = 1
+            X_train[i] = self.x_train[i].reshape((self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
+            Y_train[i, self.y_train[i]-1] = 1
         for i in range(TEST_SIZE):
-            X_test[i] = x_test[i].reshape((self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
-            Y_test[i, y_test[i]-1] = 1
-        x_train = []
-        y_train = []
-        x_test = []
-        y_test = []
+            X_test[i] = self.x_test[i].reshape((self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
+            Y_test[i, self.y_test[i]-1] = 1
     
         for i in range(len(X_train)):
             if np.isnan(X_train[i]).any():
