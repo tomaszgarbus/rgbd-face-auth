@@ -375,14 +375,6 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
       return;
    }
 
-   // if (picture.color_frame) {
-   //   std::cerr << "Received color" << std::endl;
-   //} else if (picture.depth_frame) {
-   //   std::cerr << "Received depth" << std::endl;
-   //} else if (picture.ir_frame) {
-   //   std::cerr << "Received ir" << std::endl;
-   //}
-
    if (picture.color_frame
          && picture.color_frame->time_received - window->last_shown_color
                   >= std::chrono::milliseconds(1000 / window->m_settings->max_fps)) {
@@ -425,33 +417,26 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
    if (picture.depth_frame) {
       delete window->buffer_depth;
       window->buffer_depth = new Picture::DepthOrIrFrame(*picture.depth_frame);
-      // std::cerr << "Buffered depth" << std::endl;
    } else if (picture.ir_frame) {
       delete window->buffer_ir;
       window->buffer_ir = new Picture::DepthOrIrFrame(*picture.ir_frame);
-      // std::cerr << "Buffered ir" << std::endl;
    }
 
    Picture::DepthOrIrFrame *depth_frame = window->buffer_depth, *ir_frame = window->buffer_ir;
 
    if (!depth_frame || !ir_frame) {
-      // std::cerr << "No depth or ir frame" << std::endl;
       return;
    }
 
    if (std::min(depth_frame->time_received, ir_frame->time_received) - window->last_shown_de_ir
          < std::chrono::milliseconds(1000 / window->m_settings->max_fps)) {
-      // std::cerr << "Too fast, would break fps limit" << std::endl;
       return;
    }
 
    if (depth_frame->time_received - ir_frame->time_received > std::chrono::milliseconds(5)
          || depth_frame->time_received - ir_frame->time_received < std::chrono::milliseconds(-5)) {
-      // std::cerr << "Depth and ir frame not synchronized, skipping" << std::endl;
       return;
    }
-
-   // std::cerr << "Went through, showing frames" << std::endl;
 
    window->last_shown_de_ir = std::chrono::system_clock::now();
 
@@ -460,7 +445,6 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
    }
 
    if (true) {
-      // std::cerr << "Showing depth frame" << std::endl;
       if (window->m_settings->taking_photos) {
          std::string filename = make_filename(which_kinect, depth_frame->time_received, window->m_settings->userid);
          depth_frame->save_to_file(filename + ".depth");
@@ -511,7 +495,6 @@ void MyKinectDevice::frame_handler(Picture const &picture) const {
    }
 
    if (true) {
-      // std::cerr << "Showing ir frame" << std::endl;
       if (window->m_settings->taking_photos) {
          std::string filename = make_filename(which_kinect, ir_frame->time_received, window->m_settings->userid);
          ir_frame->save_to_file(filename + ".ir");
