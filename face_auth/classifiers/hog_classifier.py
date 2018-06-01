@@ -19,21 +19,19 @@ class HogFaceClassifier:
 
     svc_pipeline = Pipeline([
         #('preprocess', FunctionTransformer(getFaceHog)),
-        ('classifier', OneVsRestClassifier(SVC(
-            C=10, kernel='rbf',
+        ('classifier', SVC(
+            C=200, kernel='rbf',
             gamma=1, shrinking=True,
             probability=True, tol=0.001, cache_size=200,
-            class_weight='balanced', max_iter=-1)
-            , n_jobs=4))
+            class_weight='balanced', max_iter=-1, verbose=0))
     ])
 
     et_pipeline = Pipeline([
         #('preprocess', FunctionTransformer(getFaceHog)),
-        ('classifier', OneVsRestClassifier(ExtraTreesClassifier(
-            n_estimators=300,
+        ('classifier', ExtraTreesClassifier(
+            n_estimators=1000,
             criterion='entropy',
-            max_features='auto'),
-            n_jobs=4))
+            max_features='auto', verbose=0))
     ])
 
     ens = VotingClassifier(estimators=[
@@ -54,7 +52,8 @@ class HogFaceClassifier:
         self.ens = joblib.load(file)
 
     def test(self, x, y):
-        cross_val_score(self.ens, x, y, cv=3, verbose=3)
+        score = cross_val_score(self.ens, x, y, cv=3, verbose=3, n_jobs=3)
+        return score.mean()
 
     def prediction(self, X):
         return self.ens.predict(X)
