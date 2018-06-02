@@ -34,8 +34,7 @@ def rgb_skin_mark(r: float, g: float, b: float) -> (float, float, float):
     return (y, cb, cr)
 
 
-# TODO : Add types
-def pic_with_applied_mask(pic, mask):
+def pic_with_applied_mask(pic: np.ndarray, mask: np.ndarray) -> np.ndarray:
     ret = np.copy(pic)
 
     assert len(pic) == len(mask) and len(pic[0]) == len(mask[0]), "Mask must have same size as pic"
