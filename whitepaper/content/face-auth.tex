@@ -1,48 +1,80 @@
 \section{Face authentication}
-    Brief introduction to section.
+    Brief introduction to the section.
 
     \subsection{Data set}
-        Data set size and a few other informations.
+    Data set size and a few other information, hopefully some samples.
 
-    \subsection{Results}
-        Wide discussion about final results of work.
+    \subsection{Face angle detection}
+    Longer description of angle detection
 
-        \subsubsection*{Quality measure}   % This star is fully intentional
-            Wide explanation how model is scorred.
+    \subsection{Normalization}
+        \subsubsection*{Mean and std. dev. normalization}
+        Dropping corner values, chosen mean and std. dev. values.
 
-        \subsubsection*{Model description} % This too...
-            Wide description of final model.
+        \subsubsection*{Face angle normalization}
+        Use of face angle detection to rotate to frontal position.
 
-    \subsection{Using skin detection in face authentication}
-            Brief description of motivations.
+    \subsection{Preprocessing techniques}
+    We have tried several different preprocessing techniques.
+    % TODO(tomek): skin detection
+        \subsubsection*{Trimming faces}
+        In all experiments, the faces have been trimmed, to ensure that the
+        models learn only the faces and not the backgrounds, hairdos or
+        clothings.
+        We have tried two techniques:
+        \begin{itemize}
+            \item Exact polygon found by \url{https://github.com/ageitgey/face_recognition}
+            \item Skin filter
+        \end{itemize}
+        Picture samples for both methods.
 
-        \subsubsection*{Face detection}
-            Wide summary of face detection with
-            skin detection algorithm.
+        \subsubsection*{Entropy maps}
+        How they work, why to use them (reference to the other paper).
 
-        \subsubsection*{Additional layer -- security improvement?}
-            Wide summary.
-            Assumption : skin detection is often correct.
-            % With our best sd model.
+        \subsubsection*{HOGs of entropy maps}
+        How they work, why to use them (reference to the other paper). They
+        are particularly helpful for Extra Trees and RDF-s.
 
-    \subsection{ML Model and utilities}
-        % You may want to consider
-        % division of that subsection to more.
-        Brief description of subsection.
-        \subsubsection{Model 1}  % And here we don't have star!
-            % If you want, you may create
-            % new .tex file with content
-            % of experiment description.
-            %
-            % Create them in content dictionary.
-            ... 1
+        \subsubsection*{Skin mask channel}
+        Link to some section from skin-recognition about how it is calculated.
+        Short description and motivation that it may make sense for
+        convolutions.
+        Sample photos.
 
-        \subsubsection{Scoring model 2}
-            ... 2
+        \subsubsection*{Channels vs concatenation}
 
-        \subsubsection{Util 3}
-            ... 3
 
-    \subsection{Results of experiments}
-        Here, tabel with data will appear.
+    \subsection{Classifiers}
+        \subsubsection*{CNN}
 
+        \subsubsection*{Voting SVMs and Extra Trees}
+
+        \subsubsection*{Voting CNN, SVMs and Extra Trees}
+
+    \subsection{Quality measures}
+        \subsubsection*{ACC}
+
+        \subsubsection*{AUC ROC}
+
+        \subsubsection*{Recall for fixed precision}
+
+
+    \subsection{Test results}
+        \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c|c|c| }
+            \hline
+            \multirow{2}{*}{Model} &
+            \multirow{2}{*}{Mode} &
+            \multirow{2}{*}{Trim} &
+            \multirow{2}{*}{Rotation} &
+            \multirow{2}{*}{Entropy} &
+            \multirow{2}{*}{HOGs} &
+            \multirow{2}{*}{Skin mask} &
+            \multirow{2}{*}{Inputs} &
+            \multirow{2}{*}{ACC} &
+            \multirow{2}{*}{AUC ROC} &
+            \multicolumn{3}{|c|}{Recall for precision $\rho$} \\
+            & & & & & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
+            \hline
+            CNN & binary & polygon & frontal & y & y & n & channels & NA & 0.86 & 0.9 & 0.85 & 0.83 \\
+            \hline
+        \end{tabular}
