@@ -21,9 +21,9 @@ class HogFaceClassifier:
     svc_pipeline = Pipeline([
         #('preprocess', FunctionTransformer(getFaceHog)),
         ('classifier', SVC(
-            C=1, kernel='rbf',
-            gamma=1, shrinking=False,
-            probability=True, tol=0.001, cache_size=1000,
+            C=10, kernel='poly',
+            gamma=1, shrinking=False, class_weight='balanced',
+            probability=True, tol=0.001, cache_size=10000,
             max_iter=-1, verbose=0))
     ])
 
@@ -43,6 +43,8 @@ class HogFaceClassifier:
     def __init__(self):
         pass
 
+
+
     def fit(self, x, y):
         self.ens.fit(x, y)
 
@@ -52,9 +54,11 @@ class HogFaceClassifier:
     def load(self, file):
         self.ens = joblib.load(file)
 
-    def test(self, x, y):
+    def cv_test(self, x, y):
         score = cross_val_score(self.ens, x, y, cv=3, verbose=3, n_jobs=3)
         return score.mean()
+
+
 
     def prediction(self, X):
         return self.ens.predict(X)
