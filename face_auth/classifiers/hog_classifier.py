@@ -11,6 +11,7 @@ from sklearn.externals import joblib
 from sklearn.preprocessing import FunctionTransformer
 
 
+
 def getFaceHog(X: Face) -> np.ndarray:
     np.concatenate((X.hog_grey_fd, X.hog_depth_image), axis=0)
 
@@ -22,14 +23,14 @@ class HogFaceClassifier:
         ('classifier', SVC(
             C=1, kernel='rbf',
             gamma=1, shrinking=True,
-            probability=True, tol=0.001, cache_size=200,
+            probability=True, tol=0.001, cache_size=1000,
             class_weight='balanced', max_iter=-1, verbose=0))
     ])
 
     et_pipeline = Pipeline([
         #('preprocess', FunctionTransformer(getFaceHog)),
         ('classifier', ExtraTreesClassifier(
-            n_estimators=1000,
+            n_estimators=5000,
             criterion='entropy',
             max_features='auto', verbose=0))
     ])
@@ -37,7 +38,7 @@ class HogFaceClassifier:
     ens = VotingClassifier(estimators=[
         ('svc', svc_pipeline),
         ('et', et_pipeline),
-    ], voting='soft', weights=[2, 1])
+    ], voting='soft', weights=[1, 10])
 
     def __init__(self):
         pass
