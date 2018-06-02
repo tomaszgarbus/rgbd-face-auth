@@ -22,16 +22,16 @@ class HogFaceClassifier:
         #('preprocess', FunctionTransformer(getFaceHog)),
         ('classifier', SVC(
             C=1, kernel='rbf',
-            gamma=1, shrinking=True,
+            gamma=1, shrinking=False,
             probability=True, tol=0.001, cache_size=1000,
-            class_weight='balanced', max_iter=-1, verbose=0))
+            max_iter=-1, verbose=0))
     ])
 
     et_pipeline = Pipeline([
         #('preprocess', FunctionTransformer(getFaceHog)),
         ('classifier', ExtraTreesClassifier(
             n_estimators=5000,
-            criterion='entropy',
+            criterion='gini',
             max_features='auto', verbose=0))
     ])
 
