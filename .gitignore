@@ -10,3 +10,4 @@ cmake-build-debug/
 *.aux
 *.pdf
 *.log
+*.out
