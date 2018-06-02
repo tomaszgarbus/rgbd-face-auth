@@ -36,6 +36,7 @@
 #include "basic_types.hpp"
 #include "libkinect.hpp"
 #include "picture.hpp"
+#include <random>
 
 // Constants
 
