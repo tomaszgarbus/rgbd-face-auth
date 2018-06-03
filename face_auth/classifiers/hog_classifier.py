@@ -1,25 +1,26 @@
 import numpy as np
-from model.face import Face
 
-from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import VotingClassifier
 from sklearn.externals import joblib
-from sklearn.preprocessing import FunctionTransformer
+from sklearn.metrics import accuracy_score
 
+from model.face import Face
+from classifiers.classification_results import ClassificationResults
 
+def get_face_hog(face: Face) -> np.ndarray:
+    np.concatenate((face.hog_grey_fd, face.hog_depth_image), axis=0)
 
-def getFaceHog(X: Face) -> np.ndarray:
-    np.concatenate((X.hog_grey_fd, X.hog_depth_image), axis=0)
-
+def from_hot_one(ys):
+    return [np.argmax(y) for y in ys]
 
 class HogFaceClassifier:
 
     svc_pipeline = Pipeline([
-        #('preprocess', FunctionTransformer(getFaceHog)),
+        # ('preprocess', FunctionTransformer(get_face_hog)),
         ('classifier', SVC(
             C=10, kernel='poly',
             gamma=1, shrinking=False, class_weight='balanced',
@@ -28,7 +29,7 @@ class HogFaceClassifier:
     ])
 
     et_pipeline = Pipeline([
-        #('preprocess', FunctionTransformer(getFaceHog)),
+        # ('preprocess', FunctionTransformer(get_face_hog)),
         ('classifier', ExtraTreesClassifier(
             n_estimators=5000,
             criterion='gini',
@@ -40,10 +41,8 @@ class HogFaceClassifier:
         ('et', et_pipeline),
     ], voting='soft', weights=[1, 10])
 
-    def __init__(self):
-        pass
-
-
+    def __init__(self, binary_classification: bool = False):
+        self.binary_classification = binary_classification
 
     def fit(self, x, y):
         self.ens.fit(x, y)
@@ -58,7 +57,14 @@ class HogFaceClassifier:
         score = cross_val_score(self.ens, x, y, cv=3, verbose=3, n_jobs=3)
         return score.mean()
 
-
-
     def prediction(self, X):
         return self.ens.predict(X)
+
+    def evaluate(self, x_test, y_test):
+        preds = self.prediction(x_test)
+        pred_probs = self.ens.predict_proba(x_test)
+        acc = accuracy_score(from_hot_one(y_test), preds)
+        results = ClassificationResults(labels=y_test, preds=preds, pred_probs=pred_probs, acc=acc,
+                                        binary=self.binary_classification)
+        return results
+

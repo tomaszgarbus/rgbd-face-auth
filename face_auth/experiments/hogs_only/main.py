@@ -28,12 +28,11 @@ if __name__ == '__main__':
 
     classifier.fit(x_train, from_hot_one(y_train))
     ys = classifier.prediction(x_test)
-    score = accuracy_score(from_hot_one(y_test), ys)
+    score = classifier.evaluate(x_test, y_test).acc
     print("score is " + str(score))
 
     ys = classifier.prediction(x_train)
     score = accuracy_score(from_hot_one(y_train), ys)
 
     print("on train is " + str(score))
-
 
