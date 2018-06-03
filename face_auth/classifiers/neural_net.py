@@ -8,6 +8,7 @@ from progress.bar import Bar
 from imgaug import augmenters as ia
 from sklearn.metrics import roc_auc_score
 
+from classifiers.classification_results import ClassificationResults
 from common.db_helper import DB_LOCATION
 from common.constants import NUM_CLASSES
 from common.tools import show_image
@@ -212,7 +213,7 @@ class NeuralNet:
                     kernel = tf.reshape(kernel, [1, self.kernel_size[0] * self.input_shape[-1], self.kernel_size[1], 1])
                 else:
                     kernel = tf.reshape(kernel, [1] +\
-                                        [self.kernel_size[0] * self.filters_count[layer_no - 1], self.kernel_size[1]] +\
+                                        [self.kernel_size[0] * self.filters_count[layer_no - 1], self.kernel_size[1]] +
                                         [1])
                 kernels.append(kernel)
                 applied = tf.reshape(cur_conv_layer[0, :, :, filter_no], [1, inp_x, inp_y, 1])
@@ -268,17 +269,20 @@ class NeuralNet:
                                            top10_indices,
                                            dtype=[tf.int32, tf.int32, tf.int32])
 
-                def safe_cut_patch(sxy, size, img):
+                def safe_cut_patch(sxy, size, img, layer_no):
                     """
                     :param (sample_no, x, y)@sxy
                     :param size: size of patch to cut out
                     :param img: image to cut it from
+                    :param layer_no: current layer number
                     :return: Cuts out a patch of size (|size|) located at (x, y) on
                         input #sample_no in current batch.
                     """
                     sample_no, x, y = sxy
-                    pad_marg_x = 2
-                    pad_marg_y = 2
+                    x *= 2 ** layer_no
+                    y *= 2 ** layer_no
+                    pad_marg_x = size[0] // 2
+                    pad_marg_y = size[1] // 2
                     padding = [[0, 0],
                                [pad_marg_x, pad_marg_x],
                                [pad_marg_y, pad_marg_y],
@@ -292,7 +296,8 @@ class NeuralNet:
                     tf.map_fn(lambda sxy: safe_cut_patch(sxy,
                                                          size=(self.kernel_size[0] * (2 ** layer_no),
                                                                self.kernel_size[1] * (2 ** layer_no)),
-                                                         img=tf.expand_dims(self.x[:, :, :, 0], axis=-1)),
+                                                         img=tf.expand_dims(self.x[:, :, :, 0], axis=-1),
+                                                         layer_no=layer_no),
                               top10_reshaped,
                               dtype=tf.float32)
                 self.patches_responses[layer_no][filter_no] = top10_vals
@@ -460,7 +465,7 @@ class NeuralNet:
 
         return results[0], results[1], list(results[2])
 
-    def validate(self, global_step) -> Tuple[float, float, Optional[float]]:
+    def validate(self, global_step) -> ClassificationResults:
         """
         :return: (loss, accuracy, auc_roc)
         Note that if self.binary_classification is False, auc_roc may be anything
@@ -479,16 +484,13 @@ class NeuralNet:
             accs.append(acc)
             all_pred_probs += probs
             all_labels += list(labels)
+        all_pred_probs = np.array(all_pred_probs)
+        all_labels = np.array(all_labels)
+        all_labels = all_labels.astype(dtype=np.bool)
         loss = np.mean(losses)
         acc = np.mean(accs)
-        if self.binary_classification:
-            all_pred_probs = np.array(all_pred_probs)
-            all_labels = np.array(all_labels)
-            all_labels = all_labels.astype(dtype=np.bool)
-            auc_roc = roc_auc_score(all_labels, all_pred_probs)
-        else:
-            auc_roc = None
-        return loss, acc, auc_roc
+        return ClassificationResults(loss=loss, acc=acc, pred_probs=all_pred_probs, labels=all_labels,
+                                     binary=self.binary_classification)
 
     def _next_training_batch(self) -> (np.ndarray, np.ndarray):
         batch = sample(list(range(self.x_train.shape[0])), self.mb_size)
@@ -537,7 +539,8 @@ class NeuralNet:
                 bar = Bar('', max=self.steps_per_epoch, suffix='%(index)d/%(max)d ETA: %(eta)ds')
 
                 # Validate
-                loss, acc, auc_roc = self.validate(global_step=epoch_no)
+                val_results = self.validate(global_step=epoch_no)
+                loss, acc, auc_roc = val_results.loss, val_results.acc, val_results.get_auc_roc()
                 if self.binary_classification:
                     self.logger.info("Validation results: Loss: {0}, accuracy: {1}, auc_roc: {2}".
                                      format(loss, acc, auc_roc))
@@ -545,3 +548,5 @@ class NeuralNet:
                     self.logger.info("Validation results: Loss: {0}, accuracy: {1}".format(loss, acc))
                 # Dipslay confusion matrix
                 show_image(self._confusion_matrix)
+
+            return val_results
