@@ -50,14 +50,15 @@ class InputPreprocessor:
                 bar.next()
             bar.finish()
 
-    def preprocess(self, augmenters: Optional[List[ia.Augmenter]] = None):
+    def preprocess(self, augmenters: Optional[List[ia.Augmenter]] = None,
+                   disable_databases: List[str] = ['www.vap.aau.dk', 'superface_dataset']):
         logging.basicConfig(level=logging.INFO)
     
         helper = DBHelper()
     
         sum_offset = 0
         for database in helper.get_databases():
-            if database.get_name() not in ['www.vap.aau.dk', 'superface_dataset']:
+            if database.get_name() not in disable_databases:
                 self.load_database(database, sum_offset)
                 sum_offset += database.subjects_count()
     
