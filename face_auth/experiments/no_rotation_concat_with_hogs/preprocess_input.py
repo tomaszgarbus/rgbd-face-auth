@@ -1,6 +1,6 @@
 """
     1 channel, 6 concatenated images:
-    grey, depth, grey_entropy, depth_entropy, hog of grey_entropy, hog of depth_entropy
+    grey_or_ir, depth, grey_or_ir_entropy, depth_entropy, hog of grey_or_ir_entropy, hog of depth_entropy
 """
 import numpy as np
 
@@ -10,10 +10,10 @@ from controller.normalization import normalized, hog_and_entropy
 
 
 def build_input_vector(face):
-    (grey_face, depth_face) = (face.grey_img, face.depth_img)
-    if grey_face is None or depth_face is None:
+    (gir_face, depth_face) = (face.gir_img, face.depth_img)
+    if gir_face is None or depth_face is None:
         return None
-    if np.isnan(grey_face).any() or np.isnan(depth_face).any():
+    if np.isnan(gir_face).any() or np.isnan(depth_face).any():
         return None
     try:
         face = normalized(face, rotate=False)

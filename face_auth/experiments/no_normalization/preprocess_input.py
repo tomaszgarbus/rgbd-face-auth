@@ -14,19 +14,19 @@ import os
 import logging
 
 
-def build_input_vector(greyd_face):
-    """ Concatenates: grey_face, depth_face, entr_grey_face, entr_depth_face"""
-    (grey_face, depth_face) = greyd_face
-    if grey_face is None or depth_face is None:
+def build_input_vector(gird_face):
+    """ Concatenates: grey_or_ir_face, depth_face, entr_grey_or_ir_face, entr_depth_face"""
+    (gir_face, depth_face) = gird_face
+    if gir_face is None or depth_face is None:
         return None
     tmp = np.zeros((4 * IMG_SIZE, IMG_SIZE))
-    entr_grey_face = entropy(grey_face, disk(5))
-    entr_grey_face = entr_grey_face / np.max(entr_grey_face)
+    entr_gir_face = entropy(gir_face, disk(5))
+    entr_gir_face = entr_gir_face / np.max(entr_gir_face)
     entr_depth_face = entropy(depth_face, disk(5))
     entr_depth_face = entr_depth_face / np.max(entr_depth_face)
     tmp[0:IMG_SIZE] = depth_face
-    tmp[IMG_SIZE:IMG_SIZE * 2] = grey_face
-    tmp[IMG_SIZE * 2:IMG_SIZE * 3] = entr_grey_face
+    tmp[IMG_SIZE:IMG_SIZE * 2] = gir_face
+    tmp[IMG_SIZE * 2:IMG_SIZE * 3] = entr_gir_face
     tmp[IMG_SIZE * 3:IMG_SIZE * 4] = entr_depth_face
     return tmp
 
@@ -37,7 +37,7 @@ def load_database(database, offset, override_test_set=False):
         logging.debug('Subject', i)
         for j in range(database.imgs_per_subject(i)):
             logging.debug('Photo %d/%d' % (j, database.imgs_per_subject(i)))
-            x = build_input_vector(database.load_greyd_face(i, j))
+            x = build_input_vector(database.load_gird_face(i, j))
             y = offset + i + 1
             if x is None or y is None:
                 continue

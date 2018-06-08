@@ -5,6 +5,7 @@ import random
 import logging
 from model.face import Face
 
+
 def _rx(theta: float) -> np.ndarray((3, 3)):
     """ returns rotation matrix for x axis """
     return np.array([[1, 0, 0],
@@ -58,7 +59,7 @@ def drop_corner_values(face: Face) -> None:
 
     # Scale each dimension into interval 0..1
     rescale_one_dim(face.depth_img)
-    rescale_one_dim(face.grey_img)
+    rescale_one_dim(face.gir_img)
     face.depth_img *= DEPTH_TO_WIDTH_RATIO
 
 
@@ -144,25 +145,26 @@ def _smoothen(img: np.ndarray) -> np.ndarray:
                 img[i, j] = _median_neighbors(img, (i, j), 1, 0.01, 0.9)
     return img
 
+
 def _to_one_matrix(face: Face) -> np.ndarray:
     """
         :param face:
-        :return: a 3D np.ndarray of shape (IMG_SIZE, IMG_SIZE, 4): (x, y, z, grey)
+        :return: a 3D np.ndarray of shape (IMG_SIZE, IMG_SIZE, 4): (x, y, z, grey or ir)
     """
     points = np.zeros((IMG_SIZE, IMG_SIZE, 4))
     for i in range(IMG_SIZE):
         points[i, :, 0] = i
         points[:, i, 1] = i
         points[i, :, 2] = face.depth_img[i, :]
-        points[i, :, 3] = face.grey_img[i, :]
+        points[i, :, 3] = face.gir_img[i, :]
     return points
 
 
-def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
+def rotate_gird_img(face: Face, rotation_matrix: np.ndarray):
     face_points = face.face_points
     face_points["center"] = face.face_center
 
-    # First, we prepare the matrix X of points (x, y, z, Grey)
+    # First, we prepare the matrix X of points (x, y, z, grey or ir)
     points = _to_one_matrix(face)
 
     # Normalize x an y dimensions of |points|
@@ -179,8 +181,8 @@ def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
     face_points = normalize_face_points(points, face_points, rotation_matrix)
     _rescale(points)
 
-    # Apply rotated image to grey and depth photo
-    grey_rotated = np.zeros((IMG_SIZE, IMG_SIZE))
+    # Apply rotated image to (grey or ir) and depth photo
+    gir_rotated = np.zeros((IMG_SIZE, IMG_SIZE))
     depth_rotated = np.zeros((IMG_SIZE, IMG_SIZE))
     for i in range(IMG_SIZE):
         for j in range(IMG_SIZE):
@@ -197,29 +199,29 @@ def rotate_greyd_img(face: Face, rotation_matrix: np.ndarray):
             g = points[i, j, 3]
             z = points[i, j, 2]
             if depth_rotated[x, y] < z:
-                grey_rotated[x, y] = g
+                gir_rotated[x, y] = g
                 depth_rotated[x, y] = z
 
     for i in range(SMOOTHEN_ITER):
-        grey_rotated = _smoothen(grey_rotated)
+        gir_rotated = _smoothen(gir_rotated)
         depth_rotated = _smoothen(depth_rotated)
 
     # If you want to view the rotated image, use the following:
-    # tools.show_image(grey_rotated)
+    # tools.show_image(gir_rotated)
     # tools.show_image(depth_rotated)
     # Or:
     # tools.show_3d_plot(points)
 
-    rotated_face = Face(grey_rotated, depth_rotated)
+    rotated_face = Face(gir_rotated, depth_rotated)
     rotated_face.face_center = face_points["center"]
     del face_points["center"]
     rotated_face.face_points = face_points
     return rotated_face
 
 
-def rotate_greyd_img_by_angle(face: Face,
-                              theta_x : float = 0,
-                              theta_y : float = 0,
-                              theta_z : float = 0,):
+def rotate_gird_img_by_angle(face: Face,
+                             theta_x : float = 0,
+                             theta_y : float = 0,
+                             theta_z : float = 0, ):
     rotation_matrix = np.matmul(_rx(theta_x), np.matmul(_ry(theta_y), _rz(theta_z)))
-    return rotate_greyd_img(face, rotation_matrix)
+    return rotate_gird_img(face, rotation_matrix)

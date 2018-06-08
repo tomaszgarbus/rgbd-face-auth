@@ -32,7 +32,7 @@ class InputPreprocessor:
             logging.info('Subject {0}/{1}'.format(i, database.subjects_count()))
             bar = Bar('Subject ' + str(i), max=database.imgs_per_subject(i))
             for j in range(database.imgs_per_subject(i)):
-                face = database.load_greyd_face(i, j)
+                face = database.load_gird_face(i, j)
                 x = self.build_input_vector(face)
                 y = offset + i + 1
                 if x is None or y is None:

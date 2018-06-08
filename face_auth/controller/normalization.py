@@ -2,8 +2,8 @@ import numpy as np
 import face_recognition
 
 from model.face import Face
-from face_rotation.trim_face import trim_greyd
-from face_rotation.rotate import rotate_greyd_img, drop_corner_values
+from face_rotation.trim_face import trim_gird
+from face_rotation.rotate import rotate_gird_img, drop_corner_values
 from face_rotation.other import construct_face_points
 from face_rotation.find_angle import find_angle
 from face_rotation.recentre import recentre
@@ -17,15 +17,15 @@ def preprocessing(face: Face,
     face.preprocessed = True
 
     # Display the original photo
-    #face.show_grey()
-    #face.show_depth()
+    # face.show_grey_or_ir()
+    # face.show_depth()
 
     # Trim face
-    trim_greyd(face, method=trim_method)
+    trim_gird(face, method=trim_method)
 
     # Display trimmed photo
-    #face.show_grey()
-    #face.show_depth()
+    # face.show_grey_or_ir()
+    # face.show_depth()
 
     # Drop corner values and rescale to 0...1
     drop_corner_values(face)
@@ -34,8 +34,8 @@ def preprocessing(face: Face,
     construct_face_points(face)
 
     # Display the photo after normalizing mean
-    #face.show_position()
-    #face.show_depth()
+    # face.show_position()
+    # face.show_depth()
 
 
 def normalized(face: Face,
@@ -52,7 +52,7 @@ def normalized(face: Face,
         return None
 
     # Apply rotation
-    rotated_face = rotate_greyd_img(face, rotation)
+    rotated_face = rotate_gird_img(face, rotation)
 
     # Display the results
     #rotated_face.show_position()
@@ -70,9 +70,9 @@ def normalized(face: Face,
 
 
 def hog_and_entropy(face: Face) -> Face:
-    face.hog_grey_image, fdg = get_hog_of(face.grey_img)
-    face.hog_grey_fd = fdg
-    face.entropy_map_grey_image = get_entropy_map_of(face.grey_img)
+    face.hog_gir_image, fdg = get_hog_of(face.gir_img)
+    face.hog_gir_fd = fdg
+    face.entropy_map_gir_image = get_entropy_map_of(face.gir_img)
     face.hog_depth_image, fdd = get_hog_of(face.depth_img)
     face.hog_depth_fd = fdd
     face.entropy_map_depth_image = get_entropy_map_of(face.depth_img)

@@ -12,7 +12,7 @@ from model.face import Face
 from classifiers.classification_results import ClassificationResults
 
 def get_face_hog(face: Face) -> np.ndarray:
-    np.concatenate((face.hog_grey_fd, face.hog_depth_image), axis=0)
+    np.concatenate((face.hog_gir_fd, face.hog_depth_image), axis=0)
 
 def from_hot_one(ys):
     return [np.argmax(y) for y in ys]

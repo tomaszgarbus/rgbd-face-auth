@@ -69,6 +69,22 @@ def load_depth_photo(path: str) -> np.ndarray:
         return photo
 
 
+def load_ir_photo(path: str) -> np.ndarray:
+    """
+            :param path:
+            :return: 2D np.ndarray of floats
+        """
+    with open(path, 'rb') as f:
+        format_arr = np.fromfile(f, dtype=np.int8, count=4)
+        assert ''.join(map(chr, format_arr)) == 'PHIR'
+        size_arr = np.fromfile(f, dtype=np.int32, count=2)
+        width, height = size_arr
+        data_arr = np.fromfile(f, dtype=np.float32, count=height * width)
+        photo = np.asarray(data_arr)
+        photo = photo.reshape(height, width)
+        return photo
+
+
 def change_image_mode(source_mode: str, output_mode: str, img: np.ndarray) -> np.ndarray:
     return np.array(PIL.Image.fromarray(img, mode=source_mode).convert(output_mode))
 

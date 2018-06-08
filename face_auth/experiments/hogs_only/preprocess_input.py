@@ -10,10 +10,10 @@ from controller.normalization import normalized, hog_and_entropy
 
 
 def build_input_vector(face):
-    (grey_face, depth_face) = (face.grey_img, face.depth_img)
-    if grey_face is None or depth_face is None:
+    (gir_face, depth_face) = (face.gir_img, face.depth_img)
+    if gir_face is None or depth_face is None:
         return None
-    if np.isnan(grey_face).any() or np.isnan(depth_face).any():
+    if np.isnan(gir_face).any() or np.isnan(depth_face).any():
         return None
     try:
         face = normalized(face, rotate=False)

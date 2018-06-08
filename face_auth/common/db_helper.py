@@ -1,25 +1,23 @@
 """
-    Unified class for loading images from databases
+    Unified classes for loading images from databases
 """
+import face_recognition
+import numpy as np
+import os
+import logging
+import json
+from typing import Dict
 
 from common import tools
 from common.constants import IMG_SIZE, MARGIN_COEF
 from common.constants import DB_LOCATION, TEST_SUF_FNAME, FRONT_SUF_FNAME
 from model.face import Face
 
-import face_recognition
-import numpy as np
-import os
-import logging
-import json
 
-
-def photo_to_greyd_face(color_photo: np.ndarray, depth_photo: np.ndarray) -> Face:
+def photo_to_greyd_face(gir_photo: np.ndarray, depth_photo: np.ndarray) -> Face:
     """ Converts full photo to just face image """
-    # Resize to common size
-    color_photo = tools.rgb_image_resize(color_photo, (depth_photo.shape[1], depth_photo.shape[0]))
     # Locate face
-    face_coords = face_recognition.face_locations(color_photo)
+    face_coords = face_recognition.face_locations((gir_photo * 256).astype(np.uint8))
     # Process face detected by the library
     if len(face_coords) == 1:
         (x1, y1, x2, y2) = face_coords[0]
@@ -36,22 +34,21 @@ def photo_to_greyd_face(color_photo: np.ndarray, depth_photo: np.ndarray) -> Fac
             logging.warning("Face has non-positive area, returning (None, None)")
             return Face(None, None)
         depth_face = depth_photo[x1:x2, y1:y2]
-        color_face = color_photo[x1:x2, y1:y2]
+        gir_face = gir_photo[x1:x2, y1:y2]
         depth_face = tools.gray_image_resize(depth_face, (IMG_SIZE, IMG_SIZE))
         depth_face = depth_face/np.max(depth_face)
-        color_face = tools.rgb_image_resize(color_face, (IMG_SIZE, IMG_SIZE))
-        # RGB -> grey
-        grey_face = tools.change_image_mode('RGB', 'L', color_face)
-        grey_face = grey_face/np.max(grey_face)
+        gir_face = tools.gray_image_resize(gir_face, (IMG_SIZE, IMG_SIZE))
+        gir_face /= np.max(gir_face)
 
         # Check if we can find any landmarks on the face. If not, it is useless.
-        if not face_recognition.face_landmarks((grey_face * 256).astype(np.uint8)):
+        if not face_recognition.face_landmarks((gir_face * 256).astype(np.uint8)):
             return Face(None, None)
 
-        return Face(grey_face, depth_face, color_face)
+        return Face(gir_face, depth_face)
     else:
         # Face couldn't be detected
         return Face(None, None)
+
 
 class Database:
     """
@@ -75,12 +72,12 @@ class Database:
 
             Only the intersection over selected formats of images will be loaded.
         """
-        assert not load_ir, "Loading IR photos not implemented"
         assert os.path.isdir('/'.join([DB_LOCATION, name, 'files'])), "No such database %s" % name
         self._name = name
         self._load_png = load_png
         self._load_depth = load_depth
         self._load_ir = load_ir
+        assert (not self._load_png) or (not self._load_ir), "Cannot load both .png and .ir files, please choose one"
 
         # Initialize |_subject_dirs|
         path = '/'.join([DB_LOCATION, self._name, 'files'])
@@ -141,7 +138,6 @@ class Database:
             if self._name in json_contents:
                 self._frontal_suffixes = json_contents[self._name]
 
-
     def get_name(self):
         return self._name
 
@@ -185,26 +181,30 @@ class Database:
             return self._frontal_suffixes[self._subject_dirs[subject_no]]
         return self.global_frontal_suffixes()
 
-    def load_subject(self, subject_no, img_no):
-        path = '/'.join([DB_LOCATION, self._name, 'files', self._subject_dirs[subject_no], self._imgs_of_subject[subject_no][img_no]])
+    def load_subject(self, subject_no, img_no) -> Dict:
+        path = '/'.join([DB_LOCATION, self._name, 'files', self._subject_dirs[subject_no],
+                         self._imgs_of_subject[subject_no][img_no]])
         path_color = path + '.png'
         path_depth = path + '.depth'
         path_ir = path + '.ir'
-        loaded_imgs = []
+        loaded_imgs = {}
         if self._load_png:
             assert os.path.isfile(path_color), "No such file %s " % path_color
             color_photo = tools.load_color_image_from_file(path_color)
             if color_photo.shape[-1] == 4:  # meaning that mode is 'RGBA' instead of 'RGB'
                 color_photo = tools.change_image_mode('RGBA', 'RGB', color_photo)
-            loaded_imgs.append(color_photo)
+            loaded_imgs['png'] = color_photo
         if self._load_depth:
-            assert os.path.isfile(path_color), "No such file %s " % path_depth
+            assert os.path.isfile(path_depth), "No such file %s " % path_depth
             depth_photo = tools.load_depth_photo(path_depth)
             if self.get_name() == 'eurecom':
                 depth_photo = 1 - depth_photo
-            loaded_imgs.append(depth_photo)
-        # TODO: load IR photo too
-        return tuple(loaded_imgs)
+            loaded_imgs['depth'] = depth_photo
+        if self._load_ir:
+            assert os.path.isfile(path_ir), "No such file %s " % path_ir
+            ir_photo = tools.load_ir_photo(path_ir)
+            loaded_imgs['ir'] = ir_photo
+        return loaded_imgs
 
     def is_photo_in_test_set(self, subject_no, img_no):
         """
@@ -225,12 +225,25 @@ class Database:
                 return True
         return False
 
-    def load_greyd_face(self, subject_no, img_no):
+    def load_gird_face(self, subject_no, img_no):
         """ Loads an image of a subject and cuts out their face with external lib. Only supports png+depth
         combination. """
-        assert self._load_png and self._load_depth and not self._load_ir, "Only for RGB+D use"
-        (color_photo, depth_photo) = self.load_subject(subject_no, img_no)
-        return photo_to_greyd_face(color_photo, depth_photo)
+        assert self._load_depth, "Only for use with depth channel"
+        loaded_imgs = self.load_subject(subject_no, img_no)
+        depth_photo = loaded_imgs['depth']
+        if self._load_png:
+            color_photo = loaded_imgs['png']
+            color_photo = tools.rgb_image_resize(color_photo, (depth_photo.shape[1], depth_photo.shape[0]))
+            grey_photo = tools.change_image_mode('RGB', 'F', color_photo)
+            grey_photo /= np.max(grey_photo)
+            gir_photo = grey_photo
+        elif self._load_ir:
+            ir_photo = loaded_imgs['ir']
+            ir_photo /= np.max(ir_photo)
+            gir_photo = ir_photo
+        else:
+            raise NotImplementedError("Neither png nor ir photo has been requested")
+        return photo_to_greyd_face(gir_photo, depth_photo)
 
 
 class DBHelper:
