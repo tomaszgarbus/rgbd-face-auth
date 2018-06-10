@@ -2,7 +2,52 @@
     Brief introduction to the section.
 
     \subsection{Data set}
-    Data set size and a few other information, hopefully some samples.
+    We have set requirements for our dataset, aiming to reflect real-life
+    appliances:
+    \begin{itemize}
+        \item \textbf{depth and IR channels}: in real-life appliance, leveraging
+        the infrared camera allows equally good vision regardless of lighting
+        conditions.
+        \item \textbf{various vertical angles}: when a user is looking at their
+        mobile device,
+        their head may be placed at various angles along the vertical axis.
+        However, it is reasonable to assume that the angle along the horizontal
+        axis will be small, especially if the user is consciously trying to
+        unlock the device.
+        \item \textbf{many frames per subject}: when a new user is being added
+        to a mobile device's authentication system, it is acceptable to require
+        them to look at the camera, at various angles, for a short period of
+        time. Many frames can (and should) be taken.
+    \end{itemize}
+
+    There are several good databases for face recognition with depth camera:
+    The EURECOM Kinect Face Database\cite{eurecom},
+    RGB-D Face database \cite{vapaaudk},
+    The Florence Superface dataset\cite{superface}. However, none of them was
+    deemed suiting for our project, primarily due to the lack of IR channel.
+    Thus, we have decided to build a dedicated dataset.
+
+    \subsubsection*{Data collection}
+    The dataset consists of \textbf{TODO} subjects: \textbf{TODO} males and
+    \textbf{TODO} females, mostly aged $20$-$25$. Each subject has been asked to
+    follow an object with their entire head, making two cycles of slow,
+    continuous movements: \texttt{up $\to$ center $\to$ down $\to$ center $\to$
+    left $\to$ center $\to$ right $\to$ center}.
+    That procedure has resulted in approximately $20$ seconds of footage per
+    subject.
+
+    IR and depth frames are synchronized, taken at $10$ FPS rate.
+
+    Dataset contains also RGB frames taken at $10$ FPS rate, not synchronized
+    with IR and depth frames.
+
+    \subsubsection*{Test set}
+    \textbf{TODO: update if that changes}
+    For the test set, we have chosen approximately first $50\%$ of
+    frames from each subject -- the first cycle of head rotations.
+
+    \subsubsection*{Samples}
+    \textbf{TODO}
 
     \subsection{Face angle detection}
     Longer description of angle detection

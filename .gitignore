@@ -11,3 +11,5 @@ cmake-build-debug/
 *.pdf
 *.log
 *.out
+*.bbl
+*.blg
