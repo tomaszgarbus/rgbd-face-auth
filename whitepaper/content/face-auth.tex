@@ -58,20 +58,22 @@
 
         \subsubsection*{Face angle normalization}
         Use of face angle detection to rotate to frontal position.
+        \textbf{TODO 3d plots}
 
     \subsection{Preprocessing techniques}
     We have tried several different preprocessing techniques.
-    % TODO(tomek): skin detection
         \subsubsection*{Trimming faces}
-        In all experiments, the faces have been trimmed, to ensure that the
-        models learn only the faces and not the backgrounds, hairdos or
-        clothings.
-        We have tried two techniques:
-        \begin{itemize}
-            \item Exact polygon found by \url{https://github.com/ageitgey/face_recognition}
-            \item Skin filter
-        \end{itemize}
-        Picture samples for both methods.
+        During the process of collecting the dataset, each subject has been
+        recorded in only one set of clothes (the ones they were wearing at the
+        time), one hairstyle and the background may slightly vary among the
+        subjects (the background behind subjects recorded at $12$ a.m. is
+        likely to be brighter than behind the subjects recorded at $4$ p.m.).
+
+        Since a classifier might leverage those factors, photos have been
+        trimmed to polygons containing the faces. Such polygons have been
+        found with Face Recognition library \cite{facerecog} on IR photos.
+        Depth photos have been trimmed accordingly.
+        \textbf{TODO image samples}
 
         \subsubsection*{Entropy maps}
         How they work, why to use them (reference to the other paper).
@@ -87,6 +89,11 @@
         Sample photos.
 
         \subsubsection*{Channels vs concatenation}
+        A choice of the input format passed to a classifier is not only a matter
+        of images to include. Another decision to be made is whether different
+        channels (IR, depth) and different preprocessed images (entropy maps,
+        HOGs) should be concatenated or layered as channels. In our experiments,
+        we have included both approaches.
 
 
     \subsection{Classifiers}
