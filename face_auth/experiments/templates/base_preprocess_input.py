@@ -61,7 +61,7 @@ class InputPreprocessor:
             if database.get_name() not in disable_databases:
                 self.load_database(database, sum_offset)
                 sum_offset += database.subjects_count()
-    
+
         # Reshape input
         TRAIN_SIZE = len(self.x_train)
         TEST_SIZE = len(self.x_test)

@@ -11,11 +11,14 @@ from sklearn.metrics import accuracy_score
 from model.face import Face
 from classifiers.classification_results import ClassificationResults
 
+
 def get_face_hog(face: Face) -> np.ndarray:
     np.concatenate((face.hog_gir_fd, face.hog_depth_image), axis=0)
 
+
 def from_hot_one(ys):
     return [np.argmax(y) for y in ys]
+
 
 class HogFaceClassifier:
 
@@ -60,7 +63,7 @@ class HogFaceClassifier:
     def prediction(self, X):
         return self.ens.predict(X)
 
-    def evaluate(self, x_test, y_test):
+    def evaluate(self, x_test, y_test) -> ClassificationResults:
         preds = self.prediction(x_test)
         pred_probs = self.ens.predict_proba(x_test)
         acc = accuracy_score(from_hot_one(y_test), preds)

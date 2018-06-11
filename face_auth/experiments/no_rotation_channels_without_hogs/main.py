@@ -2,7 +2,8 @@ from common.constants import NUM_CLASSES
 from classifiers.neural_net import NeuralNet
 from experiments.no_rotation_channels_without_hogs.constants import EXP_NAME, NN_INPUT_SIZE
 
-if __name__ == '__main__':
+
+def run_main():
     # Test on eurecom + ias_lab_rgbd
     net = NeuralNet(experiment_name=EXP_NAME,
                     input_shape=NN_INPUT_SIZE,
@@ -16,4 +17,8 @@ if __name__ == '__main__':
                     learning_rate=0.05,
                     min_label=0,
                     max_label=78)
-    net.train_and_evaluate()
+    return net.train_and_evaluate().pred_probs
+
+
+if __name__ == '__main__':
+    run_main()

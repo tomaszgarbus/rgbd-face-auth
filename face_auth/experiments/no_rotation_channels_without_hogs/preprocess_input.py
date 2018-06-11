@@ -22,8 +22,12 @@ def build_input_vector(face):
     return face.get_channels()[:, :, :4]
 
 
-if __name__ == '__main__':
+def run_preprocess():
     preprocessor = InputPreprocessor(exp_name=EXP_NAME,
                                      nn_input_size=NN_INPUT_SIZE,
                                      build_input_vector=build_input_vector)
     preprocessor.preprocess()
+
+
+if __name__ == '__main__':
+    run_preprocess()

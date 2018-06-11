@@ -500,7 +500,7 @@ class NeuralNet:
                 batch_x[sample_no] = self._augment_single_input(batch_x[sample_no])
         return batch_x, batch_y
 
-    def train_and_evaluate(self) -> None:
+    def train_and_evaluate(self) -> ClassificationResults:
         """
         Train and evaluate model.
         """

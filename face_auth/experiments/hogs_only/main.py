@@ -10,7 +10,7 @@ def from_hot_one(ys):
     return [np.argmax(y) for y in ys]
 
 
-if __name__ == '__main__':
+def run_main():
     # test hogs only
     classifier = HogFaceClassifier()
     x_train, y_train, x_test, y_test = load_data(EXP_NAME, INPUT_SIZE)
@@ -28,7 +28,8 @@ if __name__ == '__main__':
 
     classifier.fit(x_train, from_hot_one(y_train))
     ys = classifier.prediction(x_test)
-    score = classifier.evaluate(x_test, y_test).acc
+    evaluate = classifier.evaluate(x_test, y_test)
+    score = evaluate.acc
     print("score is " + str(score))
 
     ys = classifier.prediction(x_train)
@@ -36,3 +37,8 @@ if __name__ == '__main__':
 
     print("on train is " + str(score))
 
+    return evaluate.pred_probs, y_test
+
+
+if __name__ == '__main__':
+    run_main()
