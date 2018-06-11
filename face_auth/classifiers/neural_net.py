@@ -261,7 +261,7 @@ class NeuralNet:
                 inp_x = self.input_shape[0] // (2 ** layer_no)
                 inp_y = self.input_shape[1] // (2 ** layer_no)
                 single_filtered_flattened = tf.reshape(cur_conv_layer[:, :, :, filter_no],
-                                                       [self.mb_size * inp_x * inp_y])
+                                                       [self.eff_mb_size * inp_x * inp_y])
                 top10_vals, top10_indices = tf.nn.top_k(single_filtered_flattened,
                                                         k=10,
                                                         sorted=True)
@@ -373,7 +373,8 @@ class NeuralNet:
 
     def _create_dense_layers(self) -> None:
         signal = self.x if not self.pool_layers else self.pool_layers[-1]
-        signal = tf.reshape(signal, [self.mb_size, -1])
+        input_size = int(signal.get_shape()[1]) * int(signal.get_shape()[2]) * int(signal.get_shape()[3])
+        signal = tf.reshape(signal, [self.eff_mb_size, input_size])
 
         for num_neurons in self.dense_layers[:-1]:
             signal = tf.layers.batch_normalization(signal)
@@ -398,7 +399,7 @@ class NeuralNet:
 
         # Init weights with std.dev = sqrt(2 / N)
         input_size = int(signal.get_shape()[1])
-        w_init = tf.initializers.random_normal(stddev=sqrt(2 / input_size))
+        w_init = tf.initializers.random_normal(stddev=tf.sqrt(tf.constant(2.) / input_size))
         cur_layer = tf.layers.dense(inputs=signal,
                                     activation=tf.nn.sigmoid,
                                     units=self.dense_layers[-1],
@@ -413,15 +414,16 @@ class NeuralNet:
             self.preds = tf.argmax(self.output_layer, axis=1)
             self.y_sparse = tf.argmax(self.y, axis=1)
         self.loss = tf.losses.log_loss(self.y, self.output_layer)
-        self.correct = tf.reshape(tf.equal(self.y_sparse, self.preds), shape=[self.mb_size])
+        self.correct = tf.reshape(tf.equal(self.y_sparse, self.preds), shape=[self.eff_mb_size])
         self.accuracy = tf.reduce_mean(tf.cast(self.correct, tf.float32))
         self.train_op = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
 
         self.logger.info('list of variables {0}'.format(list(map(lambda x: x.name, tf.global_variables()))))
 
     def _create_model(self):
-        self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size] + list(self.input_shape))
-        self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, self.num_classes])
+        self.x = tf.placeholder(dtype=tf.float32, shape=[None] + list(self.input_shape))
+        self.y = tf.placeholder(dtype=tf.float32, shape=[None, self.num_classes])
+        self.eff_mb_size = tf.shape(self.x)[0]  # Effective batch size
         self.conv_layers = []
         self.pool_layers = []
 
@@ -460,7 +462,7 @@ class NeuralNet:
         self.val_accs.append(results[1])
         # Update confusion matrix
         preds = results[3]
-        for i in range(self.mb_size):
+        for i in range(len(batch_x)):
             self._confusion_matrix[np.argmax(batch_y[i]), preds[i]] += 1.
 
         return results[0], results[1], list(results[2])
@@ -474,9 +476,7 @@ class NeuralNet:
         accs = []
         all_pred_probs = []
         all_labels = []
-        for batch_no in range(self.x_test.shape[0] // self.mb_size):
-            # TODO(Tomek): handle the remainder (e.g. by replacing mb_size with 1 in
-            # TODO(Tomek): model definitions)
+        for batch_no in range(self.x_test.shape[0] // self.mb_size + 1):
             inputs = self.x_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size]
             labels = self.y_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size]
             loss, acc, probs = self.test_on_batch(inputs, labels, global_step=global_step)
