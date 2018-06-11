@@ -21,8 +21,11 @@ def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray) -> np.ndarray:
 
 
 def run_main():
-    nn_out = nn.run_main()
+    # Use eurecom + ias_lab_rgbd, once we migrate to our own
+    # dataset, NUM_CLASSES will be more meaningful
+    nn_out = nn.run_main()[:, :78]
     hog_out, y_test = hogs.run_main()
+    print(hog_out.shape)
 
     test_probs = [
         (1, 2),
@@ -45,9 +48,10 @@ def run_main():
     outs = list(map(lambda x: test_ens(x, nn_out, hog_out), test_probs))
     print(str(outs))
 
-    score = accuracy_score(hogs.from_hot_one(y_test), outs)
+    for probs, out in zip(test_probs, outs):
+        score = accuracy_score(hogs.from_hot_one(y_test), out)
 
-    print("acc score is " + str(score))
+        print("acc score is " + str(score) + " for voting weights: " + str(probs))
 
     return outs
 

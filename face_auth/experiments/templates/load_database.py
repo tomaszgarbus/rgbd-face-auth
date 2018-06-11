@@ -3,7 +3,7 @@ from common.tools import show_image
 import numpy as np
 
 
-def load_data(experiment_name, input_shape, range_beg: int = 0, range_end: int = 52) -> tuple:
+def load_data(experiment_name, input_shape, range_beg: int = 0, range_end: int = 78) -> tuple:
     """
     :param experiment_name, input_shape, range_beg, range_end: only samples such that label \in [range_beg, range_end) will be
         used. Sensible values for (range_beg, range_end) would be:
