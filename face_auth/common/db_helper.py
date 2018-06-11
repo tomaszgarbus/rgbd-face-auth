@@ -247,11 +247,10 @@ class Database:
 
 
 class DBHelper:
-    _databases = []
-
     def __init__(self, load_png=True, load_depth=True, load_ir=False):
         assert os.path.isdir(DB_LOCATION), "Please create directory (or symlink) %s" % DB_LOCATION
         db_names = sorted(next(os.walk(DB_LOCATION))[1])
+        self._databases = []
         for db_name in db_names:
             if db_name == 'gen':
                 continue
