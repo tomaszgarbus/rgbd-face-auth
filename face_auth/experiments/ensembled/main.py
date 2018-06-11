@@ -42,7 +42,7 @@ def run_main():
         (100, 1),
     ]
 
-    outs = map(lambda x: test_ens(x, nn_out, hog_out), test_probs)
+    outs = list(map(lambda x: test_ens(x, nn_out, hog_out), test_probs))
     print(str(outs))
 
     score = accuracy_score(hogs.from_hot_one(y_test), outs)
