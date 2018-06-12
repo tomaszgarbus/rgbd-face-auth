@@ -42,19 +42,43 @@
     with IR and depth frames.
 
     \subsubsection*{Test set}
-    \textbf{TODO: update if that changes}
     For the test set, we have chosen approximately first $25\%$ of
     frames from each subject -- the first two vertical head rotations.
 
     \subsubsection*{Samples}
+    \begin{figure}[H]
+    \caption{One of the subjects from the database -- the first $269$ IR frames.}
+    \centering
     \includegraphics[scale=0.5]{tiled_faces_3}
+    \end{figure}
 
     \subsection{Face angle detection}
     Longer description of angle detection
 
     \subsection{Normalization}
-        \subsubsection*{Mean and std. dev. normalization}
-        Dropping corner values, chosen mean and std. dev. values.
+        \subsubsection*{Depth mean and standard deviation normalization}
+        Let $F$ be the set of all points belonging to the trimmed face and
+        $d(p)$ -- depth of the point $p$. Let $\mu$ denote the mean depth, i.e.
+        $\mu = \frac{\sum\limits_{p \in F}{d(p)}}{|F|}$ and $\sigma$ -- standard
+        deviation, i.e. $\sigma = \sqrt{\frac{1}{|F|} \sum\limits_{p \in F}{(d(p) - \mu)^2}}$.
+        For each pixel $p$, its new depth is calculated as:
+
+        \begin{center}
+        $
+          d'(p) = \begin{cases}
+                  d(p) - \mu &\quad\text{if}\ |d(p) - \mu| \leqslant 2 \cdot \sigma \\
+                  0 &\quad\text{otherwise}
+                  \end{cases}
+        $
+        \end{center}
+
+
+        Lastly, all depth values are scaled to the interval $[0..1]$:
+        \begin{center}
+        $
+          d''(p) = \frac{d'(p) - min(\{d'(r)\ |\ r \in F\})}{max(\{d'(r)\ |\ r \in F\}) - min(\{d'(r)\ |\ r \in F\})}
+        $
+        \end{center}
 
         \subsubsection*{Face angle normalization}
         Use of face angle detection to rotate to frontal position.
@@ -73,7 +97,13 @@
         trimmed to polygons containing the faces. Such polygons have been
         found with Face Recognition library \cite{facerecog} on IR photos.
         Depth photos have been trimmed accordingly.
-        \textbf{TODO image samples}
+
+        \begin{figure}[H]
+        \caption{One of the subjects from the database -- before and after trimming the face.}
+        \centering
+        \includegraphics[scale=0.25]{before_trim_3}
+        \includegraphics[scale=0.25]{after_trim_3}
+        \end{figure}
 
         \subsubsection*{Entropy maps}
         How they work, why to use them (reference to the other paper).
@@ -81,12 +111,6 @@
         \subsubsection*{HOGs of entropy maps}
         How they work, why to use them (reference to the other paper). They
         are particularly helpful for Extra Trees and RDF-s.
-
-        \subsubsection*{Skin mask channel}
-        Link to some section from skin-recognition about how it is calculated.
-        Short description and motivation that it may make sense for
-        convolutions.
-        Sample photos.
 
         \subsubsection*{Channels vs concatenation}
         A choice of the input format passed to a classifier is not only a matter
@@ -112,21 +136,19 @@
 
 
     \subsection{Test results}
-        \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c|c|c| }
+        \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c|c| }
             \hline
             \multirow{2}{*}{Model} &
             \multirow{2}{*}{Mode} &
-            \multirow{2}{*}{Trim} &
             \multirow{2}{*}{Rotation} &
             \multirow{2}{*}{Entropy} &
             \multirow{2}{*}{HOGs} &
-            \multirow{2}{*}{Skin mask} &
             \multirow{2}{*}{Inputs} &
             \multirow{2}{*}{ACC} &
             \multirow{2}{*}{AUC ROC} &
             \multicolumn{3}{|c|}{Recall for precision $\rho$} \\
-            & & & & & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
+            & & & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
             \hline
-            CNN & binary & polygon & frontal & y & y & n & channels & NA & 0.86 & 0.9 & 0.85 & 0.83 \\
+            CNN & binary & frontal & y & y & channels & NA & 0.86 & 0.9 & 0.85 & 0.83 \\
             \hline
         \end{tabular}
