@@ -20,7 +20,13 @@ class InputPreprocessor:
                  build_input_vector,
                  load_ir: bool = True,
                  load_depth: bool = True,
-                 load_grey: bool = False,):
+                 load_grey: bool = False,
+                 # Whether or not classification should be in binary mode. If yes,
+                 # *please* provide the |positive_class| parameter.
+                 binary_mode: bool = False,
+                 # ID of the subject that is considered "positive" in case of
+                 # binary classification.
+                 positive_class: int = 0,):
         self.exp_name = exp_name
         self.nn_input_size = nn_input_size
         self.build_input_vector = build_input_vector
@@ -31,6 +37,8 @@ class InputPreprocessor:
         self.y_train = []
         self.x_test = []
         self.y_test = []
+        self.binary_mode = binary_mode
+        self.positive_class = positive_class
 
     def load_database(self, database: Database, offset: int):
         logging.info('Loading database %s' % database.get_name())
@@ -72,15 +80,21 @@ class InputPreprocessor:
         TRAIN_SIZE = len(self.x_train)
         TEST_SIZE = len(self.x_test)
         X_train = np.zeros((TRAIN_SIZE, self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
-        Y_train = np.zeros((TRAIN_SIZE, NUM_CLASSES))
+        Y_train = np.zeros((TRAIN_SIZE, 1 if self.binary_mode else NUM_CLASSES))
         X_test = np.zeros((TEST_SIZE, self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
-        Y_test = np.zeros((TEST_SIZE, NUM_CLASSES))
+        Y_test = np.zeros((TEST_SIZE, 1 if self.binary_mode else NUM_CLASSES))
         for i in range(TRAIN_SIZE):
             X_train[i] = self.x_train[i].reshape((self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
-            Y_train[i, self.y_train[i]-1] = 1
+            if self.binary_mode:
+                Y_train[i, 0] = (self.y_train[i] - 1 == self.positive_class)
+            else:
+                Y_train[i, self.y_train[i]-1] = 1
         for i in range(TEST_SIZE):
             X_test[i] = self.x_test[i].reshape((self.nn_input_size[0], self.nn_input_size[1], self.nn_input_size[2]))
-            Y_test[i, self.y_test[i]-1] = 1
+            if self.binary_mode:
+                Y_test[i, 0] = (self.y_test[i] - 1 == self.positive_class)
+            else:
+                Y_test[i, self.y_test[i]-1] = 1
 
         if augmenters is not None:
             # TODO(tomek): some progress bar for augmenting
