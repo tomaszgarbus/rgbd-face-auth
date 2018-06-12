@@ -23,8 +23,9 @@ def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray) -> np.ndarray:
 def run_main():
     # Use eurecom + ias_lab_rgbd, once we migrate to our own
     # dataset, NUM_CLASSES will be more meaningful
-    nn_out = nn.run_main()[:, :78]
+    nn_out = nn.run_main()
     hog_out, y_test = hogs.run_main()
+    nn_out = nn_out[:, :hog_out.shape[1]]
     print(hog_out.shape)
 
     test_probs = [
