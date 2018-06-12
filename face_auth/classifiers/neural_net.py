@@ -2,7 +2,7 @@ import numpy as np
 import logging
 import tensorflow as tf
 from math import sqrt
-from random import sample, choice
+from random import sample, choice, shuffle
 from typing import Optional, List, Tuple
 from progress.bar import Bar
 from imgaug import augmenters as ia
@@ -171,6 +171,7 @@ class NeuralNet:
         for i in range(len(self.y_test)):
             if range_end > np.argmax(self.y_test[i]) >= range_beg:
                 test_indices.append(i)
+        shuffle(train_indices)
         self.x_train = self.x_train[train_indices]
         self.y_train = self.y_train[train_indices]
         self.x_test = self.x_test[test_indices]
