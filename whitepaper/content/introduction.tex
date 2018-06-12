@@ -11,24 +11,30 @@
         \subsubsection*{Passwords}
             It's easy to improve standard password's strength,
             cause longer (random) password is better password
-            and increase in quality is exponential.
+            and quality increase is exponential.
             Hash function may create strength limit,
             but this problem is very easy to overcome on development level,
             therefore normally possible strength is better tan enough.
-            So it's quite good authentication method.\\
+            So, it may be quite good authentication method.\\
             However, people by themselves simplify passwords to
-            (literally) the level of picking the right picture,
-            making strong system weak.
+            (sometimes literally) the level of picking the right picture,
+            making strong system weak.\\
+            Looking closer on systems avaliable in modern phones,
+            we are able to understand how user's need of comfort
+            had impact on security.
             If you have to mark three out of $k$ pictures, there
-            is only $\binom{k}{3} = \frac{k(k-1)(k-2)}{6} < k^3$ options,
+            is only $\binom{k}{3} = \frac{k(k-1)(k-2)}{6} = O(k^3)$ options,
             so for $k=9$ there is only 84 options.
             Even with big overhead to one try, it's esy to break.
             Same with popular (at phones) patterns out of
             nine dots. Looking at simple implementations
-            limit of possibilities is near $9! = 362\,880$, % TODO linki??
+            limit of possibilities is near $\sum_{k=2}^9k! = 409\,112$,
+            % TODO linki??
             and it's not big number for computers.\\
             Not only brute-force may be problem here.
-            It's easy to peep such a password.
+            It's easy for a bystander to see the password
+            entered in such a manner. Same
+            problem with standard password.
             Especially that we live in a world full of cameras.
 
         \subsubsection*{Pendrive keys, tokens and magnetic cards}
@@ -60,12 +66,12 @@
         We have a group of people who should have access to resources,
         but instead of writing list of them, we
         say ''everyone who has/knows...'' has access.
-        It's simply changeing one specific problem to another,
+        It's simply turning one specific problem into another,
         more general. Therfore unauthorized felons may
         access resource.\\
-        Bio authentication is answer to inconvenience of that chane.
+        Bio authentication is answer to inconvenience of that change.
         Why we should redefine main problem? Maybe we
-        can just list of authorized persons?
+        can just list authorized persons?
         Actually it's not simple, therefore we should
         look for secure possibilities to avoid redefinition.\\
         As stealing someone's face will always be hard,
@@ -91,13 +97,15 @@
             Everyone has own, unique face, as he has unique fingerprint.
             So here idea is same,
             but faking face may be little bit harder.
-            However, pictures and masks may be very decent solutions. %TODO source
+            However, pictures and masks may be very decent solutions
+            for hakers. %TODO source
+            Therfore we shouldn't stop here.
 
         \subsubsection{Face authentication -- liveness detection}
             Line between face recognition and
             good face authentication is very thin.
             If we assume that we have perfect face recognition,
-            we still need something... (Because, you know, on you'r picture is you'r face...)
+            we still need something... (Because, you know, on your picture is your face...)
             like liveness detection --
             system checking if there is real human, not picture, mask or mannequin.
             With both perfect systems, only way to access resurce will be
