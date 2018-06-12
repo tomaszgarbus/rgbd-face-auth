@@ -44,7 +44,7 @@ def drop_corner_values(face: Face) -> None:
                 # Too close to the center of the face to drop those values
                 # (might be a very pointy nose).
                 continue
-            if abs(face.depth_img[i, j]) >= depth_stdev:
+            if abs(face.depth_img[i, j]) >= 2. * depth_stdev:
                 face.depth_img[i, j] = 0
 
     depth_stdev = np.std(face.depth_img[face.mask])
