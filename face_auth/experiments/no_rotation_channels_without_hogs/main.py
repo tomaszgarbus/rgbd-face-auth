@@ -14,9 +14,7 @@ def run_main():
                     filters_count=[10, 10, 20],
                     dense_layers=[NUM_CLASSES],
                     dropout_rate=0.5,
-                    learning_rate=0.05,
-                    min_label=0,
-                    max_label=78)
+                    learning_rate=0.05)
     return net.train_and_evaluate().pred_probs
 
 

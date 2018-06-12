@@ -43,7 +43,9 @@ augmenters = [
 def run_preprocess():
     preprocessor = InputPreprocessor(exp_name=EXP_NAME,
                                      nn_input_size=INPUT_SIZE,
-                                     build_input_vector=build_input_vector)
+                                     build_input_vector=build_input_vector,
+                                     load_grey=False,
+                                     load_ir=True)
     preprocessor.preprocess()
 
 
