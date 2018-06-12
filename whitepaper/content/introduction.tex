@@ -1,39 +1,108 @@
 \section{Introduction}
     Wide explanation of [security improvement] motivations.
 
+    % TODO Add links to examples of attacks.
     \subsection*{Old style autorization}
-        ...
+        World knows many authentication methods.
+        Let's look at some known from long time
+        to understand their proses and cons.
+        To see why they are getting old.
 
-        \subsubsection*{Passwords and tokens}
-            Pros and cons.
-
-            Weak passwors (images etc.):\\
-            People by themselves simplify passwords to
+        \subsubsection*{Passwords}
+            It's easy to improve standard password's strength,
+            cause longer (random) password is better password
+            and increase in quality is exponential.
+            Hash function may create strength limit,
+            but this problem is very easy to overcome on development level,
+            therefore normally possible strength is better tan enough.
+            So it's quite good authentication method.\\
+            However, people by themselves simplify passwords to
             (literally) the level of picking the right picture,
-            so they make strong system weak.
+            making strong system weak.
+            If you have to mark three out of $k$ pictures, there
+            is only $\binom{k}{3} = \frac{k(k-1)(k-2)}{6} < k^3$ options,
+            so for $k=9$ there is only 84 options.
+            Even with big overhead to one try, it's esy to break.
+            Same with popular (at phones) patterns out of
+            nine dots. Looking at simple implementations
+            limit of possibilities is near $9! = 362\,880$, % TODO linki??
+            and it's not big number for computers.\\
+            Not only brute-force may be problem here.
+            It's easy to peep such a password.
+            Especially that we live in a world full of cameras.
 
-        \subsubsection*{Pendrive keys}
-            Pros and cons.
+        \subsubsection*{Pendrive keys, tokens and magnetic cards}
+            Sometimes to protect valuable resources,
+            something stronger than standard password is needed.
+            One possibility is pendrive with secret keys.
+            It's obviously very secure method...
+            as long as that very pendrive is secure.
+            By stealing it, thief gains access to resources.
+            Someone clever may even copy pendrive, and
+            owner will not notice problem,
+            until it will be too late.
 
-        \subsubsection*{Magnetic cards}
-            Pros and cons.
+            Same problems are with tokens.
+            It's true that often felon cannot copy that,
+            but this is ''compensated'' by length of token's passwords.
+            Few digits long? Not realy strong.
+            There are many ideas to overcome that problem,
+            but stealing token is still an option.
+
+            Magnetic cards are simillar, so we only want to notice,
+            that it's possible to receive access if there are
+            two attackers and one is near owner.
+            Attacer doesn't have to reach card, it's enough
+            for him to stand near by. %TODO taki na karty kredytowe itp. linki
 
     \subsection{Bio authentication}
-        Description of bio authentication.
-
+        Above we see problems with one simple source.
+        We have a group of people who should have access to resources,
+        but instead of writing list of them, we
+        say ''everyone who has/knows...'' has access.
+        It's simply changeing one specific problem to another,
+        more general. Therfore unauthorized felons may
+        access resource.\\
+        Bio authentication is answer to inconvenience of that chane.
+        Why we should redefine main problem? Maybe we
+        can just list of authorized persons?
+        Actually it's not simple, therefore we should
+        look for secure possibilities to avoid redefinition.\\
         As stealing someone's face will always be hard,
         bio-authentication may become not only the most
         convenient, but also one of the safest
-        authentication methods.
+        authentication methods.\\
+        Is it now? Let's look closer.
 
         \subsubsection*{Fingerprint}
-            Pros and cons.
+            Mankind use fingerprints to identify specific person
+            for long tine. %TODO source needed
+            However, idea of faking that is also old. %TODO [PL] Sherlock Holmes mial opowiadanie z
+            % fake odciskiem palca w krwii (stempel byl zrobiony z wosku, ktorego dotknal wrabiany).
+            % Warto zalinkowac.
+            And now it's easy. %TODO Sourceneeded.
+            Hackers gain access to phones
+            using fake fingerprints. %TODO Source.
+            There is also no good way
+            to deal with it.
+            *[Some explanation why?]* %TODO
 
         \subsubsection{Face recognition}
-            Remedy?
+            Everyone has own, unique face, as he has unique fingerprint.
+            So here idea is same,
+            but faking face may be little bit harder.
+            However, pictures and masks may be very decent solutions. %TODO source
 
         \subsubsection{Face authentication -- liveness detection}
-            Why liveness detection is important?
+            Line between face recognition and
+            good face authentication is very thin.
+            If we assume that we have perfect face recognition,
+            we still need something... (Because, you know, on you'r picture is you'r face...)
+            like liveness detection --
+            system checking if there is real human, not picture, mask or mannequin.
+            With both perfect systems, only way to access resurce will be
+            conviction someone with acess to help us -- but this last problem
+            we leave for someone else to solve.
 
     \subsection{Results}
         Brief explanation of work results.
