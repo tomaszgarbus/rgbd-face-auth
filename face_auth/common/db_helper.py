@@ -247,7 +247,7 @@ class Database:
 
 
 class DBHelper:
-    def __init__(self, load_png=True, load_depth=True, load_ir=False):
+    def __init__(self, load_png=False, load_depth=True, load_ir=True):
         assert os.path.isdir(DB_LOCATION), "Please create directory (or symlink) %s" % DB_LOCATION
         db_names = sorted(next(os.walk(DB_LOCATION))[1])
         self._databases = []

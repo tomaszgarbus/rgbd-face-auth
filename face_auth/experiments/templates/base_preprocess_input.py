@@ -18,9 +18,9 @@ class InputPreprocessor:
                  exp_name: str,
                  nn_input_size: Tuple[int, int, int],
                  build_input_vector,
-                 load_ir: bool = False,
+                 load_ir: bool = True,
                  load_depth: bool = True,
-                 load_grey: bool = True,):
+                 load_grey: bool = False,):
         self.exp_name = exp_name
         self.nn_input_size = nn_input_size
         self.build_input_vector = build_input_vector
