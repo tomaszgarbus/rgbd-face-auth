@@ -17,10 +17,16 @@ class InputPreprocessor:
     def __init__(self,
                  exp_name: str,
                  nn_input_size: Tuple[int, int, int],
-                 build_input_vector):
+                 build_input_vector,
+                 load_ir: bool = False,
+                 load_depth: bool = True,
+                 load_grey: bool = True,):
         self.exp_name = exp_name
         self.nn_input_size = nn_input_size
         self.build_input_vector = build_input_vector
+        self.load_ir = load_ir
+        self.load_depth = load_depth
+        self.load_grey = load_grey
         self.x_train = []
         self.y_train = []
         self.x_test = []
@@ -54,7 +60,7 @@ class InputPreprocessor:
                    disable_databases: List[str] = ['www.vap.aau.dk', 'superface_dataset']):
         logging.basicConfig(level=logging.INFO)
     
-        helper = DBHelper()
+        helper = DBHelper(load_png=self.load_grey, load_depth=self.load_depth, load_ir=self.load_ir)
     
         sum_offset = 0
         for database in helper.get_databases():
