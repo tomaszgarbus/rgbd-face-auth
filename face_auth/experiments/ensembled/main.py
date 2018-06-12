@@ -15,7 +15,7 @@ def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray) -> np.ndarray:
     w1 /= wsum
     w2 /= wsum
 
-    out = np.multiply(np.multiply(out1, w1), np.multiply(out2, w2))
+    out = np.add(np.multiply(out1, w1), np.multiply(out2, w2))
     out = np.apply_along_axis(lambda x: np.argmax(x), axis=1, arr=out)
     return out
 
@@ -44,6 +44,7 @@ def run_main():
         (9, 1),
         (10, 1),
         (100, 1),
+        (1, 100)
     ]
 
     outs = list(map(lambda x: test_ens(x, nn_out, hog_out), test_probs))
