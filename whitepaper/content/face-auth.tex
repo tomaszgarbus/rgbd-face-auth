@@ -28,7 +28,7 @@
     Thus, we have decided to build a dedicated dataset.
 
     \subsubsection*{Data collection}
-    The dataset consists of \textbf{TODO} subjects: \textbf{TODO} males and
+    The dataset consists of $45$ subjects: \textbf{TODO} males and
     \textbf{TODO} females, mostly aged $20$-$25$. Each subject has been asked to
     follow an object with their entire head, making two cycles of slow,
     continuous movements: \texttt{up $\to$ center $\to$ down $\to$ center $\to$
@@ -49,7 +49,7 @@
     \begin{figure}[H]
     \caption{One of the subjects from the database -- the first $269$ IR frames.}
     \centering
-    \includegraphics[scale=0.5]{tiled_faces_3}
+    \includegraphics[scale=0.5]{tiled_faces_ludziej}
     \end{figure}
 
     \subsection{Face angle detection}
@@ -101,8 +101,8 @@
         \begin{figure}[H]
         \caption{One of the subjects from the database -- before and after trimming the face.}
         \centering
-        \includegraphics[scale=0.25]{before_trim_3}
-        \includegraphics[scale=0.25]{after_trim_3}
+        \includegraphics[scale=0.25]{before_trim_ludziej}
+        \includegraphics[scale=0.25]{after_trim_ludziej}
         \end{figure}
 
         \subsubsection*{Entropy maps}
@@ -128,15 +128,42 @@
         \subsubsection*{Voting CNN, SVMs and Extra Trees}
 
     \subsection{Quality measures}
-        \subsubsection*{ACC}
+        Models have been trained in two modes: multi-class and binary
+        classification. Let $T$ be the test set, $p_t$ -- predictions for test input
+        $t \in T$ and $y_t$ -- ground truth for test input $t \in T$.
+        \subsubsection*{Accuracy}
+        For classifiers trained in multi-class mode the accuracy score has been
+        measured:
 
-        \subsubsection*{AUC ROC}
+        \begin{center}
+        $acc(p, y) = \frac{|\{t \in T\ |\ p_t = y_t\}|}{|T|}$
+        \end{center}
 
         \subsubsection*{Recall for fixed precision}
 
+        When testing the model in binary mode two decisions are being made:
+        \begin{itemize}
+            \item \textbf{positive class (device owner)}: One subject from the
+            database is chosen as the "device owner". All photos of this subjects
+            are then labeled as positive. All photos of other subjects are
+            labeled as negative.
+            \item \textbf{desired precision threshold:}
+            Precision is defined as:
+            \begin{center}
+            $prec(p, y) = \frac{\{t \in T\ |\ y_t = p_t = 1\}}{\{t \in T\ |\ p_t = 1\}}$
+            \end{center}
+            We have chosen $3$ different precision thresholds: $0.99$, $0.995$, $0.999$.
+        \end{itemize}
+        Recall is defined as:
+        \begin{center}
+        $rec(p, y) = \frac{\{t \in T\ |\ p_t = y_t = 1\}}{\{t \in T\ |\ y_t = 1\}}$
+        \end{center}
+        For each precision threshold, we have calculated the corresponding recall measure and
+        averaged the result over $10$ random choices for positive class.
+
 
     \subsection{Test results}
-        \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c|c| }
+        \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c| }
             \hline
             \multirow{2}{*}{Model} &
             \multirow{2}{*}{Mode} &
@@ -145,10 +172,9 @@
             \multirow{2}{*}{HOGs} &
             \multirow{2}{*}{Inputs} &
             \multirow{2}{*}{ACC} &
-            \multirow{2}{*}{AUC ROC} &
             \multicolumn{3}{|c|}{Recall for precision $\rho$} \\
-            & & & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
+            & & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
             \hline
-            CNN & binary & frontal & y & y & channels & NA & 0.86 & 0.9 & 0.85 & 0.83 \\
+            CNN & binary & frontal & y & y & channels & NA & 0.9 & 0.85 & 0.83 \\
             \hline
         \end{tabular}
