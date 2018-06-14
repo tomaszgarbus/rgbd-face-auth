@@ -22,30 +22,35 @@ def from_hot_one(ys):
 
 class HogFaceClassifier:
 
-    svc_pipeline = Pipeline([
-        # ('preprocess', FunctionTransformer(get_face_hog)),
-        ('classifier', SVC(
-            C=10, kernel='poly',
-            gamma=1, shrinking=False, class_weight='balanced',
-            probability=True, tol=0.001, cache_size=10000,
-            max_iter=-1, verbose=0))
-    ])
-
-    et_pipeline = Pipeline([
-        # ('preprocess', FunctionTransformer(get_face_hog)),
-        ('classifier', ExtraTreesClassifier(
-            n_estimators=5000,
-            criterion='gini',
-            max_features='auto', verbose=0))
-    ])
-
-    ens = VotingClassifier(estimators=[
-        ('svc', svc_pipeline),
-        ('et', et_pipeline),
-    ], voting='soft', weights=[1, 10])
+    # svc_pipeline = Pipeline([
+    #     # ('preprocess', FunctionTransformer(get_face_hog)),
+    #     ('classifier', SVC(
+    #         C=10, kernel='poly',
+    #         gamma=1, shrinking=False, class_weight='balanced',
+    #         probability=True, tol=0.001, cache_size=10000,
+    #         max_iter=-1, verbose=0))
+    # ])
+    #
+    # et_pipeline = Pipeline([
+    #     # ('preprocess', FunctionTransformer(get_face_hog)),
+    #     ('classifier', ExtraTreesClassifier(
+    #         n_estimators=5000,
+    #         criterion='gini',
+    #         max_features='auto', verbose=0))
+    # ])
+    #
+    # ens = VotingClassifier(estimators=[
+    #     ('svc', svc_pipeline),
+    #     ('et', et_pipeline),
+    # ], voting='soft', weights=[1, 10])
 
     def __init__(self, binary_classification: bool = False):
         self.binary_classification = binary_classification
+        self.ens = SVC(
+            C=10, kernel='poly',
+            gamma=1, shrinking=False, class_weight='balanced',
+            probability=True, tol=0.001, cache_size=10000,
+            max_iter=-1, verbose=0)
 
     def fit(self, x, y):
         self.ens.fit(x, y)

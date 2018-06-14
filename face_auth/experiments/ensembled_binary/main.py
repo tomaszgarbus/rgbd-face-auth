@@ -94,7 +94,7 @@ if __name__ == '__main__':
         for j in range(len(test_probs)):
             all_pred_probs[j] += list(outs[j])
 
-    for pred_probs in all_pred_probs:
+    for pred_probs, vote_props in zip(all_pred_probs, test_probs):
         results = ClassificationResults(pred_probs=pred_probs, labels=all_y_test, binary=True)
         for prec in [0.9, 0.99, 0.995, 0.999, 1]:
             print("Recall for precision " + str(prec) + ": " + str(results.get_recall_for_precision(prec)))
