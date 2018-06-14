@@ -91,7 +91,7 @@ pictures = []
 skin_pixels = []
 
 for i, j in itertools.product(range(960), range(1280)):
-    if is_vawe_balck(pic[i][j]):
+    if not is_black(pic_mask[i][j]):
         skin_pixels.append(pic[i][j])
 
 derivative = [preprocess(x) for x in skin_pixels]
@@ -113,7 +113,7 @@ def check(d):
 
     return True
 
-test_pic = load_object('B')
+test_pic = load_object('A')
 
 def generate_mask(pic):
     mask = np.zeros(shape=(960, 1280), dtype=bool)
