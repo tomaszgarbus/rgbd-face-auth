@@ -7,6 +7,7 @@ from typing import Optional, List, Tuple
 from progress.bar import Bar
 from imgaug import augmenters as ia
 from sklearn.metrics import roc_auc_score
+import os
 
 from classifiers.classification_results import ClassificationResults
 from common.db_helper import DB_LOCATION
@@ -71,6 +72,8 @@ class NeuralNet:
                  # ID of the subject that is considered "positive" in case of
                  # binary classification.
                  positive_class: int = 0,
+                 # If provided, will store checkpoints to ckpt_file
+                 ckpt_file: Optional[str] = None,
                  ):
         self.experiment_name = experiment_name
         self.input_shape = input_shape
@@ -80,6 +83,7 @@ class NeuralNet:
         self.steps_per_epoch = steps_per_epoch
         self.dropout = dropout_rate
         self.augment_on_the_fly = augment_on_the_fly
+        self.ckpt_file = ckpt_file
         self.binary_classification = binary_classification
         self.positive_class = positive_class
         self.num_classes = NUM_CLASSES if not binary_classification else 1
@@ -514,7 +518,14 @@ class NeuralNet:
             self._visualize_incorrect_answer_images()
 
             # Initialize variables.
-            tf.global_variables_initializer().run()
+            if self.ckpt_file:
+                saver = tf.train.Saver()
+                try:
+                    saver.restore(self.sess, self.ckpt_file)
+                except (tf.errors.InvalidArgumentError, tf.errors.NotFoundError):
+                    tf.global_variables_initializer().run()
+            else:
+                tf.global_variables_initializer().run()
 
             # Initialize summary writer.
             self.writer = tf.summary.FileWriter(logdir='conv_vis')
@@ -538,6 +549,10 @@ class NeuralNet:
                 # Re-initialize progress bar
                 bar.finish()
                 bar = Bar('', max=self.steps_per_epoch, suffix='%(index)d/%(max)d ETA: %(eta)ds')
+
+                # Store model
+                if self.ckpt_file:
+                    saver.save(self.sess, self.ckpt_file)
 
                 # Validate
                 val_results = self.validate(global_step=epoch_no)
