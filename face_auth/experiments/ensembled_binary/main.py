@@ -1,7 +1,8 @@
 from sklearn.metrics import accuracy_score
 import numpy as np
+import os
 
-from common.constants import NUM_CLASSES
+from common.constants import DB_LOCATION
 from classifiers.neural_net import NeuralNet
 from classifiers.classification_results import ClassificationResults
 import experiments.no_rotation_channels_without_hogs.constants as nn_exp_constants
@@ -20,50 +21,59 @@ def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray) -> np.ndarray:
     return out
 
 
-def run_main():
-    # Use eurecom + ias_lab_rgbd, once we migrate to our own
-    # dataset, NUM_CLASSES will be more meaningful
-    net = NeuralNet(experiment_name=nn_exp_constants.EXP_NAME,
-                    input_shape=nn_exp_constants.NN_INPUT_SIZE,
-                    mb_size=16,
-                    kernel_size=[5, 5],
-                    nb_epochs=50,
-                    steps_per_epoch=1000,
-                    filters_count=[10, 20, 20],
-                    dense_layers=[1],
-                    dropout_rate=0.5,
-                    learning_rate=0.005,
-                    binary_classification=True,
-                    positive_class=0)
-    nn_out = net.train_and_evaluate().pred_probs
-    hog_out, y_test = hogs.run_main()
-    hog_out = hog_out[:, 0]
-    hog_out = hog_out.reshape([len(hog_out), 1])
-    y_test = np.apply_along_axis(lambda x: float(x[0] == 1.), axis=1, arr=y_test)
-    # nn_out = nn_out[:, :hog_out.shape[1]]
-    print(hog_out.shape)
+test_probs = [
+    (1, 2),
+    (2, 3),
+    (1, 1),
+    (10, 9),
+    (10, 8),
+    (10, 7),
+    (10, 6),
+    (2, 1),
+    (3, 1),
+    (4, 1),
+    (5, 1),
+    (8, 1),
+    (9, 1),
+    (10, 1),
+    (100, 1),
+    (1, 100)
+]
 
-    test_probs = [
-        (1, 2),
-        (2, 3),
-        (1, 1),
-        (10, 9),
-        (10, 8),
-        (10, 7),
-        (10, 6),
-        (2, 1),
-        (3, 1),
-        (4, 1),
-        (5, 1),
-        (8, 1),
-        (9, 1),
-        (10, 1),
-        (100, 1),
-        (1, 100)
-    ]
+
+def run_main(pos_class=0, net_iters=20):
+    nn_file = DB_LOCATION + '/gen/' + nn.EXP_NAME + '_binary_pred_probs_' + str(pos_class) + '.npy'
+    hog_file = DB_LOCATION + '/gen/' + hogs.EXP_NAME + '_pred_probs.npy'
+    if os.path.isfile(nn_file):
+        print("Loading network results from file")
+        nn_out = np.load(nn_file)
+    else:
+        net = NeuralNet(experiment_name=nn_exp_constants.EXP_NAME,
+                        input_shape=nn_exp_constants.NN_INPUT_SIZE,
+                        mb_size=16,
+                        kernel_size=[5, 5],
+                        nb_epochs=net_iters,
+                        steps_per_epoch=1000,
+                        filters_count=[20, 20, 40],
+                        dense_layers=[1],
+                        dropout_rate=0.5,
+                        learning_rate=0.005,
+                        binary_classification=True,
+                        positive_class=pos_class)
+        nn_out = net.train_and_evaluate().pred_probs
+        np.save(nn_file, nn_out)
+    if os.path.isfile(hog_file):
+        print("Loading hog results from file")
+        hog_out = np.load(hog_file)
+        y_test = np.load(DB_LOCATION + '/gen/' + hogs.EXP_NAME + '_Y_test.npy')
+    else:
+        hog_out, y_test = hogs.run_main()
+    hog_out = hog_out[:, pos_class]
+    hog_out = hog_out.reshape([len(hog_out), 1])
+    y_test = np.apply_along_axis(lambda x: float(x[pos_class] == 1.), axis=1, arr=y_test)
+    # nn_out = nn_out[:, :hog_out.shape[1]]
 
     outs = list(map(lambda x: test_ens(x, nn_out, hog_out), test_probs))
-    print(str(outs))
 
     for probs, out in zip(test_probs, outs):
         print("Voting weights: " + str(probs))
@@ -71,9 +81,21 @@ def run_main():
         for prec in [0.9, 0.99, 0.995, 0.999, 1]:
             print("Recall for precision " + str(prec) + ": " + str(results.get_recall_for_precision(prec)))
 
-    return outs
+    return outs, y_test
 
 
 if __name__ == '__main__':
-    run_main()
+    all_pred_probs = [[] for i in range(len(test_probs))]
+    all_y_test = []
+    for i in range(5):
+        print("running with positive class " + str(i))
+        outs, y_test = run_main(pos_class=i, net_iters=25)
+        all_y_test += list(y_test)
+        for j in range(len(test_probs)):
+            all_pred_probs[j] += list(outs[j])
+
+    for pred_probs in all_pred_probs:
+        results = ClassificationResults(pred_probs=pred_probs, labels=all_y_test, binary=True)
+        for prec in [0.9, 0.99, 0.995, 0.999, 1]:
+            print("Recall for precision " + str(prec) + ": " + str(results.get_recall_for_precision(prec)))
 

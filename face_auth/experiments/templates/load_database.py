@@ -34,7 +34,7 @@ def load_data(experiment_name, input_shape, range_beg: int = 0, range_end: int =
     x_test = x_test[test_indices]
     y_test = y_test[test_indices]
     # Show first input if you want
-    show_image(x_train[0].reshape([input_shape[0], input_shape[1] * input_shape[2]]))
+    # show_image(x_train[0].reshape([input_shape[0], input_shape[1] * input_shape[2]]))
 
 
     print("Loaded data..")

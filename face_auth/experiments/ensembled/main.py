@@ -65,7 +65,17 @@ def run_main(load_results=True):
 
         print("acc score is " + str(score) + " for voting weights: " + str(probs))
 
-    return outs
+    # Visualize misclassified
+    out = outs[0]
+    labels = hogs.from_hot_one(y_test)
+    x_test = np.load(DB_LOCATION + '/gen/' + nn.EXP_NAME + '_X_test.npy')
+    misclassified = []
+    for i in range(len(y_test)):
+        if out[i] != labels[i]:
+            misclassified.append(x_test[i][:, :, 0])
+            print(labels[i])
+
+    return outs, misclassified
 
 
 if __name__ == '__main__':

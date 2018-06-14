@@ -8,9 +8,9 @@ if __name__ == '__main__':
                     input_shape=NN_INPUT_SIZE,
                     mb_size=16,
                     kernel_size=[5, 5],
-                    nb_epochs=50,
+                    nb_epochs=150,
                     steps_per_epoch=1000,
-                    filters_count=[10, 20, 20],
+                    filters_count=[20, 20, 40],
                     dense_layers=[NUM_CLASSES],
                     dropout_rate=0.5,
                     learning_rate=0.05,)
