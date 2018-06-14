@@ -61,8 +61,8 @@ def is_vawe_balck(pixel):
 pic = load_object('A')
 pic_mask = load_mask('A')
 
-plt.imshow(pic_with_applied_mask(waves_to_rgb(pic), pic_mask))
-plt.show()
+#plt.imshow(pic_with_applied_mask(waves_to_rgb(pic), pic_mask))
+#plt.show()
 
 def preprocess(pixel): # 9 values wave-pixel
     tmp = []
@@ -91,7 +91,7 @@ pictures = []
 skin_pixels = []
 
 for i, j in itertools.product(range(960), range(1280)):
-    if not is_black(pic_mask[i][j]):
+    if pic_mask[i][j]:
         skin_pixels.append(pic[i][j])
 
 derivative = [preprocess(x) for x in skin_pixels]
