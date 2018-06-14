@@ -5,3 +5,6 @@
 build/
 cmake-build-debug/
 /photos/
+exp/.idea/
+__pycache__/
+exp/database
