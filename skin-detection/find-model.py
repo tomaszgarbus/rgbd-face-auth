@@ -8,6 +8,26 @@ import matplotlib.pyplot as plt
 import itertools
 from common.tools import pic_with_applied_mask
 
+from sklearn import svm
+
+def get_model(name_list):
+    assert len(name_list) == 1, "tmpbad"
+    x, y = None, None
+
+    for name in name_list:
+        x = load_object(name)
+        y = load_mask(name)
+
+    x = list(x.reshape(len(name_list) * 960 * 1280, 9))
+    y = list(y.reshape(len(name_list) * 960 * 1280))
+
+    print(len(x[0]), len(y))
+
+    clf = svm.SVC(verbose=True)
+    clf.fit(x[::100], y[::100])
+
+    return clf
+
 wave_d = [940, 890, 850]
 
 def my_concatenate(a, b, c): #TODO
@@ -30,7 +50,9 @@ def load_object(filename_base, extention = "jpg"):
 
 def load_mask(filename_base, extention = "png"):
     with Image.open('./skin/' + filename_base + "_mask" + '.' + extention) as im_frame:
-        np_frame = np.array(im_frame.getdata())
+        im_frame2 = Image.new("RGB", im_frame.size, (255, 255, 255))
+        im_frame2.paste(im_frame, mask=im_frame.split()[3])
+        np_frame = np.array(im_frame2.getdata())
         pic = np_frame.reshape(960, 1280, 3)
 
     mask = np.zeros(shape=(960, 1280), dtype=bool)
@@ -58,9 +80,28 @@ def is_vawe_balck(pixel):
 
     return False
 
+
+
+m = get_model(['A'])
+
+pic = load_object('A')
+pic = pic.reshape(960*1280, 9)
+
+mask = m.predict(pic)
+pic = pic.reshape(960, 1280, 9)
+mask = mask.reshape(960, 1280)
+
+plt.imshow(pic_with_applied_mask(waves_to_rgb(pic), mask))
+plt.show()
+
+exit(0)
+
+
 pic = load_object('A')
 pic_mask = load_mask('A')
 
+#plt.imshow(pic_mask)
+#plt.show()
 #plt.imshow(pic_with_applied_mask(waves_to_rgb(pic), pic_mask))
 #plt.show()
 
@@ -113,18 +154,17 @@ def check(d):
 
     return True
 
-test_pic = load_object('A')
-
 def generate_mask(pic):
     mask = np.zeros(shape=(960, 1280), dtype=bool)
     for i in range(960):
         for j in range(1280):
             mask[i][j] = check(preprocess(pic[i][j]))
-            if i > 300 and i < 600 and j > 400 and j < 900:
-                mask[i][j] = True
+
     return mask
 
-mask = generate_mask(test_pic)
-pwam = pic_with_applied_mask(waves_to_rgb(test_pic), mask)
-plt.imshow(pwam)
-plt.show()
+for test_name in ['A', 'B']:
+    test_pic = load_object(test_name)
+    mask = generate_mask(test_pic)
+    pwam = pic_with_applied_mask(waves_to_rgb(test_pic), mask)
+    plt.imshow(pwam)
+    plt.show()
