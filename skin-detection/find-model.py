@@ -103,11 +103,12 @@ def check(d):
 test_pic = load_object('B')
 
 def generate_mask(pic):
-    mask = np.zeros(960, 1280, type=bool)
+    mask = np.zeros(shape=(960, 1280), dtype=bool)
     for i in range(960):
         for j in range(1280):
             mask[i][j] = check(preprocess(pic[i][j]))
-
+            if i > 300 and i < 600 and j > 400 and j < 900:
+                mask[i][j] = True
     return mask
 
 mask = generate_mask(test_pic)
