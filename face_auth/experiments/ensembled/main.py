@@ -1,9 +1,10 @@
-from common.constants import NUM_CLASSES
+from common.constants import DB_LOCATION
 from classifiers.hog_classifier import HogFaceClassifier
 from experiments.templates.load_database import load_data
 from experiments.hogs_only.constants import EXP_NAME, INPUT_SIZE
 from sklearn.metrics import accuracy_score
 import numpy as np
+import os
 
 import experiments.no_rotation_channels_without_hogs.main as nn
 import experiments.hogs_only.main as hogs
@@ -20,11 +21,20 @@ def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray) -> np.ndarray:
     return out
 
 
-def run_main():
-    # Use eurecom + ias_lab_rgbd, once we migrate to our own
-    # dataset, NUM_CLASSES will be more meaningful
-    nn_out = nn.run_main()
-    hog_out, y_test = hogs.run_main()
+def run_main(load_results=True):
+    nn_file = DB_LOCATION + '/gen/' + nn.EXP_NAME + '_pred_probs.npy'
+    hog_file = DB_LOCATION + '/gen/' + hogs.EXP_NAME + '_pred_probs.npy'
+    if load_results and os.path.isfile(nn_file):
+        print("Loading network results from file")
+        nn_out = np.load(nn_file)
+    else:
+        nn_out = nn.run_main()
+    if load_results and os.path.isfile(hog_file):
+        print("Loading hog results from file")
+        hog_out = np.load(hog_file)
+        y_test = np.load(DB_LOCATION + '/gen/' + hogs.EXP_NAME + '_Y_test.npy')
+    else:
+        hog_out, y_test = hogs.run_main()
     nn_out = nn_out[:, :hog_out.shape[1]]
     print(hog_out.shape)
 

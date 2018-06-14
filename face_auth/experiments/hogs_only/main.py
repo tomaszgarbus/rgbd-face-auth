@@ -1,4 +1,4 @@
-from common.constants import NUM_CLASSES
+from common.constants import DB_LOCATION
 from classifiers.hog_classifier import HogFaceClassifier
 from experiments.templates.load_database import load_data
 from experiments.hogs_only.constants import EXP_NAME, INPUT_SIZE
@@ -36,6 +36,8 @@ def run_main():
     score = accuracy_score(from_hot_one(y_train), ys)
 
     print("on train is " + str(score))
+
+    np.save(DB_LOCATION + '/gen/' + EXP_NAME + '_pred_probs.npy', evaluate.pred_probs)
 
     return evaluate.pred_probs, y_test
 
