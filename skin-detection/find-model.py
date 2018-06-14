@@ -5,32 +5,59 @@ from PIL import Image
 from random import randint 
 import numpy as np 
 import matplotlib.pyplot as plt
-
+import itertools
+from common.tools import pic_with_applied_mask
 
 wave_d = [940, 890, 850]
 
-def is_black(x):
-    return x[0]**2 + x[1]**2 + x[2]**2 < 10**2
+def my_concatenate(a, b, c): #TODO
+    return np.array([a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]])
 
-pictures = []
-skin_pixels = []
+def load_object(filename_base, extention = "jpg"):
+    pictures = []
+    for p_id in range(1, 3+1):
+        with Image.open('./skin/' + filename_base + "_" + str(p_id) + '.' + extention) as im_frame: 
+            np_frame = np.array(im_frame.getdata()) 
+            pictures += [np_frame.reshape(960, 1280, 3)]
+            #plt.imshow(pictures[-1])
+            #plt.show()
 
-for filename in ['skin/C.jpg', 'skin/B.jpg', 'skin/A.jpg']:
-    im_frame = Image.open('./' + filename) 
-    np_frame = np.array(im_frame.getdata()) 
-    pictures += [np_frame]
+    ret = np.zeros(shape=(960, 1280, 9))
+    for i, j in itertools.product(range(960), range(1280)):
+        ret[i][j] = my_concatenate(pictures[0][i][j], pictures[1][i][j], pictures[2][i][j])
 
-for i in range(len(pictures[0])):
-    if not is_black(pictures[0][i]):
-        skin_pixels += [ (pictures[0][i], pictures[1][i], pictures[2][i]) ]
+    return ret
 
-derivative = []
-for pixel in skin_pixels:
+def waves_to_rgb(pic):
+    ret = np.zeros(shape=(960, 1280, 3), dtype=int)
+
+    for i, j in itertools.product(range(960), range(1280)):
+        for k in range(3):
+            ret[i][j][k] = sum([pic[i][j][k+3*p] for p in range(3)])//3
+
+    return ret
+
+def is_black(r, g, b):
+    return r==0 or g == 0 or b == 0 or r**2 + g**2 + b**2 < 10**2
+
+def is_vawe_balck(pixel):
+    for i in range(3):
+        if is_black(*pixel[3*i:3*(i+1)]):
+            return True
+
+    return False
+
+pic = load_object('A')
+#abba = plt.imshow(waves_to_rgb(pic))
+#plt.show()
+
+def preprocess(pixel): # 9 values wave-pixel
     tmp = []
     for i in range(3):
-        a = pixel[0][i] / pixel[1][i]
-        b = pixel[1][i] / pixel[2][i]
-        c = pixel[0][i] / pixel[2][i]
+        a = pixel[0+i] / max(1, pixel[3+i])
+        b= pixel[3+i]  / max(1, pixel[6+i])
+        c = pixel[0+i] / max(1, pixel[6+i])
+
 
         # Potestować, jak liczyć pochodna
        
@@ -42,55 +69,48 @@ for pixel in skin_pixels:
         #b /= wave_d[2] - wave_d[1]
         #c /= wave_d[2] - wave_d[0]
 
-        tmp.append( [a, b, c] )
+        tmp += [a, b, c]
 
-    for i in range(3): # to jest pewnie zle, ale na szybko tak...
-        tmp[0][i] += tmp[2][i]
-        tmp[0][i] /= 2
 
-    tmp = tmp[:2]
-    derivative.append(tmp)
+    return tmp
 
-def m_foo(a, b, foo):
-    assert len(a) == len(b), "lab"
-    return [ foo(a[i], b[i]) for i in range(len(a)) ]
+pictures = []
+skin_pixels = []
 
-def mdd(a, b):
-    return a + b
+for i, j in itertools.product(range(960), range(1280)):
+    if is_vawe_balck(pic[i][j]):
+        skin_pixels.append(pic[i][j])
 
-m1, m2 = derivative[0][0], derivative[0][1]
-k1, k2 = m1, m2
-s1, s2 = [0, 0, 0], [0, 0, 0]
-for d in derivative:
-    m1 = m_foo(m1, d[0], min)
-    m2 = m_foo(m2, d[1], min)
-    k1 = m_foo(k1, d[0], max)
-    k2 = m_foo(k2, d[1], max)
-    s1 = m_foo(s1, d[0], mdd)
-    s2 = m_foo(s2, d[0], mdd)
+derivative = [preprocess(x) for x in skin_pixels]
 
-s1 = [x / len(derivative) for x in s1]
-s2 = [x / len(derivative) for x in s2]
+mid = [0] * 9
+for x in derivative:
+    for i in range(9):
+        mid[i] += x[i]
 
-# Jeszcze tu bym wariancje policzyl
-
-print(m1, m2)
-print(s1, s2)
-print(k1, k2)
+for i in range(9):
+    mid[i] /= len(derivative)
 
 def check(d):
-    for i in range(len(s1)):
-        if not (0.19 * s1[i] <= d[0][i] <= 1.92 * s1[i]):
-            return False
-
-    for i in range(len(s2)):
-        if not (0.16* s2[i] <= d[1][i] <= 2.38 * s2[i]):
+    mod = [(0.5, 1.5)] * 9
+    for i in range(9):
+        mi, ma = mod[i]
+        if not (mi*mid[i] <= d[i] <= ma*mid[i]):
             return False
 
     return True
 
-print(len([d for d in derivative if check(d)]) , "of", len(derivative))
+test_pic = load_object('B')
 
-abba = plt.imshow(pictures[0])
+def generate_mask(pic):
+    mask = np.zeros(960, 1280, type=bool)
+    for i in range(960):
+        for j in range(1280):
+            mask[i][j] = check(preprocess(pic[i][j]))
 
-    pass
+    return mask
+
+mask = generate_mask(test_pic)
+pwam = pic_with_applied_mask(waves_to_rgb(test_pic), mask)
+plt.imshow(pwam)
+plt.show()
