@@ -8,3 +8,4 @@ cmake-build-debug/
 exp/.idea/
 __pycache__/
 exp/database
+*/skin/*.jpg
