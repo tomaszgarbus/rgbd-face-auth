@@ -28,6 +28,17 @@ def load_object(filename_base, extention = "jpg"):
 
     return ret
 
+def load_mask(filename_base, extention = "png"):
+    with Image.open('./skin/' + filename_base + "_mask" + '.' + extention) as im_frame:
+        np_frame = np.array(im_frame.getdata())
+        pic = np_frame.reshape(960, 1280, 3)
+
+    mask = np.zeros(shape=(960, 1280), dtype=bool)
+    for i, j in itertools.product(range(960), range(1280)):
+        mask[i][j] = not is_black(*pic[i][j])
+
+    return mask
+
 def waves_to_rgb(pic):
     ret = np.zeros(shape=(960, 1280, 3), dtype=int)
 
@@ -48,8 +59,10 @@ def is_vawe_balck(pixel):
     return False
 
 pic = load_object('A')
-#abba = plt.imshow(waves_to_rgb(pic))
-#plt.show()
+pic_mask = load_mask('A')
+
+plt.imshow(pic_with_applied_mask(waves_to_rgb(pic), pic_mask))
+plt.show()
 
 def preprocess(pixel): # 9 values wave-pixel
     tmp = []
