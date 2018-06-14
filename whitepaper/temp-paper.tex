@@ -10,6 +10,7 @@
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
 
+\usepackage[font=small,labelfont=bf]{caption}
 \usepackage{amsfonts}
 \usepackage{fancyhdr}
 \usepackage{tikz}
@@ -18,6 +19,10 @@
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{subcaption}
+
+\usepackage[numbers]{natbib}
+\bibliographystyle{unsrtnat}
 
 \graphicspath{ {./pictures/} }
 
@@ -28,6 +33,5 @@
     \include{content/skin-recognition}
     \include{content/face-auth}
     \include{content/recapitulation}
-    \bibliographystyle{acm}
     \bibliography{bibliography}
 \end{document}

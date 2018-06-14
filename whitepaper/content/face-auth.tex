@@ -187,7 +187,7 @@
             \item \textbf{coarse salt and pepper} -- randomly placed patches of grain (black and white pixels)
             \item \textbf{padding} -- shifting the input image $3$ pixels in random direction
             \item \textbf{Gaussian blur} with several different strenghts
-            \item \textbf{Rotations} by $2$ degrees
+            \item \textbf{rotations} by $2$ degrees
             \item \textbf{PiecewiseAffine} -- augmenter that places a regular grid of points on an image and randomly moves the neighbourhood of these point around via affine transformations.
         \end{itemize}
         \begin{figure}[H]
@@ -197,11 +197,69 @@
         \end{figure}
 
     \subsection{Classifiers}
-        \subsubsection*{CNN}
+        \subsubsection{Convolutional Neural Network}
+        We have used a convolutional neural network with the following structure:
+        \begin{itemize}
+            \item \textbf{Layers}:
+            \begin{itemize}
+            \item[$\blacksquare$] \textbf{conv. layer 0}: $20$ filters, $5 \text{x} 5$ kernel
+            \item[$\blacksquare$] \textbf{max pooling}: $2 \text{x} 2$ pool size, $2 \text{x} 2$ strides
+            \item[$\blacksquare$] \textbf{conv. layer 1}: $20$ filters, $5 \text{x} 5$ kernel
+            \item[$\blacksquare$] \textbf{max pooling}: $2 \text{x} 2$ pool size, $2 \text{x} 2$ strides
+            \item[$\blacksquare$] \textbf{conv. layer 2}: $40$ filters, $5 \text{x} 5$ kernel
+            \item[$\blacksquare$] \textbf{max pooling}: $2 \text{x} 2$ pool size, $2 \text{x} 2$ strides
+            \item[$\blacksquare$] \textbf{dense layer} with sigmoid activation function
+            \end{itemize}
+            \item \textbf{Loss function}: Log Loss
+            \item \textbf{Optimizer}: SGD
+            \item \textbf{Kernels initialization}: Since we have experimented with deeper
+            networks too, and each model was trained from scratch, a reckless initialization
+            would hamper the models ability to learn and increase the number of
+            iterations needed for convergence. To ensure quick start of the learning
+            process, we decided to initialize each kernel with \textbf{random normal
+            distribution with $\mu = 0,\ \sigma = \sqrt{(2 / N)}$}, as advised by
+            \citeauthor{initialization}.
+        \end{itemize}
 
-        \subsubsection*{Voting SVMs and Extra Trees}
 
-        \subsubsection*{Voting CNN, SVMs and Extra Trees}
+        \begin{figure}[H]
+        \caption{Convolved input images (only IR channel). First two rows
+        are outputs from first and second convolutional layers. Third and fourth
+        row are outputs from all $40$ filters from last convolutional layer.
+        }
+        \centering
+        \includegraphics[scale=0.25]{convolutions}
+        \end{figure}
+        \begin{figure}[H]
+            \caption{For each filter in each convolutional layer, $10$ patches
+            among one of the test batches were chosen that activate those
+            filters the most.
+            Horizontally, consecutive filters are presented, vertically -- patches
+            sorted from the highest activation.
+            Note that from each patch, only IR channel is presented.
+            }
+            \centering
+            \begin{subfigure}[b]{0.4\textwidth}
+                \centering
+                \includegraphics[scale=1.4]{exciting_layer0}
+                \caption{layer 0}
+            \end{subfigure}
+            \begin{subfigure}[b]{0.4\textwidth}
+                \centering
+                \includegraphics[scale=0.7]{exciting_layer1}
+                \caption{layer 1}
+            \end{subfigure}
+            \\
+            \begin{subfigure}[b]{0.8\textwidth}
+                \centering
+                \includegraphics[scale=0.35]{exciting_layer2}
+                \caption{layer 2}
+            \end{subfigure}
+        \end{figure}
+
+        \subsection{Ensembled SVMs and Extra Trees}
+
+        \subsection{Ensembled CNN, SVMs and Extra Trees}
 
     \subsection{Quality measures}
         Models have been trained in two modes: multi-class and binary
@@ -257,8 +315,8 @@
             \multicolumn{3}{|c|}{Recall for precision $\rho$} \\
             & & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
             \hline
-            CNN & multi-class & none & y & n & channels & 0.94999 & - & - & - \\
+            CNN & multi-class & none & y & n & channels & 0.9662 & - & - & - \\
             \hline
-            HOG & multi-class & none & n & y & concat & 0.87996 & - & - & - \\
+            HOG & multi-class & none & n & y & concat & 0.8884 & - & - & - \\
             \hline
         \end{tabular}
