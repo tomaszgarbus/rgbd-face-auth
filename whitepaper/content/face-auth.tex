@@ -28,8 +28,8 @@
     Thus, we have decided to build a dedicated dataset.
 
     \subsubsection*{Data collection}
-    The dataset consists of $45$ subjects: \textbf{TODO} males and
-    \textbf{TODO} females, mostly aged $20$-$25$. Each subject has been asked to
+    The dataset consists of $44$ subjects: $36$ males and
+    $8$ females, mostly aged $20$-$25$. Each subject has been asked to
     follow an object with their entire head, making two cycles of slow,
     continuous movements: \texttt{up $\to$ center $\to$ down $\to$ center $\to$
     left $\to$ center $\to$ right $\to$ center}.
@@ -53,6 +53,7 @@
     \end{figure}
 
     \subsection{Face angle detection}
+    \label{sec:angledetection}
     Longer description of angle detection
 
     \subsection{Normalization}
@@ -81,8 +82,68 @@
         \end{center}
 
         \subsubsection*{Face angle normalization}
-        Use of face angle detection to rotate to frontal position.
-        \textbf{TODO 3d plots}
+        Depth channel provides substantial information about faces' geometry, thus allowing
+        a meaningful normalization method -- rotation to the frontal position.
+
+        With our ability to detect face angle (\ref{sec:angledetection}), we can obtain
+        three values: $\theta_x, \theta_y, \theta_z$ -- angles along each axis.
+
+        The face can be represented as a cloud of $3$-dimensional, "colorful" points.
+        Point $p$ is defined as a vector $[x_p, y_p, z_p, ir_p]^{T}$.
+
+        Let $R_x(\theta_x), R_y(\theta_y), R_z(\theta_z)$ denote the rotation matrices
+        for $X, Y, Z$ axes, as follows:
+        \[
+        R_x(\theta_x) =
+        \begin{bmatrix}
+        1 & 0 & 0\\
+        0 & cos(\theta_x) & -sin(\theta_x)\\
+        0 & sin(\theta_x) & cos(\theta_x)
+        \end{bmatrix}
+        \]
+        \[
+        R_y(\theta_y) =
+        \begin{bmatrix}
+        cos(\theta_y) & 0 & sin(\theta_y)\\
+        0 & 1 & 0\\
+        -sin(\theta_y) & 0 & cos(\theta_y)
+        \end{bmatrix}
+        \]
+        \[
+        R_z(\theta_z) =
+        \begin{bmatrix}
+        cos(\theta_z) & -sin(\theta_z) & 0\\
+        sin(\theta_z) & cos(\theta_z) & 0\\
+        0 & 0 & 1
+        \end{bmatrix}
+        \]
+        The operation of rotating a single point is a product of its coordinates and the three rotation matrices:
+        \begin{center}
+        $
+        \begin{bmatrix}
+          x_p\\
+          y_p\\
+          z_p\\
+          ir_p
+        \end{bmatrix}
+        \cdot
+        \begin{bmatrix}
+          R_x & 0_{3}^T\\
+          0_{3} & 1
+        \end{bmatrix}
+        \cdot
+        \begin{bmatrix}
+          R_y & 0_{3}^T\\
+          0_{3} & 1
+        \end{bmatrix}
+        \cdot
+        \begin{bmatrix}
+          R_z & 0_{3}^T\\
+          0_{3} & 1
+        \end{bmatrix}
+        $
+        \end{center}
+
 
     \subsection{Preprocessing techniques}
     We have tried several different preprocessing techniques.
@@ -99,7 +160,7 @@
         Depth photos have been trimmed accordingly.
 
         \begin{figure}[H]
-        \caption{One of the subjects from the database -- before and after trimming the face.}
+        \caption{Before and after trimming the face.}
         \centering
         \includegraphics[scale=0.25]{before_trim_ludziej}
         \includegraphics[scale=0.25]{after_trim_ludziej}
@@ -119,6 +180,21 @@
         HOGs) should be concatenated or layered as channels. In our experiments,
         we have included both approaches.
 
+        \subsubsection*{Data augmentation}
+        To further enhance the training set, we have used image augmentations, with \texttt{imgaug}\cite{imgaug} library.
+        The used transformations include:
+        \begin{itemize}
+            \item \textbf{coarse salt and pepper} -- randomly placed patches of grain (black and white pixels)
+            \item \textbf{padding} -- shifting the input image $3$ pixels in random direction
+            \item \textbf{Gaussian blur} with several different strenghts
+            \item \textbf{Rotations} by $2$ degrees
+            \item \textbf{PiecewiseAffine} -- augmenter that places a regular grid of points on an image and randomly moves the neighbourhood of these point around via affine transformations.
+        \end{itemize}
+        \begin{figure}[H]
+        \caption{Trimming + all possible augmentations.}
+        \centering
+        \includegraphics[scale=0.5]{augmenters}
+        \end{figure}
 
     \subsection{Classifiers}
         \subsubsection*{CNN}
@@ -161,6 +237,12 @@
         For each precision threshold, we have calculated the corresponding recall measure and
         averaged the result over $10$ random choices for positive class.
 
+    \begin{figure}[H]
+    \caption{Test samples misclassified by CNN}
+    \centering
+    \includegraphics[scale=0.4]{misclassified}
+    \end{figure}
+
 
     \subsection{Test results}
         \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c| }
@@ -175,6 +257,8 @@
             \multicolumn{3}{|c|}{Recall for precision $\rho$} \\
             & & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
             \hline
-            CNN & binary & frontal & y & y & channels & NA & 0.9 & 0.85 & 0.83 \\
+            CNN & multi-class & none & y & n & channels & 0.94999 & - & - & - \\
+            \hline
+            HOG & multi-class & none & n & y & concat & 0.87996 & - & - & - \\
             \hline
         \end{tabular}
