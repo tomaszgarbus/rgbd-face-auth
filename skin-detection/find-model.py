@@ -1,15 +1,18 @@
 # THIS FILE... needs more work.
 
-from sympy import * 
-from PIL import Image 
-from random import randint 
-import numpy as np 
+from sympy import *
+from PIL import Image
+from random import randint
+import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 from common.tools import pic_with_applied_mask
 
 import math
 
+WIDTH = 960 # 1280
+HEIGHT = 960
+CROP_SIZE = (320, 0, 1280, 960)
 
 def normalize(x, ntype):
     if ntype == 0:
@@ -20,7 +23,7 @@ def normalize(x, ntype):
 
 def ml_preproc(xs):
     ret = xs
-    #ret = [ list(x) + [(i//1280)//100, (i%1280)//100] for i, x in enumerate(ret) ]
+    #ret = [ list(x) + [(i//WIDTH)//100, (i%WIDTH)//100] for i, x in enumerate(ret) ]
     ret = [[x[0]-x[3], x[0]-x[6], x[3]-x[6], (x[0]+x[3])//2, (x[0]+x[6])//2, (x[3]+x[6])//2] for x in ret]
     #ret = [ normalize(x, 0) for x in ret]
 
@@ -36,8 +39,8 @@ def get_model(name_list):
     for name in name_list:
         x = load_object(name)
         y = load_mask(name)
-        x = ml_preproc( list(x.reshape(960 * 1280, 9)) )
-        y = list(y.reshape(960 * 1280))
+        x = ml_preproc( list(x.reshape(HEIGHT * WIDTH, 9)) )
+        y = list(y.reshape(HEIGHT * WIDTH))
         x_l += list(x)[::n]
         y_l += list(y)[::n]
         #TO THINK: learn model here? Image by image.
@@ -58,14 +61,15 @@ def my_concatenate(a, b, c): #TODO
 def load_object(filename_base, extention = "jpg"):
     pictures = []
     for p_id in range(1, 3+1):
-        with Image.open('./skin/' + filename_base + "_" + str(p_id) + '.' + extention) as im_frame: 
-            np_frame = np.array(im_frame.getdata()) 
-            pictures += [np_frame.reshape(960, 1280, 3)]
-            #plt.imshow(pictures[-1])
-            #plt.show()
+        with Image.open('./skin/' + filename_base + "_" + str(p_id) + '.' + extention) as im_frame:
+            im_frame = im_frame.crop(CROP_SIZE)
+            np_frame = np.array(im_frame.getdata())
+            pictures += [np_frame.reshape(HEIGHT, WIDTH, 3)]
+            # plt.imshow(pictures[-1].astype('byte') / 255.0)
+            # plt.show()
 
-    ret = np.zeros(shape=(960, 1280, 9))
-    for i, j in itertools.product(range(960), range(1280)):
+    ret = np.zeros(shape=(HEIGHT, WIDTH, 9))
+    for i, j in itertools.product(range(HEIGHT), range(WIDTH)):
         ret[i][j] = my_concatenate(pictures[0][i][j], pictures[1][i][j], pictures[2][i][j])
 
     return ret
@@ -76,19 +80,20 @@ def load_mask(filename_base, extention = "png"):
         if filename_base != 'B': #TODO Check if RGBA or RGB
             im_frame2 = Image.new("RGB", im_frame.size, (255, 255, 255))
             im_frame2.paste(im_frame, mask=im_frame.split()[3])
+        im_frame2 = im_frame2.crop(CROP_SIZE)
         np_frame = np.array(im_frame2.getdata())
-        pic = np_frame.reshape(960, 1280, 3)
+        pic = np_frame.reshape(HEIGHT, WIDTH, 3)
 
-    mask = np.zeros(shape=(960, 1280), dtype=bool)
-    for i, j in itertools.product(range(960), range(1280)):
+    mask = np.zeros(shape=(HEIGHT, WIDTH), dtype=bool)
+    for i, j in itertools.product(range(HEIGHT), range(WIDTH)):
         mask[i][j] = not is_black(*pic[i][j])
 
     return mask
 
 def waves_to_rgb(pic):
-    ret = np.zeros(shape=(960, 1280, 3), dtype=int)
+    ret = np.zeros(shape=(HEIGHT, WIDTH, 3), dtype=int)
 
-    for i, j in itertools.product(range(960), range(1280)):
+    for i, j in itertools.product(range(HEIGHT), range(WIDTH)):
         for k in range(3):
             ret[i][j][k] = sum([pic[i][j][k+3*p] for p in range(3)])//3
 
@@ -110,11 +115,11 @@ m = get_model(['A', 'B'])
 
 for name in ['A', 'B', 'C', 'D']:
     pic = load_object(name)
-    pic = pic.reshape(960*1280, 9)
+    pic = pic.reshape(HEIGHT*WIDTH, 9)
 
     mask = m.predict(ml_preproc(pic))
-    pic = pic.reshape(960, 1280, 9)
-    mask = mask.reshape(960, 1280)
+    pic = pic.reshape(HEIGHT, WIDTH, 9)
+    mask = mask.reshape(HEIGHT, WIDTH)
 
     plt.imshow(pic_with_applied_mask(waves_to_rgb(pic), mask))
     plt.show()
@@ -139,7 +144,7 @@ def preprocess(pixel): # 9 values wave-pixel
 
 
         # Potestować, jak liczyć pochodna
-       
+
         #a = pixel[0][i] - pixel[1][i]
         #b = pixel[1][i] - pixel[2][i]
         #c = pixel[0][i] - pixel[2][i]
@@ -156,7 +161,7 @@ def preprocess(pixel): # 9 values wave-pixel
 pictures = []
 skin_pixels = []
 
-for i, j in itertools.product(range(960), range(1280)):
+for i, j in itertools.product(range(HEIGHT), range(WIDTH)):
     if pic_mask[i][j]:
         skin_pixels.append(pic[i][j])
 
@@ -180,9 +185,9 @@ def check(d):
     return True
 
 def generate_mask(pic):
-    mask = np.zeros(shape=(960, 1280), dtype=bool)
-    for i in range(960):
-        for j in range(1280):
+    mask = np.zeros(shape=(HEIGHT, WIDTH), dtype=bool)
+    for i in range(HEIGHT):
+        for j in range(WIDTH):
             mask[i][j] = check(preprocess(pic[i][j]))
 
     return mask
