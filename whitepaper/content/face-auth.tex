@@ -293,7 +293,7 @@
         $rec(p, y) = \frac{\{t \in T\ |\ p_t = y_t = 1\}}{\{t \in T\ |\ y_t = 1\}}$
         \end{center}
         For each precision threshold, we have calculated the corresponding recall measure and
-        averaged the result over $10$ random choices for positive class.
+        averaged the result over $5$ random choices for positive class.
 
     \begin{figure}[H]
     \caption{Test samples misclassified by CNN}
@@ -307,16 +307,27 @@
             \hline
             \multirow{2}{*}{Model} &
             \multirow{2}{*}{Mode} &
-            \multirow{2}{*}{Rotation} &
             \multirow{2}{*}{Entropy} &
             \multirow{2}{*}{HOGs} &
-            \multirow{2}{*}{Inputs} &
+            \multirow{2}{*}{CNN inputs} &
             \multirow{2}{*}{ACC} &
             \multicolumn{3}{|c|}{Recall for precision $\rho$} \\
-            & & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
+            & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
             \hline
-            CNN & multi-class & none & y & n & channels & 0.9662 & - & - & - \\
+            CNN & multi-class & y & n & channels & 0.9721 & - & - & - \\
             \hline
-            HOG & multi-class & none & n & y & concat & 0.8884 & - & - & - \\
+            CNN 10 : 1 SVM & multi-class & y & y & channels & 0.9721 & - & - & - \\
+            \hline
+            CNN 1 : 2 SVM & multi-class & y & y & channels & 0.9536 & - & - & - \\
+            \hline
+            SVM & multi-class & n & y & channels & 0.9099 & - & - & - \\
+            \hline
+            SVM 1:10 ET & multi-class & n & y & channels & 0.8884 & - & - & - \\
+            \hline
+            ET & multi-class & n & y & channels & 0.8369 & - & - & - \\
+            \hline
+            CNN 1 : 5 SVM & binary & y & y & channels & - & 0.9013 & 0.8947 & 0.8947 \\
+            \hline
+            CNN & binary & y & y & channels & - & 0.8487 & 0.8487 & 0.8487 \\
             \hline
         \end{tabular}
