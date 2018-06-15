@@ -8,23 +8,45 @@ import matplotlib.pyplot as plt
 import itertools
 from common.tools import pic_with_applied_mask
 
-from sklearn import svm
+import math
+
+
+def normalize(x, ntype):
+    if ntype == 0:
+        return [ e/255. for e in x ]
+    if ntype == 1:
+        n = math.sqrt(sum([ e**2 for e in x ])/len(x))
+        return [ e/n for e in x ]
+
+def ml_preproc(xs):
+    ret = xs
+    ret = [ list(x) + [(i//1280)//100, (i%1280)//100] for i, x in enumerate(ret) ]
+    #ret = [[x[0]-x[3], x[0]-x[6], x[3]-x[6], (x[0]+x[3])//2, (x[0]+x[6])//2, (x[3]+x[6])//2] for x in ret]
+    #ret = [ normalize(x, 0) for x in ret]
+
+    return ret
 
 def get_model(name_list):
-    assert len(name_list) == 1, "tmpbad"
-    x, y = None, None
+    from sklearn import svm
+    from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
+
+    x_l, y_l = [], []
+    n = 1000
 
     for name in name_list:
         x = load_object(name)
         y = load_mask(name)
+        x = ml_preproc( list(x.reshape(960 * 1280, 9)) )
+        y = list(y.reshape(960 * 1280))
+        x_l += list(x)[::n]
+        y_l += list(y)[::n]
+        #TO THINK: learn model here? Image by image.
 
-    x = list(x.reshape(len(name_list) * 960 * 1280, 9))
-    y = list(y.reshape(len(name_list) * 960 * 1280))
-
-    print(len(x[0]), len(y))
-
-    clf = svm.SVC(verbose=True)
-    clf.fit(x[::100], y[::100])
+    clf = svm.SVC(kernel='poly', degree=1, verbose=True)
+    #clf = RandomForestClassifier(max_depth=12, n_jobs=7, verbose=1)
+    #clf = GradientBoostingClassifier(verbose=True)
+    #clf = AdaBoostClassifier()
+    clf.fit(x_l, y_l)
 
     return clf
 
@@ -50,8 +72,10 @@ def load_object(filename_base, extention = "jpg"):
 
 def load_mask(filename_base, extention = "png"):
     with Image.open('./skin/' + filename_base + "_mask" + '.' + extention) as im_frame:
-        im_frame2 = Image.new("RGB", im_frame.size, (255, 255, 255))
-        im_frame2.paste(im_frame, mask=im_frame.split()[3])
+        im_frame2 = im_frame
+        if filename_base != 'B': #TODO Check if RGBA or RGB
+            im_frame2 = Image.new("RGB", im_frame.size, (255, 255, 255))
+            im_frame2.paste(im_frame, mask=im_frame.split()[3])
         np_frame = np.array(im_frame2.getdata())
         pic = np_frame.reshape(960, 1280, 3)
 
@@ -82,17 +106,18 @@ def is_vawe_balck(pixel):
 
 
 
-m = get_model(['A'])
+m = get_model(['A', 'B'])
 
-pic = load_object('A')
-pic = pic.reshape(960*1280, 9)
+for name in ['A', 'B']:
+    pic = load_object(name)
+    pic = pic.reshape(960*1280, 9)
 
-mask = m.predict(pic)
-pic = pic.reshape(960, 1280, 9)
-mask = mask.reshape(960, 1280)
+    mask = m.predict(ml_preproc(pic))
+    pic = pic.reshape(960, 1280, 9)
+    mask = mask.reshape(960, 1280)
 
-plt.imshow(pic_with_applied_mask(waves_to_rgb(pic), mask))
-plt.show()
+    plt.imshow(pic_with_applied_mask(waves_to_rgb(pic), mask))
+    plt.show()
 
 exit(0)
 
