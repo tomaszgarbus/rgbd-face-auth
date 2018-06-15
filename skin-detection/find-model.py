@@ -20,8 +20,8 @@ def normalize(x, ntype):
 
 def ml_preproc(xs):
     ret = xs
-    ret = [ list(x) + [(i//1280)//100, (i%1280)//100] for i, x in enumerate(ret) ]
-    #ret = [[x[0]-x[3], x[0]-x[6], x[3]-x[6], (x[0]+x[3])//2, (x[0]+x[6])//2, (x[3]+x[6])//2] for x in ret]
+    #ret = [ list(x) + [(i//1280)//100, (i%1280)//100] for i, x in enumerate(ret) ]
+    ret = [[x[0]-x[3], x[0]-x[6], x[3]-x[6], (x[0]+x[3])//2, (x[0]+x[6])//2, (x[3]+x[6])//2] for x in ret]
     #ret = [ normalize(x, 0) for x in ret]
 
     return ret
@@ -31,7 +31,7 @@ def get_model(name_list):
     from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, AdaBoostClassifier
 
     x_l, y_l = [], []
-    n = 1000
+    n = 1
 
     for name in name_list:
         x = load_object(name)
@@ -42,8 +42,8 @@ def get_model(name_list):
         y_l += list(y)[::n]
         #TO THINK: learn model here? Image by image.
 
-    clf = svm.SVC(kernel='poly', degree=1, verbose=True)
-    #clf = RandomForestClassifier(max_depth=12, n_jobs=7, verbose=1)
+    #clf = svm.SVC(kernel='poly', degree=1, verbose=True)
+    clf = RandomForestClassifier(max_depth=12, n_jobs=7, verbose=1)
     #clf = GradientBoostingClassifier(verbose=True)
     #clf = AdaBoostClassifier()
     clf.fit(x_l, y_l)
@@ -108,7 +108,7 @@ def is_vawe_balck(pixel):
 
 m = get_model(['A', 'B'])
 
-for name in ['A', 'B']:
+for name in ['A', 'B', 'C', 'D']:
     pic = load_object(name)
     pic = pic.reshape(960*1280, 9)
 
