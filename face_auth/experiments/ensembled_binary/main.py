@@ -10,13 +10,20 @@ import experiments.no_rotation_channels_without_hogs.main as nn
 import experiments.hogs_only.main as hogs
 
 
-def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray) -> np.ndarray:
+def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray, y_test:np.ndarray, frames_limit=3) -> np.ndarray:
     (w1, w2) = ws
     wsum = w1 + w2
     w1 /= wsum
     w2 /= wsum
 
     out = np.add(np.multiply(out1, w1), np.multiply(out2, w2))
+    voted_out = np.copy(out)
+    for i in range(out.shape[0]):
+        j = i
+        while j < len(y_test) and np.equal(np.argmax(y_test[j]), np.argmax(y_test[i])) and j - i < frames_limit:
+            j += 1
+        voted_out[i] = np.mean(out[i:j], axis=0)
+    out = voted_out
     out = np.apply_along_axis(lambda x: x, axis=1, arr=out)
     return out
 
@@ -43,6 +50,7 @@ test_probs = [
 
 def run_main(pos_class=0, net_iters=20):
     nn_file = DB_LOCATION + '/gen/' + nn.EXP_NAME + '_binary_pred_probs_' + str(pos_class) + '.npy'
+    nn_ckpt = 'ckpts/' + nn.EXP_NAME + '_' + str(pos_class) + '.npy'
     hog_file = DB_LOCATION + '/gen/' + hogs.EXP_NAME + '_pred_probs.npy'
     if os.path.isfile(nn_file):
         print("Loading network results from file")
@@ -59,7 +67,8 @@ def run_main(pos_class=0, net_iters=20):
                         dropout_rate=0.5,
                         learning_rate=0.005,
                         binary_classification=True,
-                        positive_class=pos_class)
+                        positive_class=pos_class,
+                        ckpt_file=nn_ckpt)
         nn_out = net.train_and_evaluate().pred_probs
         np.save(nn_file, nn_out)
     if os.path.isfile(hog_file):
@@ -73,7 +82,7 @@ def run_main(pos_class=0, net_iters=20):
     y_test = np.apply_along_axis(lambda x: float(x[pos_class] == 1.), axis=1, arr=y_test)
     # nn_out = nn_out[:, :hog_out.shape[1]]
 
-    outs = list(map(lambda x: test_ens(x, nn_out, hog_out), test_probs))
+    outs = list(map(lambda x: test_ens(x, nn_out, hog_out, y_test), test_probs))
 
     for probs, out in zip(test_probs, outs):
         print("Voting weights: " + str(probs))
@@ -89,7 +98,7 @@ if __name__ == '__main__':
     all_y_test = []
     for i in range(5):
         print("running with positive class " + str(i))
-        outs, y_test = run_main(pos_class=i, net_iters=25)
+        outs, y_test = run_main(pos_class=i, net_iters=20)
         all_y_test += list(y_test)
         for j in range(len(test_probs)):
             all_pred_probs[j] += list(outs[j])
