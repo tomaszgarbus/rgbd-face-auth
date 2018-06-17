@@ -4,15 +4,18 @@ from experiments.templates.load_database import load_data
 from experiments.hogs_only.constants import EXP_NAME, INPUT_SIZE
 from sklearn.metrics import accuracy_score
 import numpy as np
-
+import datetime
 
 def from_hot_one(ys):
     return [np.argmax(y) for y in ys]
 
 
-def run_main():
+def run_main(params = None):
+    if params is not None:
+        print(str(datetime.datetime.now()))
+        print("params = " + str(params))
     # test hogs only
-    classifier = HogFaceClassifier()
+    classifier = HogFaceClassifier(False, params)
     x_train, y_train, x_test, y_test = load_data(EXP_NAME, INPUT_SIZE)
 
     train_shape = x_train.shape

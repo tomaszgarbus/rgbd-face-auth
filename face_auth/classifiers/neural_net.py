@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+import os
 import tensorflow as tf
 from math import sqrt
 from random import sample, choice, shuffle
@@ -7,12 +8,13 @@ from typing import Optional, List, Tuple
 from progress.bar import Bar
 from imgaug import augmenters as ia
 from sklearn.metrics import roc_auc_score
-import os
 
 from classifiers.classification_results import ClassificationResults
 from common.db_helper import DB_LOCATION
 from common.constants import NUM_CLASSES
 from common.tools import show_image
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 class NeuralNet:

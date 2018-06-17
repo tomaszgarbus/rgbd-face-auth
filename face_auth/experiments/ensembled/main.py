@@ -53,8 +53,8 @@ def run_main(load_results=True):
         (8, 1),
         (9, 1),
         (10, 1),
-        (100, 1),
-        (1, 100)
+        (100, 0),
+        (0, 100)
     ]
 
     outs = list(map(lambda x: test_ens(x, nn_out, hog_out), test_probs))
