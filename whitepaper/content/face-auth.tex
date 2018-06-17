@@ -1,5 +1,26 @@
 \section{Face authentication}
-    Brief introduction to the section.
+    Face recognition is a problem that has been around for a while and
+    human-level solutions have been developed, such as FaceNet\cite{arXiv:1503.03832}.
+    However, there are many subtleties to face recognition in mobile devices
+    security, in particular when using unconventional cameras.
+
+    From the security context, false positives are very problematic. This observation alone
+    poses two questions:
+    \begin{itemize}
+      \item How to measure a model's performance to punish false positives?
+      \item How to maximize our chosen score measure?
+    \end{itemize}
+    We have tackled two problems in our research -- multi-class and binary classification.
+    Binary classification is more adequate to the possible applications of our research.
+    Multi-class classification allows the reader to compare the achieved results
+    with other face recognition models.
+
+    The second observation is more optimistic: the front camera of a mobile is capable of
+    capturing relatively many frames per second. We decided not to constrain our
+    methods to a classification based on a single frame.
+    Moreover, a large training set can be built
+    when adding a new user to the device -- it is not unreasonable to make that procedure
+    longer for increased security. We aimed to take advantage of those factors.
 
     \subsection{Data set}
     We have set requirements for our dataset, aiming to reflect real-life
@@ -40,6 +61,9 @@
 
     Dataset contains also RGB frames taken at $10$ FPS rate, not synchronized
     with IR and depth frames.
+
+    The procedure performed to collect photos of a single person took around $20$-$30$ seconds.
+    We believe it could be proposed as a part of mobile device's first time security configuration.
 
     \subsubsection*{Test set}
     For the test set, we have chosen approximately first $25\%$ of
@@ -302,32 +326,49 @@
     \end{figure}
 
 
-    \subsection{Test results}
-        \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c| }
+    \subsection{Single-frame model results}
+        We call a model single-frame if it classifies the person on the photo
+        using only one frame. We have evaluated several single-frame model to
+        choose one multi-class and one binary classifier.
+        \subsubsection{Multi-class}
+        \begin{center}
+        \begin{tabular}{ |c|c|c|c|c| }
+            \hline
+            Model & Entropy & HOGs & CNN inputs & Accuracy\\
+            \hline
+            CNN & y & n & channels & 0.9721\\
+            \hline
+            CNN 10 : 1 SVM & y & y & channels & 0.9721\\
+            \hline
+            CNN 1 : 2 SVM & y & y & channels & 0.9536\\
+            \hline
+            SVM & n & y & channels & 0.9099\\
+            \hline
+            SVM 1:10 ET & n & y & channels & 0.8884\\
+            \hline
+            ET & n & y & channels & 0.8369\\
+            \hline
+        \end{tabular}
+        \end{center}
+
+        \subsubsection{Binary}
+        \begin{center}
+        \begin{tabular}{ |c|c|c|c|c|c|c| }
             \hline
             \multirow{2}{*}{Model} &
-            \multirow{2}{*}{Mode} &
             \multirow{2}{*}{Entropy} &
             \multirow{2}{*}{HOGs} &
             \multirow{2}{*}{CNN inputs} &
-            \multirow{2}{*}{ACC} &
             \multicolumn{3}{|c|}{Recall for precision $\rho$} \\
-            & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
-            \hline
-            CNN & multi-class & y & n & channels & 0.9721 & - & - & - \\
-            \hline
-            CNN 10 : 1 SVM & multi-class & y & y & channels & 0.9721 & - & - & - \\
-            \hline
-            CNN 1 : 2 SVM & multi-class & y & y & channels & 0.9536 & - & - & - \\
-            \hline
-            SVM & multi-class & n & y & channels & 0.9099 & - & - & - \\
-            \hline
-            SVM 1:10 ET & multi-class & n & y & channels & 0.8884 & - & - & - \\
-            \hline
-            ET & multi-class & n & y & channels & 0.8369 & - & - & - \\
-            \hline
-            CNN 1 : 5 SVM & binary & y & y & channels & - & 0.9013 & 0.8947 & 0.8947 \\
-            \hline
-            CNN & binary & y & y & channels & - & 0.8487 & 0.8487 & 0.8487 \\
-            \hline
+            & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
+        \hline
+        CNN 1 : 5 SVM & y & y & channels & 0.9013 & 0.8947 & 0.8947 \\
+        \hline
+        CNN & y & y & channels & 0.8487 & 0.8487 & 0.8487 \\
+        \hline
         \end{tabular}
+        \end{center}
+
+    \subsection{Multiple frames based classification}
+
+    \subsection{Proposed solution}
