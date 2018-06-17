@@ -10,13 +10,20 @@ import experiments.no_rotation_channels_without_hogs.main as nn
 import experiments.hogs_only.main as hogs
 
 
-def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray) -> np.ndarray:
+def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray, y_test: np.ndarray, frames_limit=3) -> np.ndarray:
     (w1, w2) = ws
     wsum = w1 + w2
     w1 /= wsum
     w2 /= wsum
 
     out = np.add(np.multiply(out1, w1), np.multiply(out2, w2))
+    voted_out = np.copy(out)
+    for i in range(out.shape[0]):
+        j = i
+        while j < len(y_test) and np.equal(np.argmax(y_test[j]), np.argmax(y_test[i])) and j - i < frames_limit:
+            j += 1
+        voted_out[i] = np.mean(out[i:j], axis=0)
+    out = voted_out
     out = np.apply_along_axis(lambda x: np.argmax(x), axis=1, arr=out)
     return out
 
@@ -57,7 +64,8 @@ def run_main(load_results=True):
         (0, 100)
     ]
 
-    outs = list(map(lambda x: test_ens(x, nn_out, hog_out), test_probs))
+
+    outs = list(map(lambda x: test_ens(x, nn_out, hog_out, y_test), test_probs))
     print(str(outs))
 
     for probs, out in zip(test_probs, outs):
@@ -65,7 +73,17 @@ def run_main(load_results=True):
 
         print("acc score is " + str(score) + " for voting weights: " + str(probs))
 
-    return outs
+    # Visualize misclassified
+    out = outs[0]
+    labels = hogs.from_hot_one(y_test)
+    x_test = np.load(DB_LOCATION + '/gen/' + nn.EXP_NAME + '_X_test.npy')
+    misclassified = []
+    for i in range(len(y_test)):
+        if out[i] != labels[i]:
+            misclassified.append(x_test[i][:, :, 0])
+            print(labels[i])
+
+    return outs, misclassified
 
 
 if __name__ == '__main__':
