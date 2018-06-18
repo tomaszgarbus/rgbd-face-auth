@@ -1,41 +1,33 @@
 \section{Introduction}
-    Wide explanation of [security improvement] motivations.
+    In the world of authentication, there is always a trade-off between
+    convenience and security. We would like to compare commonly used authentication
+    methods with regard to both factors and argue that face recognition is more than
+    a good balance between the two -- it does very well in terms of both security
+    and convenience.
 
-    % TODO Add links to examples of attacks.
-    \subsection*{Old style autorization}
-        World knows many authentication methods.
-        Let's look at some known from long time
-        to understand their proses and cons.
-        To see why they are getting old.
-
+    \subsection*{Conventional authorization methods}
         \subsubsection*{Passwords}
-            It's easy to improve standard password's strength,
-            cause longer (random) password is better password
-            and quality increase is exponential.
-            Hash function may create strength limit,
-            but this problem is very easy to overcome on development level,
-            therefore normally possible strength is better tan enough.
-            So, it may be quite good authentication method.\\
-            However, people by themselves simplify passwords to
-            (sometimes literally) the level of picking the right picture,
-            making strong system weak.\\
-            Looking closer on systems avaliable in modern phones,
-            we are able to understand how user's need of comfort
-            had impact on security.
-            If you have to mark three out of $k$ pictures, there
-            is only $\binom{k}{3} = \frac{k(k-1)(k-2)}{6} = O(k^3)$ options,
-            so for $k=9$ there is only 84 options.
-            Even with big overhead to one try, it's esy to break.
-            Same with popular (at phones) patterns out of
-            nine dots. Looking at simple implementations
-            limit of possibilities is near $\sum_{k=2}^9k! = 409\,112$,
-            % TODO linki??
-            and it's not big number for computers.\\
-            Not only brute-force may be problem here.
-            It's easy for a bystander to see the password
-            entered in such a manner. Same
-            problem with standard password.
-            Especially that we live in a world full of cameras.
+            Passwords come in various forms and cannot be easily placed on a
+            security-convenience curve. Their strength is exponentially dependant
+            on their length.\\
+            The strength and form of a password often depend on the context of its
+            use.\\
+            For instance, passwords used for unlocking the screen in a mobile
+            device tend to be simple and quick to input -- a pattern to draw, a
+            $4$ to $8$-digit pin, in rare cases -- an alphanumeric sequence.\\
+            Passwords used for bank accounts, on the other hand, can be undeniably
+            strong, to the point of being a randomly generated sequence of lower
+            and upper letters, digits and special characters.\\
+            With those two extreme examples in mind, we can conclude that passwords
+            can be very secure and they can be very convenient. But that does not
+            imply that passwords can be very secure and very convenient at the
+            same time.\\
+            Another thing to keep in mind is that passwords are an authentication
+            method that rely on user's \textit{knowledge} -- knowledge of the
+            secret code and the ability to remember it at all times. That, however,
+            is slowly changing. Password managers and credential managers are taking
+            the responsibility of not only storing the passwords -- but generating
+            them too.
 
         \subsubsection*{Pendrive keys, tokens and magnetic cards}
             Sometimes to protect valuable resources,
