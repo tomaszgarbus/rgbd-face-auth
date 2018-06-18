@@ -343,11 +343,13 @@
             \hline
             CNN 1 : 2 SVM & y & y & channels & 0.9536\\
             \hline
-            SVM & n & y & channels & 0.9099\\
+            SVM & n & y & - & 0.9099\\
             \hline
-            SVM 1:10 ExtraTrees & n & y & channels & 0.8884\\
+            CNN & y & n & concat & 0.8899\\
             \hline
-            ExtraTrees & n & y & channels & 0.8369\\
+            SVM 1:10 ExtraTrees & n & y & - & 0.8884\\
+            \hline
+            ExtraTrees & n & y & - & 0.8369\\
             \hline
         \end{tabular}
         \end{center}
@@ -372,5 +374,24 @@
         \end{center}
 
     \subsection{Multiple frames based classification}
+    We have chosen CNN as multi-class classifier and CNN ensembled with SVM (CNN 1 : 5 SVM) as
+    best performing single-frame classifiers.
+
+    \subsubsection*{Generating predictions from multiple frames}
+    Let $n$ be the number of frames, $C_{1}$ -- a single-frame classifier and
+    $f_1, ..., f_n$ be the $n$ consecutive frames.
+    Let $p_{C_{1}}(f)$ denote the vector of probabilities predicted for each class by $C_{1}$,
+    with frame $f$ as input.
+
+    Note that $p_{C_{1}}(f) \in [0..1]^D$ where $D = 1$ for binary classification
+    and $D$ equals to the number of classes in multi-class mode -- in our case $D = 44$.
+
+
+    The multi-frame classifier $C_{n}$ can be defined as a function (namely arithmetic mean)
+    from a tuple of $n$ frames to the vector of predicted probabilities.
+
+    \begin{center}
+    $C_{n}(f_1, ..., f_n) = \frac{\sum\limits_{i=1}^{n}{p_{C_{1}}(f_{i})}}{n}$
+    \end{center}
 
     \subsection{Proposed solution}
