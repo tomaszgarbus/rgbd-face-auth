@@ -352,8 +352,10 @@
         using only one frame. We have evaluated several single-frame models to
         choose one multi-class and one binary classifier.
         \subsubsection{Multi-class}
+        \begin{table}[H]
         \begin{center}
         \small
+        \caption{Selected models performance in multi-class mode}
         \begin{tabular}{ |c|c|c|c|c| }
             \hline
             Model & Entropy maps & HOGs & CNN inputs & Accuracy\\
@@ -378,17 +380,20 @@
             \hline
         \end{tabular}
         \end{center}
+        \end{table}
 
         \subsubsection{Binary}
+        \begin{table}[H]
         \begin{center}
         \small
+        \caption{Selected models performance in binary mode}
         \begin{tabular}{ |c|c|c|c|c|c| }
             \hline
             Model & Entropy maps & HOGs & CNN input & Precision & Recall\\
         \hline
         CNN 1 : 5 SVM & y & y & channels & 0.99 & 0.9079\\
-        & & & & 0.999 & 0.9079\\
-        & & & & 0.9999 & 0.9079\\
+        & & & & 0.999 & 0.9013\\
+        & & & & 0.9999 & 0.9013\\
         \hline
         SVM & n & y & - & 0.99 & 0.8947 \\
         & & & & 0.999 & 0.8947\\
@@ -405,6 +410,7 @@
 
         \end{tabular}
         \end{center}
+        \end{table}
 
     \subsection{Multiple frames based classification}
     We have chosen CNN as multi-class classifier and CNN ensembled with SVM (CNN 1 : 5 SVM) as
@@ -457,34 +463,79 @@
 
     \subsubsection{Results -- multi-class}
 
+    \begin{table}[H]
+      \begin{center}
+      \small
+      \caption{Accuracy obtained by multi-frame based classification with CNN}
+      \begin{tabular}{ |c|c| }
+      \hline
+      Frames & Accuracy\\
+      \hline
+      1 & 0.9721\\
+      \hline
+      2 & 0.9794\\
+      \hline
+      3 & 0.9871\\
+      \hline
+      4 & 0.9871\\
+      \hline
+      5 & 0.9879\\
+      \hline
+      6 & 0.9896\\
+      \hline
+      7 & 0.9905\\
+      \hline
+      8 & 0.9922\\
+      \hline
+      9 & 0.9931\\
+      \hline
+      10 & 0.9940\\
+      \hline
+      \end{tabular}
+      \end{center}
+    \end{table}
+
+    \subsubsection{Results -- binary}
+    \begin{table}[H]
     \begin{center}
     \small
-        \begin{tabular}{ |c|c| }
+    \caption{Recall obtained by multi-frame based classification with CNN 1 : 5 SVM}
+    \begin{tabular}{ |c|c|c| }
         \hline
-        frames & accuracy\\
-        \hline
-        1 & 0.9721\\
-        \hline
-        2 & 0.9794\\
-        \hline
-        3 & 0.9871\\
-        \hline
-        4 & 0.9871\\
-        \hline
-        5 & 0.9879\\
-        \hline
-        6 & 0.9896\\
-        \hline
-        7 & 0.9905\\
-        \hline
-        8 & 0.9922\\
-        \hline
-        9 & 0.9931\\
-        \hline
-        10 & 0.9940\\
-        \hline
-        \end{tabular}
-    \end{center}
+        Frames & Precision & Recall\\
+    \hline
+    1 & 0.99 & 0.9079\\
+    & 0.999 & 0.9013\\
+    & 0.9999 & 0.9013\\
+    \hline
+    2 & 0.99 & 0.9342\\
+    & 0.999 & 0.9342\\
+    & 0.9999 & 0.9342\\
+    \hline
+    3 & 0.99 & 0.9736\\
+    & 0.999 & 0.9605\\
+    & 0.9999 & 0.9605\\
+    \hline
+    4 & 0.99 & 0.9868\\
+    & 0.999 & 0.9868\\
+    & 0.9999 & 0.9868\\
+    \hline
+    5 & 0.99 & 0.9934\\
+    & 0.999 & 0.9934\\
+    & 0.9999 & 0.9934\\
+    \hline
 
+    \end{tabular}
+    \end{center}
+    \end{table}
 
     \subsection{Proposed solution}
+    The solution we propose is a voting ensembling CNN 1 : 5 SVM, with
+    classification based on $4$ consecutive frames. We believe that $400$ miliseconds
+    is an acceptable authentication time. Using $4$ frames, precision rate $0.9999$
+    and recall rate $0.9868$ are achievable.
+
+    In other words, our solution will fail to protect users resources or device
+    only once in $10\ 000$ cases. Out of $10\ 000$ cases when the right owner
+    tries to access the device or resources, only $132$ times they will fail
+    to authorize.
