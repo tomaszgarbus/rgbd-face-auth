@@ -430,7 +430,7 @@
     Another way of looking at multiple frames based classifier is as an ensembling
     of $n$ identical classifiers, but each receives a different frame as an input.
 
-    \subsubsection{Results}
+    \subsubsection{Frames-accuracy relation}
     \begin{figure}[H]
     \caption{Frames-accuracy relation for multiclass problem}
     \centering
@@ -455,6 +455,36 @@
     \includegraphics[scale=0.7]{binary_frames_recall_relation_09999}
     \end{figure}
 
+    \subsubsection{Results -- multi-class}
+
+    \begin{center}
+    \small
+        \begin{tabular}{ |c|c| }
+        \hline
+        frames & accuracy\\
+        \hline
+        1 & 0.9721\\
+        \hline
+        2 & 0.9794\\
+        \hline
+        3 & 0.9871\\
+        \hline
+        4 & 0.9871\\
+        \hline
+        5 & 0.9879\\
+        \hline
+        6 & 0.9896\\
+        \hline
+        7 & 0.9905\\
+        \hline
+        8 & 0.9922\\
+        \hline
+        9 & 0.9931\\
+        \hline
+        10 & 0.9940\\
+        \hline
+        \end{tabular}
+    \end{center}
 
 
     \subsection{Proposed solution}
