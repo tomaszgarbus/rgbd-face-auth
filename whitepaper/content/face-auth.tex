@@ -202,7 +202,8 @@
         of images to include. Another decision to be made is whether different
         channels (IR, depth) and different preprocessed images (entropy maps,
         HOGs) should be concatenated or layered as channels. In our experiments,
-        we have included both approaches.
+        we have included both approaches, although channels quickly proved to
+        give better results.
 
         \subsubsection*{Data augmentation}
         To further enhance the training set, we have used image augmentations, with \texttt{imgaug}\cite{imgaug} library.
@@ -288,7 +289,7 @@
         \subsubsection{Ensembling}
         We have experimented with a simple ensembling method -- voting.
         Each of our classifiers is implemented in a way that allows getting,
-        apart from predictions, probabilities vector for each class.
+        apart from predictions, a vector of probabilities for each class.
 
         Let $C^{(1)}, C^{(2)}$ be two classifiers running in the same mode -- either
         binary or multi-class.
@@ -348,7 +349,7 @@
 
     \subsection{Single-frame model results}
         We call a model single-frame if it classifies the person on the photo
-        using only one frame. We have evaluated several single-frame model to
+        using only one frame. We have evaluated several single-frame models to
         choose one multi-class and one binary classifier.
         \subsubsection{Multi-class}
         \begin{center}
@@ -385,13 +386,21 @@
             \hline
             Model & Entropy maps & HOGs & CNN input & Precision & Recall\\
         \hline
-        CNN 1 : 5 SVM & y & y & channels & 0.99 & 0.9013\\
+        CNN 1 : 5 SVM & y & y & channels & 0.99 & 0.9079\\
+        & & & & 0.999 & 0.9079\\
+        & & & & 0.9999 & 0.9079\\
+        \hline
+        SVM & n & y & - & 0.99 & 0.8947 \\
         & & & & 0.999 & 0.8947\\
         & & & & 0.9999 & 0.8947\\
         \hline
         CNN & y & y & channels & 0.99 & 0.8487 \\
         & & & & 0.999 & 0.8487\\
         & & & & 0.9999 & 0.8487\\
+        \hline
+        CNN 1 : 1 SVM & y & y & channels & 0.99 & 0.6908\\
+        & & & & 0.999 & 0.6777\\
+        & & & & 0.9999 & 0.6777\\
         \hline
 
         \end{tabular}
@@ -412,7 +421,7 @@
 
 
     The multi-frame classifier $C_{n}$ can be defined as a function (namely arithmetic mean)
-    from a tuple of $n$ frames to the vector of predicted probabilities.
+    from a tuple of $n$ frames to the vector of predicted probabilities:
 
     \begin{center}
     $C_{n}(f_1, ..., f_n) = \frac{\sum\limits_{i=1}^{n}{p_{C_{1}}(f_{i})}}{n}$
@@ -423,7 +432,7 @@
 
     \subsubsection{Results}
     \begin{figure}[H]
-    \caption{Frames -- accuracy relation for multiclass problem}
+    \caption{Frames-accuracy relation for multiclass problem}
     \centering
     \includegraphics[scale=0.7]{multiclass_frames_accuracy_relation}
     \end{figure}
