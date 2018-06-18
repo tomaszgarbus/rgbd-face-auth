@@ -170,7 +170,7 @@
 
 
     \subsection{Preprocessing techniques}
-    We have tried several different preprocessing techniques.
+    We have used several different preprocessing techniques.
         \subsubsection*{Trimming faces}
         During the process of collecting the dataset, each subject has been
         recorded in only one set of clothes (the ones they were wearing at the
@@ -401,7 +401,7 @@
     We have chosen CNN as multi-class classifier and CNN ensembled with SVM (CNN 1 : 5 SVM) as
     best performing single-frame classifiers.
 
-    \subsubsection*{Generating predictions from multiple frames}
+    \subsubsection{Generating predictions from multiple frames}
     Let $n$ be the number of frames, $C_{1}$ -- a single-frame classifier and
     $f_1, ..., f_n$ be the $n$ consecutive frames.
     Let $p_{C_{1}}(f)$ denote the vector of probabilities predicted for each class by $C_{1}$,
@@ -420,5 +420,12 @@
 
     Another way of looking at multiple frames based classifier is as an ensembling
     of $n$ identical classifiers, but each receives a different frame as an input.
+
+    \subsubsection{Results}
+    \begin{figure}[H]
+    \caption{Frames -- accuracy relation for multiclass problem}
+    \centering
+    \includegraphics[scale=0.7]{multiclass_frames_accuracy_relation}
+    \end{figure}
 
     \subsection{Proposed solution}
