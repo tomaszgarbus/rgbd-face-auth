@@ -281,9 +281,29 @@
             \end{subfigure}
         \end{figure}
 
-        \subsection{Ensembled SVMs and Extra Trees}
+        \subsubsection{SVM}
 
-        \subsection{Ensembled CNN, SVMs and Extra Trees}
+        \subsubsection{Extra Trees}
+
+        \subsubsection{Ensembling}
+        We have experimented with a simple ensembling method -- voting.
+        Each of our classifiers is implemented in a way that allows getting,
+        apart from predictions, probabilities vector for each class.
+
+        Let $C^{(1)}, C^{(2)}$ be two classifiers running in the same mode -- either
+        binary or multi-class.
+        Let $p_{C}(f)$ denote predicted probabilities for each class by classifier $C$,
+        given input $f$.
+
+        An ensembling classifier is configured by two values $w_1, w_2$ -- significance
+        weights for classifiers $C^{(1)}, C^{(2)}$. Its output for input $f$ is defined as:
+        \begin{center}
+        $C_{E}(f) = \frac{w_{1} \cdot p_{C^{(1)}}(f) + w_{2} \cdot p_{C^{(2)}}(f)}{w_{1} + w_{2}}$
+        \end{center}
+
+        We will use notation $C^{(1)}\ w_{1}\ :\ w_{2}\ C^{(2)}$ to denote ensembling
+        of classifiers $C^{(1)}$ and $C^{(2)}$ with weights $w_{1}, w_{2}$f.
+
 
     \subsection{Quality measures}
         Models have been trained in two modes: multi-class and binary
@@ -340,6 +360,10 @@
             CNN & y & n & channels & 0.9721\\
             \hline
             CNN 10 : 1 SVM & y & y & channels & 0.9721\\
+            \hline
+            CNN 2 : 1 SVM & y & y & channels & 0.9648\\
+            \hline
+            CNN 10 : 7 SVM & y & y & channels & 0.9631\\
             \hline
             CNN 1 : 2 SVM & y & y & channels & 0.9536\\
             \hline
