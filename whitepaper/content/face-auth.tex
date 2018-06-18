@@ -310,7 +310,7 @@
             \begin{center}
             $prec(p, y) = \frac{\{t \in T\ |\ y_t = p_t = 1\}}{\{t \in T\ |\ p_t = 1\}}$
             \end{center}
-            We have chosen $3$ different precision thresholds: $0.99$, $0.995$, $0.999$.
+            We have chosen $3$ different precision thresholds: $0.99$, $0.999$, $0.9999$.
         \end{itemize}
         Recall is defined as:
         \begin{center}
@@ -332,9 +332,10 @@
         choose one multi-class and one binary classifier.
         \subsubsection{Multi-class}
         \begin{center}
+        \small
         \begin{tabular}{ |c|c|c|c|c| }
             \hline
-            Model & Entropy & HOGs & CNN inputs & Accuracy\\
+            Model & Entropy maps & HOGs & CNN inputs & Accuracy\\
             \hline
             CNN & y & n & channels & 0.9721\\
             \hline
@@ -344,28 +345,29 @@
             \hline
             SVM & n & y & channels & 0.9099\\
             \hline
-            SVM 1:10 ET & n & y & channels & 0.8884\\
+            SVM 1:10 ExtraTrees & n & y & channels & 0.8884\\
             \hline
-            ET & n & y & channels & 0.8369\\
+            ExtraTrees & n & y & channels & 0.8369\\
             \hline
         \end{tabular}
         \end{center}
 
         \subsubsection{Binary}
         \begin{center}
-        \begin{tabular}{ |c|c|c|c|c|c|c| }
+        \small
+        \begin{tabular}{ |c|c|c|c|c|c| }
             \hline
-            \multirow{2}{*}{Model} &
-            \multirow{2}{*}{Entropy} &
-            \multirow{2}{*}{HOGs} &
-            \multirow{2}{*}{CNN inputs} &
-            \multicolumn{3}{|c|}{Recall for precision $\rho$} \\
-            & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
+            Model & Entropy maps & HOGs & CNN input & Precision & Recall\\
         \hline
-        CNN 1 : 5 SVM & y & y & channels & 0.9013 & 0.8947 & 0.8947 \\
+        CNN 1 : 5 SVM & y & y & channels & 0.99 & 0.9013\\
+        & & & & 0.999 & 0.8947\\
+        & & & & 0.9999 & 0.8947\\
         \hline
-        CNN & y & y & channels & 0.8487 & 0.8487 & 0.8487 \\
+        CNN & y & y & channels & 0.99 & 0.8487 \\
+        & & & & 0.999 & 0.8487\\
+        & & & & 0.9999 & 0.8487\\
         \hline
+
         \end{tabular}
         \end{center}
 
