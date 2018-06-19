@@ -78,7 +78,24 @@
 
     \subsection{Face angle detection}
     \label{sec:angledetection}
-    Longer description of angle detection
+    Using depth camera, we can extract more structural features of an image,
+    and normalize the face angle. Face is positioned in cube, and position vector is computed
+    by finding three points located on face, describing the surface
+    and computing its orthogonal vector. We define face position
+    as the angle between the computed vector and vector [0,0,1] pointing towards the camera.
+    We have chosen the points as middle of brews and middle of the chin and compute them with
+    same library we use for face trimming (as an average between chosen subsets of points). Worth
+    mentioning is that choosing points too close to edge of face (as most algorithms work)
+    detected on 2-dimensional image, might turn algorithm unstable, because small error can place the point on the background,
+    far away in third dimension.
+
+
+    \begin{figure}[H]
+    \caption{Detecting the angle of face. The face orthogonal vector is positioned between eyebrows, face points are marked yellow}
+    \centering
+    \includegraphics[scale=0.5]{angle}
+    \end{figure}
+
 
     \subsection{Normalization}
         \subsubsection*{Depth mean and standard deviation normalization}
@@ -168,6 +185,12 @@
         $
         \end{center}
 
+
+        \begin{figure}[H]
+        \caption{Face from angle detection subsection, transformed.}
+        \centering
+        \includegraphics[scale=0.5]{angle_transformed}
+        \end{figure}
 
     \subsection{Preprocessing techniques}
     We have used several different preprocessing techniques.
