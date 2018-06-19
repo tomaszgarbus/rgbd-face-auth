@@ -5,7 +5,7 @@
     a good balance between the two -- it does very well in terms of both security
     and convenience.
 
-    \subsection*{Conventional authorization methods}
+    \subsection{Conventional authorization methods}
         \subsubsection*{Passwords}
             Passwords come in various forms and cannot be easily placed on a
             security-convenience curve. Their strength is exponentially dependant
@@ -23,17 +23,22 @@
             imply that passwords can be very secure and very convenient at the
             same time.\\
             Another thing to keep in mind is that passwords are an authentication
-            method that rely on user's \textit{knowledge} -- knowledge of the
-            secret code and the ability to remember it at all times. That, however,
-            is slowly changing. Password managers and credential managers are taking
-            the responsibility of not only storing the passwords -- but generating
-            them too.
+            method that relies on user's \textit{knowledge} -- knowledge of the
+            secret code and the ability to remember it at all times.\\
+            That, however, is changing. Password managers and credential managers have been taking
+            the responsibility of not only storing the passwords but generating
+            them too. The user does not have to know their password -- it is sufficient
+            that the password manager knows it and that the user is in \textit{control}
+            of password manager. It is a good defense against phishing attacks,
+            assuming the user can be tricked into giving their password more
+            easily than the password manager. \\
+
 
         \subsubsection*{Pendrive keys, tokens and magnetic cards}
             Sometimes to protect valuable resources,
             something stronger than standard password is needed. Pendrives with
             secret keys, tokens protected by passwords and magnetic cards are
-            good choices then. Those authorization method rely on user's
+            good choices then. Those authorization methods rely on user's
             \textit{possession} of said pendrive, token or magnetic card. To
             gain access to the victims resources, an attacker must take gain
             possession of the physical key, whether it is a pendrive or a token.
@@ -41,58 +46,90 @@
             conduct an attack without obtaining the card itself, but instead
             being within its close range.
 
-    \subsection{Bio authentication}
-        Above we see problems with one simple source.
-        We have a group of people who should have access to resources,
-        but instead of writing list of them, we
-        say ''everyone who has/knows...'' has access.
-        It's simply turning one specific problem into another,
-        more general. Therfore unauthorized felons may
-        access resource.\\
-        Bio authentication is answer to inconvenience of that change.
-        Why we should redefine main problem? Maybe we
-        can just list authorized persons?
-        Actually it's not simple, therefore we should
-        look for secure possibilities to avoid redefinition.\\
-        As stealing someone's face will always be hard,
-        bio-authentication may become not only the most
-        convenient, but also one of the safest
-        authentication methods.\\
-        Is it now? Let's look closer.
+    \subsection{Biometric authentication}
+        Conventional authorization methods are based on \textit{possession},
+        \textit{knowledge} or \textit{control} over some resource. Usually, the
+        resources in question are copyable.
+        We have no intention of undermining such methods, because they can be
+        extremely secure if designed well.
 
-        \subsubsection*{Fingerprint}
-            Mankind use fingerprints to identify specific person
-            for long tine. %TODO source needed
-            However, idea of faking that is also old. %TODO [PL] Sherlock Holmes mial opowiadanie z
-            % fake odciskiem palca w krwii (stempel byl zrobiony z wosku, ktorego dotknal wrabiany).
-            % Warto zalinkowac.
-            And now it's easy. %TODO Sourceneeded.
-            Hackers gain access to phones
-            using fake fingerprints. %TODO Source.
-            There is also no good way
-            to deal with it.
-            *[Some explanation why?]* %TODO
+        Instead, we would like to focus on another paradigm of authentication,
+        which relies on \textit{being} -- being the right person to authorize.
+        With this approach, the authorization keys -- users -- are unique and non-copyable. However,
+        their uniqueness is as good as the authorization system's ability to
+        distinguish between them.
 
-        \subsubsection{Face recognition}
-            Everyone has own, unique face, as he has unique fingerprint.
-            So here idea is same,
-            but faking face may be little bit harder.
-            However, pictures and masks may be very decent solutions
-            for hakers. %TODO source
-            Therfore we shouldn't stop here.
+        Biometric authentication is a set of techniques striving to recognize a
+        human being by their appearance, body or behavior.
 
-        \subsubsection{Face authentication -- liveness detection}
-            Line between face recognition and
-            good face authentication is very thin.
-            If we assume that we have perfect face recognition,
-            we still need something... (Because, you know, on your picture is your face...)
-            like liveness detection --
-            system checking if there is real human, not picture, mask or mannequin.
-            With both perfect systems, only way to access resurce will be
-            conviction someone with acess to help us -- but this last problem
-            we leave for someone else to solve.
+        \subsubsection*{Fingerprints}
+            % If we want some link to literature, I'd go with Janusz Zajdel's Limes
+            % Inferior. It has the exact theme of chopping off fingers as a form
+            % of mugging - in the created world each fingerprint had some
+            % "foodstamps" assigned. What's interesting about this example,
+            % the fingerprints are checked electronically in the book and it
+            % was published in 1982. -tomek
+            Fingerprints have been used for a long time for identifying their
+            owner, especially in criminology. They are perfectly fine in terms of
+            distinguishing people as everyone's fingerprint is unique. Moreover,
+            even if there happened to be two people with identical fingerprints,
+            it would be an extremely unlikely coincidence for one of them to try
+            to hack the other.\\
+            Unfortunately, while users are a non-copyable resource, their fingerprints
+            are indeed copyable.
+
+        \subsubsection*{Behavioral biometrics}
+            Behavioral biometrics have been making their way into
+            the banking industry. They are a set of techniques supporting the
+            conventional authentication, by learning, and verifying, user's
+            preferences and habits, such as (by \citeauthor{behavioral}):
+            \begin{itemize}
+                \item Behavioral qualities of the input data, such as typing
+                      speed or touchscreen interactions and their timing;
+                \item Supporting contextual factors of the current transaction,
+                      such as user device type, IP address, geolocation; and
+                \item The user’s historical behavioral factors, such as the
+                      typical timing of user access, prior purchasing or access
+                      patterns, etc.
+            \end{itemize}
+            The downside is, behavioral biometrics are not a standalone solution.
+            They are more of an anomaly detection system reinforcing the authentication
+            system.
+
+        \subsubsection*{Face recognition}
+            Face recognition is an authentication method that is both convenient
+            and secure -- in theory. It has been used in smartphones, tablets
+            and laptops for several years now, mostly to unlock the device, but
+            never really trusted enough for securing more vulnerable resources.\\
+            Faces, like fingerprints, are unique, but their uniqueness cannot be
+            taken for granted. For instance, a static, two-dimensional picture of
+            a face is perfectly copyable.
+
+        \subsubsection{Face recognition + liveness detection}
+            To design a secure face recognition based authentication system,
+            one should ensure the user's face is non-copyable. Only then will the
+            system fully comply to our paradigm of relying on \textit{being} instead
+            of \textit{possession}.\\
+            This can be achieved by adding liveness detection to the authentication
+            process. Liveness detection itself can be based on multiple techniques:
+            \begin{itemize}
+                \item micro-movements detection
+                \item pulse detection
+                \item forcing user to blink
+                \item \textbf{skin recognition}
+                \item \textbf{depth channel}
+            \end{itemize}
 
     \subsection{Results}
-        Brief explanation of work results.
-        What someone may find in this paper,
-        and what look for in other materials.
+        In our work, we have focused on skin recognition and face authentication
+        with depth channel.
+        \subsubsection*{Skin recognition}
+        We have developed several skin recognition techniques working with different
+        sets of light wavelengths. We have also constructed a simple hardware prototype
+        and experimented with machine learning approaches to per-pixel skin recognition.
+
+        \subsubsection*{Face authentication}
+        We have constructed a depth + infrared face dataset and evaluated different
+        machine learning approaches to face recognition. We have measured the
+        effect of authentication time limit on its effectiveness and the trade-off
+        between security and convenience.
