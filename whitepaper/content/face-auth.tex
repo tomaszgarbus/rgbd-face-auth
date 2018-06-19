@@ -172,6 +172,7 @@
     \subsection{Preprocessing techniques}
     We have used several different preprocessing techniques.
         \subsubsection*{Trimming faces}
+        \label{sec:trimming}
         During the process of collecting the dataset, each subject has been
         recorded in only one set of clothes (the ones they were wearing at the
         time), one hairstyle and the background may slightly vary among the
@@ -528,6 +529,26 @@
     \end{tabular}
     \end{center}
     \end{table}
+
+    \subsection*{Possible improvements}
+
+    \subsubsection*{Not tested approach to multi-frame classification}
+    Instead of implementing multiple frame based classification as an ensembling
+    of several single-frame classifiers, a single classifier could also be used.
+    We believe that a recurrent neural network (RNN) might be a good fit for the
+    task.
+
+    \subsubsection*{Speed optimization}
+    In our experiments, an external, heavy duty machine learning-based library
+    has been used for finding and trimming faces (\ref{sec:trimming}). This has
+    resulted in a single frame classification time of $260$ miliseconds -- most of
+    which spent on detecting and trimming the face. This is too slow for $10$ FPS
+    rate.
+
+    We believe that a fully developed skin-recognition method, possibly with
+    additional infrared channels on different wavelengths, could replace the
+    all-in-one face detection library. Unfortunately, due to hardware limitations,
+    we were unable to verify this assumption in our research.
 
     \subsection{Proposed solution}
     The solution we propose is a voting ensembling CNN 1 : 5 SVM, with
