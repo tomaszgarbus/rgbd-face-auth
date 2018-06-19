@@ -124,13 +124,24 @@
     \subsection{Results}
         In our work, we have focused on skin recognition and face authentication
         with depth channel.
+        However, we also took a closer look at pulse detection with quality RGB camera.
+
+        \subsubsection*{Pulse detection}
+            Idea of detecting beating heart was very promising.
+            Unfortunately, our research showed that such liveness detection method
+            would be too slow for common authentication purposes.
+            Also, there was inconvenient requirement for the face to remain
+            in one particular spot through the entire procedure.
+            This is especially problematic from the camera stabilization perspective.
+            Therefore we we abandoned research on this subject.
+
         \subsubsection*{Skin recognition}
-        We have developed several skin recognition techniques working with different
-        sets of light wavelengths. We have also constructed a simple hardware prototype
-        and experimented with machine learning approaches to per-pixel skin recognition.
+            We have developed several skin recognition techniques working with different
+            sets of light wavelengths. We have also constructed a simple hardware prototype
+            and experimented with machine learning approaches to per-pixel skin recognition.
 
         \subsubsection*{Face authentication}
-        We have constructed a depth + infrared face dataset and evaluated different
-        machine learning approaches to face recognition. We have measured the
-        effect of authentication time limit on its effectiveness and the trade-off
-        between security and convenience.
+            We have constructed a depth + infrared face dataset and evaluated different
+            machine learning approaches to face recognition. We have measured the
+            effect of authentication time limit on its effectiveness and the trade-off
+            between security and convenience.
