@@ -88,8 +88,60 @@
             %               was attempted
 
         \subsubsection{Using three infrared wavelengths}
+            \subsubsection*{Prototype}
+            With the previous method using only one light wavelength (the one emitted by
+            Kinect), we decided to take photos using three different wavelengths.
+            This gives the opportunity to analyze how does the way the objects reflect
+            light changes with regard to light wavelength, instead of directly looking
+            at how bright a point is.
 
-        TODO
+            To make any research, we had to take three photos of the same object
+            reflecting three different wavelengths of infrared light.
+            The camera, the infrared light sources, and the photographed object
+            had to be in the same position for all of the photos.
+            An ideal way to do this would be to use a spectral camera, but they are
+            very expensive and we were not able to use one.
+
+            One possible way to take a photo of how a certain wavelength is reflected
+            would be to use a filter that only lets that wavelength to pass through it.
+            However, changing filters on the camera between taking photos would take
+            a lot of time, which would create a risk of changing the relative position
+            of the object and the camera, which is unacceptable.
+
+            We borrowed a mobile phone which had a filter mounted on its front camera
+            that allowed various wavelengths of infrared light, but not visible light.
+            This opened up the opportunity to take a different approach -- instead
+            of filtering the selected wavelength, we want to illuminate the object
+            using only that wavelength.
+
+            We purchased diodes emitting light in the following wavelengths:
+            850nm, 890nm, 940nm. Those diodes were connected to an Arduino board.
+            We used two diodes of each wavelength, and mixed their positions to
+            make sure that the centers of sources of light at each wavelength
+            are as close as possible.
+
+            \begin{figure}[H]
+                \caption{Arduino board with six IR diodes.}
+                \centering
+                \includegraphics[height=7cm]{arduino_1}
+                \label{fig:arduino_1}
+            \end{figure}
+
+            Since taking all three photos at the same time would be impossible,
+            we stabilized the camera and the diodes by putting them in holes
+            in a cardboard box.
+
+            \begin{figure}[H]
+                \caption{View of the Arduino and camera from the outside.}
+                \centering
+                \includegraphics[height=7cm]{arduino_2}
+                \label{fig:arduino_2}
+            \end{figure}
+
+            TODO
+
+            \subsubsection*{Detecting skin}
+            TODO
 
     \subsection{Results}
         Wide discussion about results.
