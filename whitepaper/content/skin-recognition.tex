@@ -127,9 +127,9 @@
             intensity of light has to be 4 times lower than before.
 
             With those observations, we took pairs of IR and depth images, and for each
-            pixel calculated a new value of $ir * depth * depth$, which should indicate
-            how well light was reflected at that point, regardless of distance from the
-            camera.
+            pixel calculated a new value of $ir-intensity \cdot depth \cdot depth$,
+            which should estimate how well light was reflected at that point,
+            regardless of distance from the camera.
 
             \begin{figure}[H]
                 \caption{An unprocessed IR photo, and an image calculated using
