@@ -60,9 +60,12 @@
             For example, you may find camera which see two types of ''green''.
             Mostly, at the end everything is converted to known RGB format.
 
-            \begin{center}
+            \begin{figure}[H]
+                \caption{RGB image sensor matrix with two types of green -- sensors assignation.}
+                \centering
                 \includegraphics{RGB-matrix}
-            \end{center}
+                \label{fig:RGB-matrix}
+            \end{figure}
 
             Software receives from camera imformation with light intensity at every
             sensor and information which colour it sees.
@@ -72,9 +75,12 @@
             may see full specturm of light ($350$-$1050$nm.) and
             place filters in way that only specific light will reach choosen photodiode.
 
-            \begin{center}
-                \includegraphics[scale=0.40]{RGB-filter}
-            \end{center}
+            \begin{figure}[H]
+                \caption{Visualisation of how filters works.}
+                \centering
+                \includegraphics{RGB-filter}
+                \label{fig:RGB-filter}
+            \end{figure}
 
         \subsubsection*{Hyperspectral imaging}
             Hyperspectral imaging is creating pictures using camera with
