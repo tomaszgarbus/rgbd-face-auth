@@ -283,9 +283,19 @@
             \end{subfigure}
         \end{figure}
 
-        \subsubsection{SVM}
+        \subsubsection{HOG + SVM}
+        As an alterative to CNN, to classify HOG feature descriptors, we tested two common (tu jakiś cytat) approaches:
+        Support Vector Machine, extremly randomised decision trees (Extra Trees), and both ensembled.
+        Initially, while collecting the data and working with smaller dataset, Extra Trees where achieving higher results,
+        and SVM was highly overfitting, but as the work proceed, the second approach was getting better and finally overcome Extra Trees
+        at the level that the other classifier even wasn't contributing to ensembling, so further work was continued only with Support Vector Machines.
 
-        \subsubsection{Extra Trees}
+        After tuning the parameters on final dataset using grid-search approach, following of most important parameters where choesen:
+        \begin{itemize}
+            \item \textbf{Polynomial kernel} with degree 3. Other kernels got significantly worse results.
+            \item \textbf{Penalty C parameter}: 10, locally constant results results in range [1, 10].
+            \item \textbf{Gamma parameter}: 0.7, locally constant results results in range [0.1, 1].
+        \end{itemize}
 
         \subsubsection{Ensembling}
         We have experimented with a simple ensembling method -- voting.
