@@ -1,5 +1,26 @@
 \section{Face authentication}
-    Brief introduction to the section.
+    Face recognition is a problem that has been around for a while and
+    human-level solutions have been developed, such as FaceNet\cite{arXiv:1503.03832}.
+    However, there are many subtleties to face recognition in mobile devices
+    security, in particular when using unconventional cameras.
+
+    From the security context, false positives are very problematic. This observation alone
+    poses two questions:
+    \begin{itemize}
+      \item How to measure a model's performance to punish false positives?
+      \item How to maximize our chosen score measure?
+    \end{itemize}
+    We have tackled two problems in our research -- multi-class and binary classification.
+    Binary classification is more adequate to the possible applications of our research.
+    Multi-class classification allows the reader to compare the achieved results
+    with other face recognition models.
+
+    The second observation is more optimistic: the front camera of a mobile is capable of
+    capturing relatively many frames per second. We decided not to constrain our
+    methods to a classification based on a single frame.
+    Moreover, a large training set can be built
+    when adding a new user to the device -- it is not unreasonable to make that procedure
+    longer for increased security. We aimed to take advantage of those factors.
 
     \subsection{Data set}
     We have set requirements for our dataset, aiming to reflect real-life
@@ -40,6 +61,9 @@
 
     Dataset contains also RGB frames taken at $10$ FPS rate, not synchronized
     with IR and depth frames.
+
+    The procedure performed to collect photos of a single person took around $20$-$30$ seconds.
+    We believe it could be proposed as a part of mobile device's first time security configuration.
 
     \subsubsection*{Test set}
     For the test set, we have chosen approximately first $25\%$ of
@@ -146,8 +170,9 @@
 
 
     \subsection{Preprocessing techniques}
-    We have tried several different preprocessing techniques.
+    We have used several different preprocessing techniques.
         \subsubsection*{Trimming faces}
+        \label{sec:trimming}
         During the process of collecting the dataset, each subject has been
         recorded in only one set of clothes (the ones they were wearing at the
         time), one hairstyle and the background may slightly vary among the
@@ -169,7 +194,7 @@
         \subsubsection*{Entropy maps}
         How they work, why to use them (reference to the other paper).
 
-        \subsubsection*{HOGs of entropy maps}
+        \subsubsection*{HOGs}
         How they work, why to use them (reference to the other paper). They
         are particularly helpful for Extra Trees and RDF-s.
 
@@ -178,7 +203,8 @@
         of images to include. Another decision to be made is whether different
         channels (IR, depth) and different preprocessed images (entropy maps,
         HOGs) should be concatenated or layered as channels. In our experiments,
-        we have included both approaches.
+        we have included both approaches, although channels quickly proved to
+        give better results.
 
         \subsubsection*{Data augmentation}
         To further enhance the training set, we have used image augmentations, with \texttt{imgaug}\cite{imgaug} library.
@@ -257,9 +283,29 @@
             \end{subfigure}
         \end{figure}
 
-        \subsection{Ensembled SVMs and Extra Trees}
+        \subsubsection{SVM}
 
-        \subsection{Ensembled CNN, SVMs and Extra Trees}
+        \subsubsection{Extra Trees}
+
+        \subsubsection{Ensembling}
+        We have experimented with a simple ensembling method -- voting.
+        Each of our classifiers is implemented in a way that allows getting,
+        apart from predictions, a vector of probabilities for each class.
+
+        Let $C^{(1)}, C^{(2)}$ be two classifiers running in the same mode -- either
+        binary or multi-class.
+        Let $p_{C}(f)$ denote predicted probabilities for each class by classifier $C$,
+        given input $f$.
+
+        An ensembling classifier is configured by two values $w_1, w_2$ -- significance
+        weights for classifiers $C^{(1)}, C^{(2)}$. Its output for input $f$ is defined as:
+        \begin{center}
+        $C_{E}(f) = \frac{w_{1} \cdot p_{C^{(1)}}(f) + w_{2} \cdot p_{C^{(2)}}(f)}{w_{1} + w_{2}}$
+        \end{center}
+
+        We will use notation $C^{(1)}\ w_{1}\ :\ w_{2}\ C^{(2)}$ to denote ensembling
+        of classifiers $C^{(1)}$ and $C^{(2)}$ with weights $w_{1}, w_{2}$f.
+
 
     \subsection{Quality measures}
         Models have been trained in two modes: multi-class and binary
@@ -286,7 +332,7 @@
             \begin{center}
             $prec(p, y) = \frac{\{t \in T\ |\ y_t = p_t = 1\}}{\{t \in T\ |\ p_t = 1\}}$
             \end{center}
-            We have chosen $3$ different precision thresholds: $0.99$, $0.995$, $0.999$.
+            We have chosen $3$ different precision thresholds: $0.99$, $0.999$, $0.9999$.
         \end{itemize}
         Recall is defined as:
         \begin{center}
@@ -302,32 +348,215 @@
     \end{figure}
 
 
-    \subsection{Test results}
-        \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c| }
+    \subsection{Single-frame model results}
+        We call a model single-frame if it classifies the person on the photo
+        using only one frame. We have evaluated several single-frame models to
+        choose one multi-class and one binary classifier.
+        \subsubsection{Multi-class}
+        \begin{table}[H]
+        \begin{center}
+        \small
+        \caption{Selected models performance in multi-class mode}
+        \begin{tabular}{ |c|c|c|c|c| }
             \hline
-            \multirow{2}{*}{Model} &
-            \multirow{2}{*}{Mode} &
-            \multirow{2}{*}{Entropy} &
-            \multirow{2}{*}{HOGs} &
-            \multirow{2}{*}{CNN inputs} &
-            \multirow{2}{*}{ACC} &
-            \multicolumn{3}{|c|}{Recall for precision $\rho$} \\
-            & & & & & & $\rho = 0.99$ & $\rho = 0.995$ & $\rho = 0.999$ \\
+            Model & Entropy maps & HOGs & CNN inputs & Accuracy\\
             \hline
-            CNN & multi-class & y & n & channels & 0.9721 & - & - & - \\
+            CNN & y & n & channels & 0.9721\\
             \hline
-            CNN 10 : 1 SVM & multi-class & y & y & channels & 0.9721 & - & - & - \\
+            CNN 10 : 1 SVM & y & y & channels & 0.9721\\
             \hline
-            CNN 1 : 2 SVM & multi-class & y & y & channels & 0.9536 & - & - & - \\
+            CNN 2 : 1 SVM & y & y & channels & 0.9648\\
             \hline
-            SVM & multi-class & n & y & channels & 0.9099 & - & - & - \\
+            CNN 10 : 7 SVM & y & y & channels & 0.9631\\
             \hline
-            SVM 1:10 ET & multi-class & n & y & channels & 0.8884 & - & - & - \\
+            CNN 1 : 2 SVM & y & y & channels & 0.9536\\
             \hline
-            ET & multi-class & n & y & channels & 0.8369 & - & - & - \\
+            SVM & n & y & - & 0.9099\\
             \hline
-            CNN 1 : 5 SVM & binary & y & y & channels & - & 0.9013 & 0.8947 & 0.8947 \\
+            CNN & y & n & concat & 0.8899\\
             \hline
-            CNN & binary & y & y & channels & - & 0.8487 & 0.8487 & 0.8487 \\
+            SVM 1:10 ExtraTrees & n & y & - & 0.8884\\
+            \hline
+            ExtraTrees & n & y & - & 0.8369\\
             \hline
         \end{tabular}
+        \end{center}
+        \end{table}
+
+        \subsubsection{Binary}
+        \begin{table}[H]
+        \begin{center}
+        \small
+        \caption{Selected models performance in binary mode}
+        \begin{tabular}{ |c|c|c|c|c|c| }
+            \hline
+            Model & Entropy maps & HOGs & CNN input & Precision & Recall\\
+        \hline
+        CNN 1 : 5 SVM & y & y & channels & 0.99 & 0.9079\\
+        & & & & 0.999 & 0.9013\\
+        & & & & 0.9999 & 0.9013\\
+        \hline
+        SVM & n & y & - & 0.99 & 0.8947 \\
+        & & & & 0.999 & 0.8947\\
+        & & & & 0.9999 & 0.8947\\
+        \hline
+        CNN & y & y & channels & 0.99 & 0.8487 \\
+        & & & & 0.999 & 0.8487\\
+        & & & & 0.9999 & 0.8487\\
+        \hline
+        CNN 1 : 1 SVM & y & y & channels & 0.99 & 0.6908\\
+        & & & & 0.999 & 0.6777\\
+        & & & & 0.9999 & 0.6777\\
+        \hline
+
+        \end{tabular}
+        \end{center}
+        \end{table}
+
+    \subsection{Multiple frames based classification}
+    We have chosen CNN as multi-class classifier and CNN ensembled with SVM (CNN 1 : 5 SVM) as
+    best performing single-frame classifiers.
+
+    \subsubsection{Generating predictions from multiple frames}
+    Let $n$ be the number of frames, $C_{1}$ -- a single-frame classifier and
+    $f_1, ..., f_n$ be the $n$ consecutive frames.
+    Let $p_{C_{1}}(f)$ denote the vector of probabilities predicted for each class by $C_{1}$,
+    with frame $f$ as input.
+
+    Note that $p_{C_{1}}(f) \in [0..1]^D$ where $D = 1$ for binary classification
+    and $D$ equals to the number of classes in multi-class mode -- in our case $D = 44$.
+
+
+    The multi-frame classifier $C_{n}$ can be defined as a function (namely arithmetic mean)
+    from a tuple of $n$ frames to the vector of predicted probabilities:
+
+    \begin{center}
+    $C_{n}(f_1, ..., f_n) = \frac{\sum\limits_{i=1}^{n}{p_{C_{1}}(f_{i})}}{n}$
+    \end{center}
+
+    Another way of looking at multiple frames based classifier is as an ensembling
+    of $n$ identical classifiers, but each receives a different frame as an input.
+
+    \subsubsection{Frames-accuracy relation}
+    \begin{figure}[H]
+    \caption{Frames-accuracy relation for multiclass problem}
+    \centering
+    \includegraphics[scale=0.7]{multiclass_frames_accuracy_relation}
+    \end{figure}
+
+    \begin{figure}[H]
+    \caption{Frames-accuracy relation for binary problem with precision threshold $\geqslant 0.99$}
+    \centering
+    \includegraphics[scale=0.7]{binary_frames_recall_relation_099}
+    \end{figure}
+
+    \begin{figure}[H]
+    \caption{Frames-accuracy relation for binary problem with precision threshold $\geqslant 0.999$}
+    \centering
+    \includegraphics[scale=0.7]{binary_frames_recall_relation_0999}
+    \end{figure}
+
+    \begin{figure}[H]
+    \caption{Frames-accuracy relation for binary problem with precision threshold $\geqslant 0.9999$}
+    \centering
+    \includegraphics[scale=0.7]{binary_frames_recall_relation_09999}
+    \end{figure}
+
+    \subsubsection{Results -- multi-class}
+
+    \begin{table}[H]
+      \begin{center}
+      \small
+      \caption{Accuracy obtained by multi-frame based classification with CNN}
+      \begin{tabular}{ |c|c| }
+      \hline
+      Frames & Accuracy\\
+      \hline
+      1 & 0.9721\\
+      \hline
+      2 & 0.9794\\
+      \hline
+      3 & 0.9871\\
+      \hline
+      4 & 0.9871\\
+      \hline
+      5 & 0.9879\\
+      \hline
+      6 & 0.9896\\
+      \hline
+      7 & 0.9905\\
+      \hline
+      8 & 0.9922\\
+      \hline
+      9 & 0.9931\\
+      \hline
+      10 & 0.9940\\
+      \hline
+      \end{tabular}
+      \end{center}
+    \end{table}
+
+    \subsubsection{Results -- binary}
+    \begin{table}[H]
+    \begin{center}
+    \small
+    \caption{Recall obtained by multi-frame based classification with CNN 1 : 5 SVM}
+    \begin{tabular}{ |c|c|c| }
+        \hline
+        Frames & Precision & Recall\\
+    \hline
+    1 & 0.99 & 0.9079\\
+    & 0.999 & 0.9013\\
+    & 0.9999 & 0.9013\\
+    \hline
+    2 & 0.99 & 0.9342\\
+    & 0.999 & 0.9342\\
+    & 0.9999 & 0.9342\\
+    \hline
+    3 & 0.99 & 0.9736\\
+    & 0.999 & 0.9605\\
+    & 0.9999 & 0.9605\\
+    \hline
+    4 & 0.99 & 0.9868\\
+    & 0.999 & 0.9868\\
+    & 0.9999 & 0.9868\\
+    \hline
+    5 & 0.99 & 0.9934\\
+    & 0.999 & 0.9934\\
+    & 0.9999 & 0.9934\\
+    \hline
+
+    \end{tabular}
+    \end{center}
+    \end{table}
+
+    \subsection*{Possible improvements}
+
+    \subsubsection*{Not tested approach to multi-frame classification}
+    Instead of implementing multiple frame based classification as an ensembling
+    of several single-frame classifiers, a single classifier could also be used.
+    We believe that a recurrent neural network (RNN) might be a good fit for the
+    task.
+
+    \subsubsection*{Speed optimization}
+    In our experiments, an external, heavy duty machine learning-based library
+    has been used for finding and trimming faces (\ref{sec:trimming}). This has
+    resulted in a single frame classification time of $260$ miliseconds -- most of
+    which spent on detecting and trimming the face. This is too slow for $10$ FPS
+    rate.
+
+    We believe that a fully developed skin-recognition method, possibly with
+    additional infrared channels on different wavelengths, could replace the
+    all-in-one face detection library. Unfortunately, due to hardware limitations,
+    we were unable to verify this assumption in our research.
+
+    \subsection{Proposed solution}
+    The solution we propose is a voting ensembling CNN 1 : 5 SVM, with
+    classification based on $4$ consecutive frames. We believe that $400$ miliseconds
+    is an acceptable authentication time. Using $4$ frames, precision rate $0.9999$
+    and recall rate $0.9868$ are achievable.
+
+    In other words, our solution will fail to protect users resources or device
+    only once in $10\ 000$ cases. Out of $10\ 000$ cases when the right owner
+    tries to access the device or resources, only $132$ times they will fail
+    to authorize.
