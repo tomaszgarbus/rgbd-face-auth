@@ -357,27 +357,23 @@
         \begin{center}
         \small
         \caption{Selected models performance in multi-class mode}
-        \begin{tabular}{ |c|c|c|c|c| }
+        \begin{tabular}{ |c|c|c| }
             \hline
-            Model & Entropy maps & HOGs & CNN inputs & Accuracy\\
+            Model & CNN inputs & Accuracy\\
             \hline
-            CNN & y & n & channels & 0.9721\\
+            CNN & channels & 0.9721\\
             \hline
-            CNN 10 : 1 SVM & y & y & channels & 0.9721\\
+            CNN 10 : 1 SVM + HOGs & channels & 0.9721\\
             \hline
-            CNN 2 : 1 SVM & y & y & channels & 0.9648\\
+            CNN 2 : 1 SVM + HOGs & channels & 0.9648\\
             \hline
-            CNN 10 : 7 SVM & y & y & channels & 0.9631\\
+            CNN 10 : 7 SVM + HOGs & channels & 0.9631\\
             \hline
-            CNN 1 : 2 SVM & y & y & channels & 0.9536\\
+            CNN 1 : 2 SVM + HOGs & channels & 0.9536\\
             \hline
-            SVM & n & y & - & 0.9099\\
+            SVM + HOGs & - & 0.9099\\
             \hline
-            CNN & y & n & concat & 0.8899\\
-            \hline
-            SVM 1:10 ExtraTrees & n & y & - & 0.8884\\
-            \hline
-            ExtraTrees & n & y & - & 0.8369\\
+            CNN & concat & 0.8899\\
             \hline
         \end{tabular}
         \end{center}
@@ -388,25 +384,25 @@
         \begin{center}
         \small
         \caption{Selected models performance in binary mode}
-        \begin{tabular}{ |c|c|c|c|c|c| }
+        \begin{tabular}{ |c|c|c|c| }
             \hline
-            Model & Entropy maps & HOGs & CNN input & Precision & Recall\\
+            Model & CNN input & Precision & Recall\\
         \hline
-        CNN 1 : 5 SVM & y & y & channels & 0.99 & 0.9079\\
-        & & & & 0.999 & 0.9013\\
-        & & & & 0.9999 & 0.9013\\
+        CNN 1 : 5 SVM + HOGs & channels & 0.99 & 0.9079\\
+        & & 0.999 & 0.9013\\
+        & & 0.9999 & 0.9013\\
         \hline
-        SVM & n & y & - & 0.99 & 0.8947 \\
-        & & & & 0.999 & 0.8947\\
-        & & & & 0.9999 & 0.8947\\
+        SVM + HOGs & - & 0.99 & 0.8947 \\
+        & & 0.999 & 0.8947\\
+        & & 0.9999 & 0.8947\\
         \hline
-        CNN & y & y & channels & 0.99 & 0.8487 \\
-        & & & & 0.999 & 0.8487\\
-        & & & & 0.9999 & 0.8487\\
+        CNN & channels & 0.99 & 0.8487 \\
+        & & 0.999 & 0.8487\\
+        & & 0.9999 & 0.8487\\
         \hline
-        CNN 1 : 1 SVM & y & y & channels & 0.99 & 0.6908\\
-        & & & & 0.999 & 0.6777\\
-        & & & & 0.9999 & 0.6777\\
+        CNN 1 : 1 SVM + HOGs & channels & 0.99 & 0.6908\\
+        & & 0.999 & 0.6777\\
+        & & 0.9999 & 0.6777\\
         \hline
 
         \end{tabular}
