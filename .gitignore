@@ -17,3 +17,7 @@ cmake-build-debug/
 *.fdb_latexmk
 *.fls
 *.synctex.gz
+*/pictures/*.pdf
+*/pictures/*.pdf_tex
+*/pictures/RGB-*.png
+
