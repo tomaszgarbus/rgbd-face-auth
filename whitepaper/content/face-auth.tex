@@ -191,12 +191,18 @@
         \includegraphics[scale=0.25]{after_trim_ludziej}
         \end{figure}
 
-        \subsubsection*{Entropy maps}
-        How they work, why to use them (reference to the other paper).
-
         \subsubsection*{HOGs}
-        How they work, why to use them (reference to the other paper). They
-        are particularly helpful for Extra Trees and RDF-s.
+        To transform 2-dimensional images into 1-dimensional feature descriptors,
+        we used standard preprocessing called Histogram of Oriented Gradients, commonly used in
+        object detection (\citeauthor{hog}), purposely to ensemble 1-dimensional classifier with CNN,
+        as different techniques achieve better results together. Briefly describing,
+        HOGs divide image into cells, and then count gradient occurrences in each one.
+        Recently, this technique alone has achieved sensible results in face detection using depth camera (\citeauthor{rgbdhog}).
+
+        \subsubsection*{Entropy maps}
+        To exctract meaningful information (as \citeauthor{rgbdhog}),
+        we used Entropy maps, to amplify small variations on depth images, and provide
+        more information to classifiers.
 
         \subsubsection*{Channels vs concatenation}
         A choice of the input format passed to a classifier is not only a matter
@@ -289,6 +295,7 @@
         Initially, while collecting the data and working with smaller dataset, Extra Trees where achieving higher results,
         and SVM was highly overfitting, but as the work proceed, the second approach was getting better and finally overcome Extra Trees
         at the level that the other classifier even wasn't contributing to ensembling, so further work was continued only with Support Vector Machines.
+        In multi-class classification, we used One vs Rest approach.
 
         After tuning the parameters on final dataset using grid-search approach, following of most important parameters where choesen:
         \begin{itemize}
