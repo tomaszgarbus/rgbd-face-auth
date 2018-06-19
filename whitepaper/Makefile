@@ -1,4 +1,4 @@
-temp-paper.pdf: content/*.tex pictures/* surroundings/*
+temp-paper.pdf: content/*.tex pictures/RGB-matrix.png pictures/RGB-filter.png surroundings/*
 	pdflatex temp-paper.tex
 	pdflatex temp-paper.tex
 	pdflatex temp-paper.tex
