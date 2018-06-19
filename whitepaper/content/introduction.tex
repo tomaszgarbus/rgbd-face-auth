@@ -106,34 +106,52 @@
             taken for granted. For instance, a static, two-dimensional picture of
             a face is perfectly copyable.
 
-        \subsubsection*{Face recognition + liveness detection}
-            To design a secure face recognition based authentication system,
-            one should ensure the user's face is non-copyable. Only then will the
-            system fully comply to our paradigm of relying on \textit{being} instead
-            of \textit{possession}.\\
-            This can be achieved by adding liveness detection to the authentication
-            process. Liveness detection itself can be based on multiple techniques:
-            \begin{itemize}
-                \item micro-movements detection
-                \item pulse detection
-                \item forcing user to blink
-                \item \textbf{skin recognition}
-                \item \textbf{depth channel}
-            \end{itemize}
+    \subsection{Liveness detection}
+        To design a secure face recognition based authentication system,
+        one should ensure the user's face is non-copyable. Only then will the
+        system fully comply to our paradigm of relying on \textit{being} instead
+        of \textit{possession}.\\
+        This can be achieved by adding liveness detection to the authentication
+        process. Liveness detection itself can be based on multiple techniques.
+
+        \subsubsection*{Existing methods}
+            Various mobile phone manufacturers have implemented methods attempting to
+            detect whether the visible face is actually a human and not a photo.
+            For example, users were asked to blink or smile to unlock their phones.\\
+            Such methods definitely increase the security of face recognition,
+            but they're inconvenient to the user -- ideally, one wouldn't need to take
+            any action to unlock their device -- and were often easily hacked by having
+            additional photos of the owner, even fake ones with the eyes being covered.
+
+        \subsubsection*{Depth channel}
+            Using a depth channel in addition to a flat image is a form of liveness
+            detection itself.
+            When implemented well, such a system should block all attempts to authenticate
+            using a photo of an authorized person.
+            However, it could still be broken using a detailed mask of that face.
+            While that would require a lot of effort, it is a realistic way to break
+            into for example a stolen phone of an important person.
+
+        \subsubsection*{Pulse detection}
+            Determining a person's pulse from a video is not a new idea.
+            We have found existing implementations of programs that detected the user's
+            pulse, using for example a webcam.\\
+            Unfortunately, we found out that such liveness detection method would be
+            too slow for common authentication purposes.
+            Detecting the pulse takes several seconds and requires the face to remain
+            in one particular spot through the entire procedure.
+            Therefore we we abandoned further research on this subject.
+
+        \subsubsection*{Skin recognition}
+            The liveness detection idea which we decided to research is skin recognition.
+            With a reliable method to detect whether real skin is visible in the camera,
+            it should be nearly impossible to authenticate without actually showing
+            the owner's face to the camera.\\
+            Our proposed skin recognition ideas will be described later in this paper.
 
     \subsection{Results}
         In our work, we have focused on skin recognition and face authentication
         with depth channel.
-        However, we also took a closer look at pulse detection with quality RGB camera.
-
-        \subsubsection*{Pulse detection}
-            Idea of detecting beating heart was very promising.
-            Unfortunately, our research showed that such liveness detection method
-            would be too slow for common authentication purposes.
-            Also, there was inconvenient requirement for the face to remain
-            in one particular spot through the entire procedure.
-            This is especially problematic from the camera stabilization perspective.
-            Therefore we we abandoned research on this subject.
 
         \subsubsection*{Skin recognition}
             We have developed several skin recognition techniques working with different
