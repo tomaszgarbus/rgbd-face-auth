@@ -10,3 +10,4 @@ pdf:
   artifacts:
     paths:
       - whitepaper/temp-paper.pdf
+      - whitepaper/mim-paper.pdf
