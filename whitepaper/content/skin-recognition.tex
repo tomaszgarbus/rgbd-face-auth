@@ -229,13 +229,69 @@
                 \label{fig:arduino_2}
             \end{figure}
 
-            TODO
+            With this setup, all that remained to do was to take more photos.
+            The camera and the phone were stable, but when photographing for example
+            a human hand, it might move.
+            The photos have to be taken in the smallest possible intervals
+            and human interaction can not be required while taking them,
+            because that could result in moving the camera or the diodes.
+
+            Turning specific diodes on and off was a rather easy task.
+            Arduino is by definition programmable, so we just wrote a program that
+            listened to data sent on a USB cable and turned on the requested diode.\\
+            We found an Android app \cite{opencameraremote} designed to take photos
+            remotely when commanded so from another phone with a special pilot app.
+            It is open source, so we read its source and found out that it just sends
+            simple broadcast messages through LAN.
+
+            With this information, we were able to write a Python script that did the
+            following:
+
+            \begin{itemize}
+                \item connect to Arduino through USB, turn on 850nm diodes
+                \item wait 0.75 seconds
+                \item send a broadcast message to take a photo
+                \item wait 0.75 seconds
+                \item turn on 890nm diodes
+                \item wait 0.75 seconds
+                \item take a photo
+                \item ... -- analogical procedure to take a photo with 940nm light
+            \end{itemize}
+
+            Since we were using only the front camera from a relatively old phone,
+            we had to take a 1.5 seconds break between each photo -- otherwise
+            there was a significant chance of the camera app not catching one of the
+            broadcasted commands and taking only two photos.
+            The time between the first and last of three photos was 3 seconds,
+            and that was an acceptable delay to make sure that the photographed
+            object was in a stable position.
+
+            \begin{figure}[H]
+                \caption{Photos taken with 850nm, 890nm, and 940nm light respectively.}
+                \centering
+                \includegraphics[width=\textwidth]{ir_photos}
+                \label{fig:ir_photos}
+            \end{figure}
 
             \subsubsection*{Detecting skin}
-            TODO
+            TODO @Dominik: describe the machine learning method used for skin detection
+
+            \begin{figure}[H]
+                \caption{TODO}
+                \centering
+                \includegraphics[width=10cm]{skin_results}
+                \label{fig:skin_results}
+            \end{figure}
 
     \subsection{Results}
-        Wide discussion about results.
+        The results achieved by our skin detection were far from perfect,
+        however we still think that using infrared photos to analyze surface
+        reflectiveness and using that to detect skin is a promising method.
+        We were very limited by the low quality photos, overall lack of
+        high quality hardware, and our lack of knowledge in electronics,
+        but were still able to achieve results that visually make sense.
+        With more resources, we believe this could increase security of
+        face authentication solutions.
 
     \subsection{RGB skin detection symulation}
         Using RGB to deteckt skin on picture.
