@@ -10,7 +10,7 @@ import experiments.no_rotation_channels_without_hogs.main as nn
 import experiments.hogs_only.main as hogs
 
 
-def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray, y_test: np.ndarray, frames_limit=3) -> np.ndarray:
+def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray, y_test: np.ndarray, frames_limit=1) -> np.ndarray:
     (w1, w2) = ws
     wsum = w1 + w2
     w1 /= wsum
@@ -28,7 +28,7 @@ def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray, y_test: np.ndarray, 
     return out
 
 
-def run_main(load_results=True):
+def run_main(load_results=True, frames_limit=1):
     nn_file = DB_LOCATION + '/gen/' + nn.EXP_NAME + '_pred_probs.npy'
     hog_file = DB_LOCATION + '/gen/' + hogs.EXP_NAME + '_pred_probs.npy'
     if load_results and os.path.isfile(nn_file):
@@ -64,13 +64,13 @@ def run_main(load_results=True):
         (1, 100)
     ]
 
-
-    outs = list(map(lambda x: test_ens(x, nn_out, hog_out, y_test), test_probs))
+    outs = list(map(lambda x: test_ens(x, nn_out, hog_out, y_test, frames_limit), test_probs))
     print(str(outs))
 
+    best_acc = 0.
     for probs, out in zip(test_probs, outs):
         score = accuracy_score(hogs.from_hot_one(y_test), out)
-
+        best_acc = max(best_acc, score)
         print("acc score is " + str(score) + " for voting weights: " + str(probs))
 
     # Visualize misclassified
@@ -83,9 +83,13 @@ def run_main(load_results=True):
             misclassified.append(x_test[i][:, :, 0])
             print(labels[i])
 
-    return outs, misclassified
+    return outs, misclassified, best_acc
 
 
 if __name__ == '__main__':
-    run_main()
+    accs = []
+    for frames_limit in range(1, 11):
+        print("Frames limit " + str(frames_limit))
+        _, _, acc = run_main(frames_limit=frames_limit)
+        accs.append(acc)
 

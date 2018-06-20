@@ -10,7 +10,7 @@ import experiments.no_rotation_channels_without_hogs.main as nn
 import experiments.hogs_only.main as hogs
 
 
-def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray, y_test:np.ndarray, frames_limit=3) -> np.ndarray:
+def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray, y_test:np.ndarray, frames_limit=1) -> np.ndarray:
     (w1, w2) = ws
     wsum = w1 + w2
     w1 /= wsum
@@ -20,7 +20,7 @@ def test_ens(ws: tuple, out1: np.ndarray, out2: np.ndarray, y_test:np.ndarray, f
     voted_out = np.copy(out)
     for i in range(out.shape[0]):
         j = i
-        while j < len(y_test) and np.equal(np.argmax(y_test[j]), np.argmax(y_test[i])) and j - i < frames_limit:
+        while j < len(y_test) and np.equal(y_test[j], y_test[i]) and j - i < frames_limit:
             j += 1
         voted_out[i] = np.mean(out[i:j], axis=0)
     out = voted_out
@@ -44,11 +44,12 @@ test_probs = [
     (9, 1),
     (10, 1),
     (100, 1),
-    (1, 100)
+    (1, 100),
+    (1, 5)
 ]
 
 
-def run_main(pos_class=0, net_iters=20):
+def run_main(pos_class=0, net_iters=20, frames_limit=1):
     nn_file = DB_LOCATION + '/gen/' + nn.EXP_NAME + '_binary_pred_probs_' + str(pos_class) + '.npy'
     nn_ckpt = 'ckpts/' + nn.EXP_NAME + '_' + str(pos_class) + '.npy'
     hog_file = DB_LOCATION + '/gen/' + hogs.EXP_NAME + '_pred_probs.npy'
@@ -82,29 +83,40 @@ def run_main(pos_class=0, net_iters=20):
     y_test = np.apply_along_axis(lambda x: float(x[pos_class] == 1.), axis=1, arr=y_test)
     # nn_out = nn_out[:, :hog_out.shape[1]]
 
-    outs = list(map(lambda x: test_ens(x, nn_out, hog_out, y_test), test_probs))
+    outs = list(map(lambda x: test_ens(x, nn_out, hog_out, y_test, frames_limit), test_probs))
 
-    for probs, out in zip(test_probs, outs):
-        print("Voting weights: " + str(probs))
-        results = ClassificationResults(pred_probs=out, labels=y_test, binary=True)
-        for prec in [0.9, 0.99, 0.995, 0.999, 1]:
-            print("Recall for precision " + str(prec) + ": " + str(results.get_recall_for_precision(prec)))
+    # for probs, out in zip(test_probs, outs):
+    #     print("Voting weights: " + str(probs))
+    #     results = ClassificationResults(pred_probs=out, labels=y_test, binary=True)
+    #     for prec in [0.9, 0.99, 0.995, 0.999, 1]:
+    #         print("Recall for precision " + str(prec) + ": " + str(results.get_recall_for_precision(prec)))
 
     return outs, y_test
 
 
 if __name__ == '__main__':
-    all_pred_probs = [[] for i in range(len(test_probs))]
-    all_y_test = []
-    for i in range(5):
-        print("running with positive class " + str(i))
-        outs, y_test = run_main(pos_class=i, net_iters=20)
-        all_y_test += list(y_test)
-        for j in range(len(test_probs)):
-            all_pred_probs[j] += list(outs[j])
+    scores = np.zeros((3, 11))
+    thresholds = [0.99, 0.999, 0.9999]
 
-    for pred_probs, vote_props in zip(all_pred_probs, test_probs):
-        results = ClassificationResults(pred_probs=pred_probs, labels=all_y_test, binary=True)
-        for prec in [0.9, 0.99, 0.995, 0.999, 1]:
-            print("Recall for precision " + str(prec) + ": " + str(results.get_recall_for_precision(prec)))
+    for frame_limit in range(1, 11):
+        print("Frame limit: " + str(frame_limit))
+        all_pred_probs = [[] for i in range(len(test_probs))]
+        all_y_test = []
+        for i in range(5):
+            print("running with positive class " + str(i))
+            outs, y_test = run_main(pos_class=i, net_iters=20, frames_limit=frame_limit)
+            all_y_test += list(y_test)
+            for j in range(len(test_probs)):
+                all_pred_probs[j] += list(outs[j])
+
+        for pred_probs, vote_props in zip(all_pred_probs, test_probs):
+            print(vote_props)
+            results = ClassificationResults(pred_probs=pred_probs, labels=all_y_test, binary=True)
+            for prec, idx in zip(thresholds, range(len(thresholds))):
+                score = results.get_recall_for_precision(prec)
+                print("Recall for precision " + str(prec) + ": " + str(score))
+                if vote_props == (1, 5):
+                    scores[idx, frame_limit] = max(scores[idx, frame_limit], score)
+
+
 
