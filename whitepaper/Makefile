@@ -1,13 +1,18 @@
+all: temp-paper.pdf mim-paper.pdf
+
+.PHONY: clean all
+
 temp-paper.pdf: content/*.tex pictures/RGB-matrix.png pictures/RGB-filter.png surroundings/*
 	latexmk -pdf temp-paper.tex
+
+mim-paper.pdf:
 
 pictures/RGB-matrix.png: pictures/RGB-matrix.svg
 	inkscape -D -z --file=pictures/RGB-matrix.svg --export-png=pictures/RGB-matrix.png
 pictures/RGB-filter.png: pictures/RGB-filter.svg
 	inkscape -D -z --file=pictures/RGB-filter.svg --export-png=pictures/RGB-filter.png
 
-.PHONY: clean
-
 clean:
 	rm temp-paper.bbl
-	latexmk -c
+	latexmk temp-paper.tex -C
+	latexmk mim-paper.tex -C
