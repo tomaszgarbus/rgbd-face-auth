@@ -57,7 +57,6 @@
 
         \subsubsection*{Monochrome}
             As image sensor is matrix build from many small photodiodes,
-            % TODO: in fact working like...
             it's natural to create monochromatic image.
             Because photodiodes don't distinguish different
             wavelength, only light intensity, it's hard
@@ -303,15 +302,56 @@
                 \label{fig:ir_photos}
             \end{figure}
 
-            \subsubsection*{Detecting skin}
-            TODO @Dominik: describe the machine learning method used for skin detection
+            \subsubsection*{Detecting skin -- preprocessing}
+                As we had phone's camera (with not fully known filter)
+                our input was picture-matrix
+                in which every pixel was nine elements tuple.
+                In fact values there wasn't independent, because
+                in every taken JPG occured $R \approx B \approx 2 \cdot G$
+                for almost every pixel.
+                Therefore using all that data was helpful only to overfitt,
+                not to improve model.
 
-            \begin{figure}[H]
-                \caption{TODO}
-                \centering
-                \includegraphics[width=10cm]{skin_results}
-                \label{fig:skin_results}
-            \end{figure}
+                We had many preprocessing ideas, but all were focused
+                on using every pixel independently.
+                The one with best results (in fact only slihtly better,
+                but not negligibly) was taking one value from every
+                of three pictures and calculating ratios.
+                There is chance to improve preprocessing using more than one pixel,
+                but we were focused on problem with more reliable results.
+
+            \subsubsection*{Detecting skin -- models}
+                Unfortunetly, handmade algorithm to detect skin failed,
+                so we decided to use machine learning.
+                We prepared image masks to hand picture,
+                so it was easy to provide information to algorithm, which
+                pixel is skin pixel, and which is not. 
+
+                [TODO: MASK PIC]
+
+                We have used scikit-learn to test different models.
+                We had hope that SVM will work correctly,
+                and in fact with linear kernel it worked very well.
+                However, Random Forest had slightly better results.
+
+                [TODO: SVM PIC]
+
+                \begin{figure}[H]
+                    \caption{TODO: BETER PIC FOR RANDOM FOREST}
+                    \centering
+                    \includegraphics[width=10cm]{skin_results}
+                    \label{fig:skin_results}
+                \end{figure}
+
+                It's important to notice that we had pictures
+                with big part of information lost,
+                as we wasn't able to take RAW photo or at least
+                avoid JPEG compresion. It was visible very good
+                when we tried to overfitt on some images, and
+                we failed. There were no enoug information event to ovefrit.
+                Therefore we consider our results as better than expected.
+
+                [TODO: RANDOM FOREST OVERFITTING PIC]
 
     \subsection{Results}
         The results achieved by our skin detection were far from perfect,
