@@ -25,16 +25,13 @@
         Due to better quality, as well as sensitiveness, for security reasons
         it probably would be better to use CCD.
         However, both matrices have same problem -- limitation on wavelength sensitivity.
-        Such sensors are sensitive to wavelengths approximately up to 1050nm,
+        Such sensors are sensitive to wavelengths approximately up to 1050nm, [TODO: LINK NEEDED]
         which may be a serious limitation as human skin has more undifferentiated
         characteristics in greater wavelengths.
         Therefore looking for the the best possible skin detection method,
         it may be convenient to assume that other type of light sensitive matrices
         are in reach of an inventor.
         Nevertheless, we were limited to very common cameras.
-
-        TODO: Paragraph about light sensors materials and other types of image sensors.
-        Paragraph under maintenance. May disappear.
 
         We are describing one possible realization, but keep in mind that
         there are more solutions, which we do not find useful in our problem.
@@ -79,7 +76,7 @@
 
             One of the possible realizations of reducing the range
             of light visible through the sensor is to take a standard image sensor which
-            may see the full spectrum of light (350-1050nm) and place filters
+            may see the full spectrum of light (CCD -- $350$-$1050$nm) and place filters
             in the way, so that only specific light will reach the chosen photodiode.
 
             \begin{figure}[H]
@@ -184,13 +181,17 @@
 
             Knowing the depth value and certain properties of the camera, it is possible
             to calculate the 3D coordinates of each pixel.
+            We were calculating cosine between vectors using formula
+            $\cos(v_1, v_2) = \frac{v_1 \cdot v_2}{||v_1||~||v_2||}$.
+            We were trying to calculate reflectiveness using two informations,
+            how the surface is flat (using neighboring pixels and calculating angel between them),
+            and how it is rotated relative to the camera (using vector from base).
+
             With that information, it is possible to calculate the angle towards the
             camera between each two pixels, and then use that value in the method above
             to make it independent of angles.
             However, our attempts to do this were unsuccessful, possibly because the
             depth camera is not precise enough.
-            % TODO Dominik: maybe describe briefly the mathematical details of what
-            %               was attempted
 
         \subsection{Using three infrared wavelengths}
             \subsubsection*{Prototype}
