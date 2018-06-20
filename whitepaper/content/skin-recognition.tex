@@ -1,5 +1,5 @@
 \chapter{Skin recognition}
-    Earlier, we have described why liveness detection is an important part
+    Earlier, we described why liveness detection is an important part
     of a face recognition system and why it could greatly improve security.
     We focused on using light reflectiveness to recognize skin on photos.
     This idea comes from the fact that every material has its own, unique spectrum.
@@ -17,8 +17,8 @@
     removal.
 
     \section{Technical aspect -- how does a camera work?}
-        To think about security aspect of skin detection,
-        it's critical to understand how image sensors works.
+        To think about the security aspect of skin detection,
+        it is critical to understand how image sensors works.
         The most common sensors are \textit{CCD} (\textit{charge-coupled device})
         and \textit{CMOS} (\textit{complementary metal-oxide-semiconductor})
         [TODO: LINK NEEDED].
@@ -30,25 +30,24 @@
         characteristics in greater wavelengths.
         Therefore looking for the the best possible skin detection method,
         it may be convenient to assume that other type of light sensitive matrices
-        are in reach of inventor.
-        Nevertheless we were limited to very common cameras.
+        are in reach of an inventor.
+        Nevertheless, we were limited to very common cameras.
 
         TODO: Paragraph about light sensors materials and other types of image sensors.
         Paragraph under maintenance. May disappear.
 
-        We are describing one possible realization, keep in mind that
-        there are more solutions than that, but we do not find them
-        useful in our problem.
+        We are describing one possible realization, but keep in mind that
+        there are more solutions, which we do not find useful in our problem.
 
         \subsection*{Monochrome}
-            As image sensor is matrix build from many small photodiodes,
-            it's natural to create monochromatic image.
-            Because photodiodes don't distinguish different
-            wavelength, only light intensity, it's hard
+            As an image sensor is a matrix built from many small photodiodes,
+            it is natural to create monochromatic image.
+            Because photodiodes do not distinguish different
+            wavelengths, only light intensity, it is hard
             to measure light reflectiveness.
             The only possible way to do that is to
             make different picture for every wavelength.
-            It's not easy, as you have to
+            It is not easy, as you have to
             provide your own lighting and somehow remove
             light coming from other sources.
             Also, all pictures have to be made in
@@ -56,35 +55,35 @@
             cannot move between shots.
 
         \subsection*{Multispectral imaging}
-            Multispectral imaging is an answer to the problem of the object moving,
-            it is a way to measure every wavelength intensity in one picture.
+            Multispectral imaging is a way to measure every wavelength intensity
+            in one picture, so it is an answer to the problem of the object moving.
             Probably the easiest way to describe it is to look at RGB camera.
             There, every photodiode is responsible for exactly one color,
-            where as color we understand wavelength interval (it's important
+            where as color we understand a wavelength interval (it's important
             to understand, that we can consider any wavelength interval as one color).
-            And result picture is built from small squares (mostly $2 \times 2$)
+            And the result picture is built from small squares (mostly $2 \times 2$)
             of photodiode matrix data.
-            There may be more than just three colors in fact.
+            In fact, there may be more than just three colors.
             For example, you may find a camera which can see two types of ''green''.
-            Mostly, at the end everything is converted to known RGB format.
+            Usually, in the end everything is converted to the well-known RGB format.
 
             \begin{figure}[H]
-                \caption{RGB image sensor matrix with two types of green -- sensors assignation.}
+                \caption{RGB image sensor matrix with two types of green -- sensors arrangement.}
                 \centering
                 \includegraphics{RGB-matrix}
                 \label{fig:RGB-matrix}
             \end{figure}
 
-            Software receives from camera information with light intensity at every
-            sensor and information which color it sees.
+            Each sensor reports which color it filters and what is the light intensity,
+            and that information is received by the software.
 
-            One of possible realizations of reducing the range
-            of light visible through the sensor is to take standard image sensor which
-            may see full spectrum of light ($350$-$1050$nm.) and place filters
-            in the way that only specific light will reach the chosen photodiode.
+            One of the possible realizations of reducing the range
+            of light visible through the sensor is to take a standard image sensor which
+            may see the full spectrum of light (350-1050nm) and place filters
+            in the way, so that only specific light will reach the chosen photodiode.
 
             \begin{figure}[H]
-                \caption{Visualization of how filters works.}
+                \caption{Visualization of how filters work.}
                 \centering
                 \includegraphics[scale=0.40]{RGB-filter}
                 \label{fig:RGB-filter}
@@ -92,30 +91,31 @@
 
         \subsection*{Hyperspectral imaging}
             Hyperspectral imaging is creating pictures using a camera with the
-            capability to distinguish many colors
+            capability to distinguish a large amount of colors
             (even hundreds or thousands) instead of just few.
-            It would be very helpful, obviously, in skin-detection device,
-            but there is very little chance to see such device in mobile phones soon.
+            It would be very helpful, obviously, in a skin-detection device,
+            but it would be impractical to put a hyperspectral camera in a mobile phone.
 
-    \section{Technical aspect -- how it may be created?}
-        As we know how camera works, we can say that there are only two ways of
-        building skin detection mobile device.
+    \section{Technical aspect -- how can it be created?}
+        As we know how a camera works, we can say that there are only two ways of
+        building a skin-detecting mobile device.
         \subsection*{Monochrome}
             We can work without filters (or with one for whole camera),
-            but then we have to make picture for every wave length.
+            but then we have to take a picture for every wave length.
             Also, we need one diode with that very wavelength we want.
-            It's easier method to build in phone, but taking pictures
-            must be very fast.
+            It is an easier method to build into phone, but taking pictures
+            would have to be very fast.
 
-            Biggest pros of that solution is possibility of lighting
-            with different LEDs in random moment of time, so hackers
-            will no be able to play with own diodes to modify result.
+            The biggest pro of that solution is the possibility of lighting
+            with different LEDs in random moments of time, so hackers
+            would not be able to play with own diodes to modify the results.
 
         \subsection*{Multispectral imaging}
-            Also there is possibility to use filters with specific infrared colors.
-            But important here is avoiding standard smoothing algorithms used
-            in cameras. We truly need real light intensity from every sensor.
-            Not smoothed or reduced one.
+            There is also a possibility to use filters with specific infrared colors.
+            But it is important here to avoid standard smoothing algorithms used
+            in cameras.
+            The real light intensity from every sensor is needed,
+            without any postprocessing.
 
     \section{Our attempts}
 

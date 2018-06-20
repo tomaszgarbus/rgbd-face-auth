@@ -1,6 +1,6 @@
 \chapter{Face authentication}
     Face recognition is a problem that has been around for a while and
-    human-level solutions have been developed, such as FaceNet\cite{arXiv:1503.03832}.
+    human-level solutions have been developed, such as FaceNet \cite{arXiv:1503.03832}.
     However, there are many subtleties to face recognition in mobile devices
     security, in particular when using unconventional cameras.
 
@@ -42,9 +42,9 @@
     \end{itemize}
 
     There are several good databases for face recognition with depth camera:
-    The EURECOM Kinect Face Database\cite{eurecom},
+    The EURECOM Kinect Face Database \cite{eurecom},
     RGB-D Face database \cite{vapaaudk},
-    The Florence Superface dataset\cite{superface}. However, none of them was
+    The Florence Superface dataset \cite{superface}. However, none of them was
     deemed suiting for our project, primarily due to the lack of IR channel.
     Thus, we have decided to build a dedicated dataset.
 
@@ -236,7 +236,7 @@
         give better results.
 
         \subsection*{Data augmentation}
-        To further enhance the training set, we have used image augmentations, with \texttt{imgaug}\cite{imgaug} library.
+        To further enhance the training set, we have used image augmentations, with \texttt{imgaug} \cite{imgaug} library.
         The used transformations include:
         \begin{itemize}
             \item \textbf{coarse salt and pepper} -- randomly placed patches of grain (black and white pixels)
