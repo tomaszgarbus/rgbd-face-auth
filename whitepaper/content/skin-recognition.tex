@@ -349,11 +349,50 @@
         face authentication solutions.
 
     \section{RGB skin detection simulation}
-        Using RGB to detect skin on picture.
-        Motivations.
+        Because we wanted to have the ability to check how skin detection
+        (if it was implemented in a possible future device) could be utilized
+        by other algorithms, but we couldn't integrate our prototype with
+        anything else, we prepared a skin-detection heuristic based on RGB images.
+        We based our algorithm on transformation from
+        \citation{toyotaskin}:
+        \[
+            \begin{bmatrix}
+                Y \\
+                Cb \\
+                Cr
+            \end{bmatrix}
+            =
+            \begin{bmatrix}
+                16\\
+                128\\
+                128
+            \end{bmatrix}
+            +
+             \begin{bmatrix}
+                 0.257  &  0.504        &  0.098 \\
+                -0.148  & -0.291        &  0.439 \\
+                 0.439  & -0.368        & -0.071
+            \end{bmatrix}
+            \cdot
+             \begin{bmatrix}
+                R\\
+                G\\
+                B
+            \end{bmatrix}
+        \]
 
-        Description of not ours solutions.
+        However, condictions described in paper gave us too many false positives (what is understandable),
+        so we decided to improve decision proces. If we will name vector $(Y, Cb, Cr)$ for pixel $p = (R, G, B)$
+        mark of $p$, then we calculated for every pixel in image it's mark.
+        After that we were taking a few marks of pixels frome central part of image and
+        sorting them by euclidian norm.
+        Heuristically middle element of new table is skin picture.
+        At the end, we consider every pixel as skin pixel if and only if
+        it's mark was close enough to midle mark from sorted list.
 
-        \subsection*{Case-study}
-            Description of problem using math.
-            Final algorithm.
+        \begin{figure}[H]
+            \caption{RGB skin detection heuristic.}
+            \centering
+            \includegraphics[scale=0.7]{skin_detection_heuristic}
+            \label{fig:skin_detection_heuristic}
+        \end{figure}
