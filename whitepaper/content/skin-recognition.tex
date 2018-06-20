@@ -1,50 +1,59 @@
 \section{Skin recognition}
-    Motivations of liveness detection are described above.
-    Idea to use light reflectiveness comes from fact that
-    every material has own, unique spectrum. [TODO: LINK NEEDED]
-    We have been focused on infrared light mostly by papers about
-    skin detection in smart cars. [TODO: LINK NEEDED]
+    Earlier, we have described why liveness detection is an important part
+    of a face recognition system and why it could greatly improve security.
+    We focused on using light reflectiveness to recognize skin on photos.
+    This idea comes from the fact that every material has its own, unique spectrum.
+    Different types of human skin reflect visible light very differently,
+    but those differences become smaller when going further into infrared wavelengths
+    \cite{visinfra} \cite{toyotaskin}, which is why we decided to use infrared light
+    in our experiments.
 
-    With skin recognition system, it would possible to
-    detect face much faster that with ML approach,
-    as (at least ours) all ideas how to use IR
-    to decet human sin are besed only on one pixel,
-    so it's easy to parallelize.
-    A lot of out attempts are very simple in sense of math,
-    so it's also very fast -- just few multiplications and sumations.
+    Additionally, with the information of which pixel contains human skin,
+    it would be possible to use this to remove the background from face photos.
+    As described in a later chapter, this is an important part of face recognition,
+    and is currently done using methods based on machine learning, which are usually
+    rather slow.
+    Using skin detection could significantly improve the performance of background
+    removal.
 
-    \subsection{How it works?}
-        Human skin has same reflectiveness for every type of skin
-        in some rangge of wavelength.
+    % I think that everything in the commented subsection below has been explained
+    % above or will be explained later. I don't know what could be described here
+    % without writing the same things twice or without this subsection being two
+    % sentences long.
 
-        We have information for light intensity for only few wavelength.
+    % \subsection{How it works?}
+    %     Human skin has same reflectiveness for every type of skin
+    %     in some range of wavelength.
+    %
+    %     We have information for light intensity for only few wavelength.
+    %
+    %     It would be better to have full spectral image,
+    %     but, we may try to create correct algorithm anyway.
+    %     We use derivatives and just values to try to detect result.
 
-        It would be beter to have full spectral image,
-        but, we may try to create correct algorithm anyway.
-        We use derivatives and just values to try to detect result.
-
-    \subsection{Technical aspect -- how camera works?}
+    \subsection{Technical aspect -- how does a camera work?}
         To think about security aspect of skin detection,
         it's critical to understand how image sensors works.
-        Most common are \textit{CCD} (\textit{charge-coupled device})
+        The most common sensors are \textit{CCD} (\textit{charge-coupled device})
         and \textit{CMOS} (\textit{complementary metal-oxide-semiconductor})
-        [TODO: LINK NEEDED]. % Most common?
+        [TODO: LINK NEEDED].
         Due to better quality, as well as sensitiveness, for security reasons
         it probably would be better to use CCD.
         However, both matrices have same problem -- limitation on wavelength sensitivity.
-        Such sensors are sensitive to wavelengths aproximetly up to 1050nm,
-        which may be serious limitation as skin ligthen with greater wavelength has
-        more undifferentiated characteristics.
-        Therefore looking for best possible skin detection method,
+        Such sensors are sensitive to wavelengths approximately up to 1050nm,
+        which may be a serious limitation as human skin has more undifferentiated
+        characteristics in greater wavelengths.
+        Therefore looking for the the best possible skin detection method,
         it may be convenient to assume that other type of light sensitive matrices
         are in reach of inventor.
         Nevertheless we were limited to very common cameras.
 
         TODO: Paragraph about light sensors materials and other types of image sensors.
-        Paragraph under maintenance. May dissapear.
+        Paragraph under maintenance. May disappear.
 
-        We are describeing one possible realization, keep in mind that
-        there are more solutions than that, but we don't find them usfeful in our problem.
+        We are describing one possible realization, keep in mind that
+        there are more solutions than that, but we do not find them
+        useful in our problem.
 
         \subsubsection*{Monochrome}
             As image sensor is matrix build from many small photodiodes,
@@ -63,17 +72,16 @@
             cannot move between shots.
 
         \subsubsection*{Multispectral imaging}
-            Multispectral imaging is answer to
-            problem of object's move,
-            way to measure every wavelength intensity in one picture.
-            Probably easies way to describe it is to look at RGB camera.
-            There every photodiode is responsible for exacly one colour,
-            where as colour we understand wavelength interval (it's important
-            to understand, that we can consider any wavelength interval as one colour).
+            Multispectral imaging is an answer to the problem of the object moving,
+            it is a way to measure every wavelength intensity in one picture.
+            Probably the easiest way to describe it is to look at RGB camera.
+            There, every photodiode is responsible for exactly one color,
+            where as color we understand wavelength interval (it's important
+            to understand, that we can consider any wavelength interval as one color).
             And result picture is built from small squares (mostly $2 \times 2$)
             of photodiode matrix data.
-            There may be more than just  three colours in fact.
-            For example, you may find camera which see two types of ''green''.
+            There may be more than just three colors in fact.
+            For example, you may find a camera which can see two types of ''green''.
             Mostly, at the end everything is converted to known RGB format.
 
             \begin{figure}[H]
@@ -83,25 +91,25 @@
                 \label{fig:RGB-matrix}
             \end{figure}
 
-            Software receives from camera imformation with light intensity at every
-            sensor and information which colour it sees.
+            Software receives from camera information with light intensity at every
+            sensor and information which color it sees.
 
-            One from possible realisations of reducing the range
+            One of possible realizations of reducing the range
             of light visible through the sensor is to take standard image sensor which
-            may see full specturm of light ($350$-$1050$nm.) and
-            place filters in way that only specific light will reach choosen photodiode.
+            may see full spectrum of light ($350$-$1050$nm.) and place filters
+            in the way that only specific light will reach the chosen photodiode.
 
             \begin{figure}[H]
-                \caption{Visualisation of how filters works.}
+                \caption{Visualization of how filters works.}
                 \centering
                 \includegraphics[scale=0.40]{RGB-filter}
                 \label{fig:RGB-filter}
             \end{figure}
 
         \subsubsection*{Hyperspectral imaging}
-            Hyperspectral imaging is creating pictures using camera with
-            capabilityy to distinguish many and many of colours (more like hundreds or thousands)
-            instead of just few.
+            Hyperspectral imaging is creating pictures using a camera with the
+            capability to distinguish many colors
+            (even hundreds or thousands) instead of just few.
             It would be very helpful, obviously, in skin-detection device,
             but there is very little chance to see such device in mobile phones soon.
 
@@ -110,17 +118,17 @@
         building skin detection mobile device.
         \subsubsection*{Monochrome}
             We can work without filters (or with one for whole camera),
-            but then we have to make picture for every wave lenght.
+            but then we have to make picture for every wave length.
             Also, we need one diode with that very wavelength we want.
             It's easier method to build in phone, but taking pictures
             must be very fast.
 
-            Bigest pros of that solution is possibility of lighting
+            Biggest pros of that solution is possibility of lighting
             with different LEDs in random moment of time, so hackers
-            will no be able to play with own diods to modify result.
+            will no be able to play with own diodes to modify result.
 
         \subsubsection*{Multispectral imaging}
-            Also there is possibility to use filters with specific infrared colours.
+            Also there is possibility to use filters with specific infrared colors.
             But important here is avoiding standard smoothing algorithms used
             in cameras. We truly need real light intensity from every sensor.
             Not smoothed or reduced one.
@@ -149,7 +157,7 @@
             intensity of light has to be 4 times lower than before.
 
             With those observations, we took pairs of IR and depth images, and for each
-            pixel calculated a new value of $ir-intensity \cdot depth \cdot depth$,
+            pixel calculated a new value of $ir\_intensity \cdot depth \cdot depth$,
             which should estimate how well light was reflected at that point,
             regardless of distance from the camera.
 
@@ -212,7 +220,7 @@
             reflecting three different wavelengths of infrared light.
             The camera, the infrared light sources, and the photographed object
             had to be in the same position for all of the photos.
-            An ideal way to do this would be to use a spectral camera, but they are
+            An ideal way to do this would be to use a multispectral camera, but they are
             very expensive and we were not able to use one.
 
             One possible way to take a photo of how a certain wavelength is reflected
@@ -309,17 +317,15 @@
         The results achieved by our skin detection were far from perfect,
         however we still think that using infrared photos to analyze surface
         reflectiveness and using that to detect skin is a promising method.
-        We were very limited by the low quality photos, overall lack of
-        high quality hardware, and our lack of knowledge in electronics,
+        We were very limited by the low quality and JPEG compressed photos,
+        overall lack of high quality hardware, and our lack of knowledge in electronics,
         but were still able to achieve results that visually make sense.
         With more resources, we believe this could increase security of
         face authentication solutions.
 
-        TODO: MISSING INFO ABUT JPG COMPRESSION LOSS.
-
-    \subsection{RGB skin detection symulation}
-        Using RGB to deteckt skin on picture.
-        Mtoivations.
+    \subsection{RGB skin detection simulation}
+        Using RGB to detect skin on picture.
+        Motivations.
 
         Description of not ours solutions.
 
