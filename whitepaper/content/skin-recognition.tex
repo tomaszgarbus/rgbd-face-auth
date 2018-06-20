@@ -59,8 +59,8 @@
             in one picture, so it is an answer to the problem of the object moving.
             Probably the easiest way to describe it is to look at RGB camera.
             There, every photodiode is responsible for exactly one color,
-            where as color we understand a wavelength interval (it's important
-            to understand, that we can consider any wavelength interval as one color).
+            where as color we understand a wavelength interval (it is important
+            to understand that we can consider any wavelength interval as one color).
             And the result picture is built from small squares (mostly $2 \times 2$)
             of photodiode matrix data.
             In fact, there may be more than just three colors.
@@ -288,33 +288,35 @@
             \end{figure}
 
             \subsubsection*{Detecting skin -- preprocessing}
-                As we had phone's camera (with not fully known filter)
-                our input was picture-matrix
-                in which every pixel was nine elements tuple.
-                In fact values there wasn't independent, because
-                in every taken JPG occurred $R \approx B \approx 2 \cdot G$
-                for almost every pixel.
-                Therefore using all that data was helpful only to overfit,
-                not to improve model.
+                As we only had a phone's camera (with not a fully known filter),
+                our input was a picture-matrix
+                in which every pixel was a nine elements tuple.
+                In fact, values there were not independent, because
+                for almost every pixel in all JPEGs
+                $R \approx B \approx 2 \cdot G$ occured.
+                Therefore, using all that data would only cause overfitting,
+                instead of actually improving the model.
 
                 We had many preprocessing ideas, but all were focused
                 on using every pixel independently.
-                The one with best results (in fact only slightly better,
+                The one with the best results (in fact only slightly better,
                 but not negligibly) was taking one value from every
                 of three pictures and calculating ratios.
                 There is chance to improve preprocessing using more than one pixel,
-                but we were focused on problem with more reliable results.
+                but we were focused on getting more reliable results
+                (taking an average of adjacent pixels would make it easier
+                by reducting the amount of anomalies).
 
             \subsubsection*{Detecting skin -- models}
-                Unfortunately, handmade algorithm to detect skin failed,
+                Unfortunately, handmade algorithms to detect skin failed,
                 so we decided to use machine learning.
-                We prepared image masks to hand picture,
-                so it was easy to provide information to algorithm, which
-                pixel is skin pixel, and which is not.
+                We prepared an image mask for a picture of a hand,
+                which provided information to the algorithm
+                about which pixels are skin and which are not.
 
                 [TODO: MASK PIC]
 
-                We have used scikit-learn to test different models.
+                We have used \texttt{scikit-learn} to test different models.
                 We had hope that SVM will work correctly,
                 and in fact with linear kernel it worked very well.
                 However, Random Forest had slightly better results.
@@ -328,13 +330,13 @@
                     \label{fig:skin_results}
                 \end{figure}
 
-                It's important to notice that we had pictures
-                with big part of information lost,
-                as we wasn't able to take RAW photo or at least
-                avoid JPEG compression. It was visible very good
-                when we tried to overfit on some images, and
-                we failed. There were no enough information event to overfit.
-                Therefore we consider our results as better than expected.
+                It is important to notice that a lot of information was lost in the
+                picture that we had, as we were not able to take RAW photos or at least
+                avoid JPEG compression.
+                The consequences of that were visible very well when we tried to
+                intentionally overfit out model on some images, and we failed
+                because there was not enough information even to overfit.
+                Therefore we consider our results better than expected.
 
                 [TODO: RANDOM FOREST OVERFITTING PIC]
 
@@ -353,8 +355,7 @@
         (if it was implemented in a possible future device) could be utilized
         by other algorithms, but we couldn't integrate our prototype with
         anything else, we prepared a skin-detection heuristic based on RGB images.
-        We based our algorithm on transformation from
-        \citation{toyotaskin}:
+        We based our algorithm on transformation from \cite{toyotaskin}:
         \[
             \begin{bmatrix}
                 Y \\
@@ -381,14 +382,15 @@
             \end{bmatrix}
         \]
 
-        However, conditions described in paper gave us too many false positives (what is understandable),
-        so we decided to improve decision process. If we will name vector $(Y, Cb, Cr)$ for pixel $p = (R, G, B)$
-        mark of $p$, then we calculated for every pixel in image it's mark.
-        After that we were taking a few marks of pixels from central part of image and
-        sorting them by euclidean norm.
-        Heuristically middle element of new table is skin picture.
-        At the end, we consider every pixel as skin pixel if and only if
-        it's mark was close enough to middle mark from sorted list.
+        However, conditions described in \cite{toyotaskin} gave us too many false positives
+        (what is understandable), so we decided to improve the decision process.
+        For each pixel in an image, we calculated its mark, where a mark of a pixel
+        $p = (R, G, B)$ is a vector $(Y, Cb, Cr)$.
+        After that we took a few marks of pixels from the central part of image and
+        sorted them by euclidean norm.
+        Heuristically middle element of the new table is a skin pixel.
+        At the end, we consider every pixel as a skin pixel if and only if
+        its mark was close enough to the middle mark from the sorted list.
 
         \begin{figure}[H]
             \caption{RGB skin detection heuristic.}
