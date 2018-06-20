@@ -1,0 +1,10 @@
+image: blang/latex
+
+pdf:
+  before_script:
+    - cd whitepaper
+  script:
+    - make
+  artifacts:
+    paths:
+      - whitepaper/temp-paper.pdf
