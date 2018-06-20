@@ -24,7 +24,8 @@ def normalize(x, ntype):
 def ml_preproc(xs):
     ret = xs
     #ret = [ list(x) + [(i//WIDTH)//100, (i%WIDTH)//100] for i, x in enumerate(ret) ]
-    ret = [[x[0]-x[3], x[0]-x[6], x[3]-x[6], (x[0]+x[3])//2, (x[0]+x[6])//2, (x[3]+x[6])//2] for x in ret]
+    #ret = [[x[0]-x[3], x[0]-x[6], x[3]-x[6], (x[0]+x[3])//2, (x[0]+x[6])//2, (x[3]+x[6])//2] for x in ret]
+    #ret = [ [x[0]/max(0.2, x[3]), x[3]/max(0.2, x[6]), x[0]/max(0.2, x[6])] for x in ret ]
     #ret = [ normalize(x, 0) for x in ret]
 
     return ret
@@ -46,7 +47,7 @@ def get_model(name_list):
         #TO THINK: learn model here? Image by image.
 
     #clf = svm.SVC(kernel='poly', degree=1, verbose=True)
-    clf = RandomForestClassifier(max_depth=12, n_jobs=7, verbose=1)
+    clf = RandomForestClassifier(max_depth=16, n_jobs=7, verbose=1)
     #clf = GradientBoostingClassifier(verbose=True)
     #clf = AdaBoostClassifier()
     clf.fit(x_l, y_l)
@@ -77,7 +78,7 @@ def load_object(filename_base, extention = "jpg"):
 def load_mask(filename_base, extention = "png"):
     with Image.open('./skin/' + filename_base + "_mask" + '.' + extention) as im_frame:
         im_frame2 = im_frame
-        if filename_base != 'B': #TODO Check if RGBA or RGB
+        if filename_base == 'A': #TODO Check if RGBA or RGB
             im_frame2 = Image.new("RGB", im_frame.size, (255, 255, 255))
             im_frame2.paste(im_frame, mask=im_frame.split()[3])
         im_frame2 = im_frame2.crop(CROP_SIZE)
@@ -111,9 +112,9 @@ def is_vawe_balck(pixel):
 
 
 
-m = get_model(['A', 'B'])
+m = get_model(['A', 'B', 'C'])
 
-for name in ['A', 'B', 'C', 'D']:
+for name in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
     pic = load_object(name)
     pic = pic.reshape(HEIGHT*WIDTH, 9)
 
@@ -122,79 +123,4 @@ for name in ['A', 'B', 'C', 'D']:
     mask = mask.reshape(HEIGHT, WIDTH)
 
     plt.imshow(pic_with_applied_mask(waves_to_rgb(pic), mask))
-    plt.show()
-
-exit(0)
-
-
-pic = load_object('A')
-pic_mask = load_mask('A')
-
-#plt.imshow(pic_mask)
-#plt.show()
-#plt.imshow(pic_with_applied_mask(waves_to_rgb(pic), pic_mask))
-#plt.show()
-
-def preprocess(pixel): # 9 values wave-pixel
-    tmp = []
-    for i in range(3):
-        a = pixel[0+i] / max(1, pixel[3+i])
-        b= pixel[3+i]  / max(1, pixel[6+i])
-        c = pixel[0+i] / max(1, pixel[6+i])
-
-
-        # Potestować, jak liczyć pochodna
-
-        #a = pixel[0][i] - pixel[1][i]
-        #b = pixel[1][i] - pixel[2][i]
-        #c = pixel[0][i] - pixel[2][i]
-
-        #a /= wave_d[1] - wave_d[0]
-        #b /= wave_d[2] - wave_d[1]
-        #c /= wave_d[2] - wave_d[0]
-
-        tmp += [a, b, c]
-
-
-    return tmp
-
-pictures = []
-skin_pixels = []
-
-for i, j in itertools.product(range(HEIGHT), range(WIDTH)):
-    if pic_mask[i][j]:
-        skin_pixels.append(pic[i][j])
-
-derivative = [preprocess(x) for x in skin_pixels]
-
-mid = [0] * 9
-for x in derivative:
-    for i in range(9):
-        mid[i] += x[i]
-
-for i in range(9):
-    mid[i] /= len(derivative)
-
-def check(d):
-    mod = [(0.5, 1.5)] * 9
-    for i in range(9):
-        mi, ma = mod[i]
-        if not (mi*mid[i] <= d[i] <= ma*mid[i]):
-            return False
-
-    return True
-
-def generate_mask(pic):
-    mask = np.zeros(shape=(HEIGHT, WIDTH), dtype=bool)
-    for i in range(HEIGHT):
-        for j in range(WIDTH):
-            mask[i][j] = check(preprocess(pic[i][j]))
-
-    return mask
-
-for test_name in ['A', 'B']:
-    test_pic = load_object(test_name)
-    mask = generate_mask(test_pic)
-    pwam = pic_with_applied_mask(waves_to_rgb(test_pic), mask)
-    plt.imshow(pwam)
     plt.show()
