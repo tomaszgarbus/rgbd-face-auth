@@ -91,12 +91,17 @@
     However, the code of abandoned or improved ideas can be missing.
 
     \begin{itemize}
-        \item libkinect
+        \item \texttt{libkinect/}
         \begin{itemize}
-            \item AAA stuff
-            \item BBB stuff
+            \item \texttt{libkinect.hpp} -- a library which gives a unified interface
+            for receiving frames from both Kinect v1 and Kinect v2.
+            \item \texttt{live\_display} -- a program displaying live feeds from a Kinect
+            camera, also allowing to save received frames.
+            \item \texttt{file\_display} -- a program displaying a depth or IR photo saved
+            by \texttt{live\_display}.
+            \item \texttt{thumbnailer} -- a thumbnailer that can be used with graphical
+            file managers to show thumbnails for depth and IR photos.
         \end{itemize}
-        \item skin-recognition
         \item \texttt{face-auth}
             \begin{itemize}
                 \item \texttt{classifiers}: implementations of neural network,
@@ -113,4 +118,23 @@
                 \item \texttt{model}: Model-layer code -- Face class.
             \end{itemize}
         \item whitepaper
+      \item \texttt{skin\_recognition/}
+      \begin{itemize}
+          \item \texttt{prototype/take\_ir\_photos.py} -- a program synchronizing
+          lighting up the diodes and taking photos on the phone.
+          \item \texttt{prototype/arduino\_project/} -- an Arudino project
+          compatible with the photo taking script.
+          \item \texttt{find-model.py} -- calculating a skin detection model from
+          photos taken with 850, 890, and 940nm IR light.
+          \item \texttt{rgb-model.py} -- RGB skin detection heuristic.
+      \end{itemize}
+      \item \texttt{face\_auth/}
+      \begin{itemize}
+          \item TODO
+      \end{itemize}
+      \item \texttt{whitepaper/} -- sources for this paper.
+      \item \texttt{presentation/} -- slides and videos that we showed on our
+      final presentation.
+      \item \texttt{poster.pdf} -- our poster.
+
     \end{itemize}
