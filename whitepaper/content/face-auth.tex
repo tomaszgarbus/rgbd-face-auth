@@ -296,12 +296,12 @@
             \centering
             \begin{subfigure}[b]{0.4\textwidth}
                 \centering
-                \includegraphics[scale=1.4]{exciting_layer0}
+                \includegraphics[scale=0.28]{exciting_layer0}
                 \caption{conv. layer 0}
             \end{subfigure}
             \begin{subfigure}[b]{0.4\textwidth}
                 \centering
-                \includegraphics[scale=0.7]{exciting_layer1}
+                \includegraphics[scale=0.14]{exciting_layer1}
                 \caption{conv. layer 1}
             \end{subfigure}
             \\
@@ -473,32 +473,13 @@
     Another way of looking at multiple frames based classifier is as an ensembling
     of $n$ identical classifiers, but each receives a different frame as an input.
 
-    \subsection{Frames-accuracy relation}
-    \begin{figure}[H]
-    \caption{Frames-accuracy relation for multiclass problem}
-    \centering
-    \includegraphics[scale=0.7]{multiclass_frames_accuracy_relation}
-    \end{figure}
-
-    \begin{figure}[H]
-    \caption{Frames-accuracy relation for binary problem with precision threshold $\geqslant 0.99$}
-    \centering
-    \includegraphics[scale=0.7]{binary_frames_recall_relation_099}
-    \end{figure}
-
-    \begin{figure}[H]
-    \caption{Frames-accuracy relation for binary problem with precision threshold $\geqslant 0.999$}
-    \centering
-    \includegraphics[scale=0.7]{binary_frames_recall_relation_0999}
-    \end{figure}
-
-    \begin{figure}[H]
-    \caption{Frames-accuracy relation for binary problem with precision threshold $\geqslant 0.9999$}
-    \centering
-    \includegraphics[scale=0.7]{binary_frames_recall_relation_09999}
-    \end{figure}
-
     \subsection{Results -- multi-class}
+
+    \begin{figure}[H]
+        \caption{Frames-accuracy relation for multiclass problem}
+        \centering
+        \includegraphics[scale=0.7]{multiclass_frames_accuracy_relation}
+    \end{figure}
 
     \begin{table}[H]
       \begin{center}
@@ -533,6 +514,26 @@
     \end{table}
 
     \subsection{Results -- binary}
+
+    \begin{figure}[H]
+        \centering
+        \caption{Frames-accuracy relation for binary problem}
+        \begin{subfigure}[b]{0.45\textwidth}
+            \caption{Precision threshold $\geqslant 0.99$}
+            \includegraphics[scale=0.4]{binary_frames_recall_relation_099}
+        \end{subfigure}
+        \begin{subfigure}[b]{0.45\textwidth}
+            \caption{Precision threshold $\geqslant 0.999$}
+            \includegraphics[scale=0.4]{binary_frames_recall_relation_0999}
+        \end{subfigure}\\
+        \begin{subfigure}[b]{0.5\textwidth}
+            \centering
+            \caption{Precision threshold $\geqslant 0.9999$}
+            \includegraphics[scale=0.4]{binary_frames_recall_relation_09999}
+        \end{subfigure}
+    \end{figure}
+
+
     \begin{table}[H]
     \begin{center}
     \small
