@@ -14,6 +14,7 @@ pictures/RGB-filter.png: pictures/RGB-filter.svg
 	inkscape -D -z --file=pictures/RGB-filter.svg --export-png=pictures/RGB-filter.png
 
 clean:
-	rm temp-paper.bbl
+	rm -f temp-paper.bbl
+	rm -f mim-paper.bbl
 	latexmk temp-paper.tex -C
 	latexmk mim-paper.tex -C
