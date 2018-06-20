@@ -49,6 +49,52 @@
     Thus, we have decided to build a dedicated dataset.
 
     \subsection*{Data collection}
+
+    \subsubsection*{Hardware, libkinect}
+    For this project, we had one Kinect v1 camera and two Kinect v2 cameras.
+    Because we use Linux, we could not use Microsoft's API for Kinects and decided to
+    use open source libraries: \texttt{libfreenect} \cite{libfreenect}
+    and \texttt{libfreenect2} \cite{libfreenect2} developed by the OpenKinect community.
+
+    Since our team had four members, we could not always have the same Kinects available
+    for everyone, and sometimes one person would need to use Kinect v1 and another one
+    Kinect v2 to run the same program.
+    That is why we decided to create \texttt{libkinect}, which is a library that
+    gives a simple interface for receiving images from a Kinect camera
+    regardless of its version, allowing the programmer to focus on important code
+    and not making the Kinect work.
+
+    Based on \texttt{libkinect} and its file format for depth and IR photos,
+    we made a program that displayed live video from the connected Kinect device
+    and allowed saving received frames, a program that displayed a file
+    and a thumbnailer that can be configured to show thumbnails of depth and IR photos
+    in graphical file managers.
+
+    \begin{figure}[H]
+        \centering
+        \caption{Screenshots of implemented tools}
+        \begin{subfigure}[b]{0.49\textwidth}
+            \caption{Live Kinect display}
+            \centering
+            \includegraphics[height=7cm]{libkinect_live_display}
+        \end{subfigure}
+        \begin{subfigure}[b]{0.49\textwidth}
+            \caption{Depth file display}
+            \centering
+            \includegraphics[height=7cm]{libkinect_file_display}
+        \end{subfigure}\\
+        \vspace{3mm}
+        \begin{subfigure}[b]{0.6\textwidth}
+            \caption{Thumbnails in Nemo file manager}
+            \centering
+            \includegraphics[width=\textwidth]{libkinect_thumbnails}
+        \end{subfigure}
+    \end{figure}
+
+    TODO
+
+
+    \subsubsection*{Details of our dataset}
     The dataset consists of $44$ subjects: $36$ males and
     $8$ females, mostly aged $20$-$25$. Each subject has been asked to
     follow an object with their entire head, making two cycles of slow,
@@ -58,6 +104,11 @@
     subject.
 
     IR and depth frames are synchronized, taken at $10$ FPS rate.
+
+    We used only Kinect v2 cameras, because they give more detailed depth pictures
+    than Kinect v1, and its infrared images do not have a dotted pattern,
+    which is projected by Kinect v1 because it uses a different depth
+    measurement method.
 
     Dataset contains also RGB frames taken at $10$ FPS rate, not synchronized
     with IR and depth frames.
