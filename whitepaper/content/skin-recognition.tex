@@ -1,4 +1,4 @@
-\section{Skin recognition}
+\chapter{Skin recognition}
     Earlier, we have described why liveness detection is an important part
     of a face recognition system and why it could greatly improve security.
     We focused on using light reflectiveness to recognize skin on photos.
@@ -16,7 +16,7 @@
     Using skin detection could significantly improve the performance of background
     removal.
 
-    \subsection{Technical aspect -- how does a camera work?}
+    \section{Technical aspect -- how does a camera work?}
         To think about security aspect of skin detection,
         it's critical to understand how image sensors works.
         The most common sensors are \textit{CCD} (\textit{charge-coupled device})
@@ -40,7 +40,7 @@
         there are more solutions than that, but we do not find them
         useful in our problem.
 
-        \subsubsection*{Monochrome}
+        \subsection*{Monochrome}
             As image sensor is matrix build from many small photodiodes,
             it's natural to create monochromatic image.
             Because photodiodes don't distinguish different
@@ -55,7 +55,7 @@
             a~very short time interval, as the subject
             cannot move between shots.
 
-        \subsubsection*{Multispectral imaging}
+        \subsection*{Multispectral imaging}
             Multispectral imaging is an answer to the problem of the object moving,
             it is a way to measure every wavelength intensity in one picture.
             Probably the easiest way to describe it is to look at RGB camera.
@@ -90,17 +90,17 @@
                 \label{fig:RGB-filter}
             \end{figure}
 
-        \subsubsection*{Hyperspectral imaging}
+        \subsection*{Hyperspectral imaging}
             Hyperspectral imaging is creating pictures using a camera with the
             capability to distinguish many colors
             (even hundreds or thousands) instead of just few.
             It would be very helpful, obviously, in skin-detection device,
             but there is very little chance to see such device in mobile phones soon.
 
-    \subsection{Technical aspect -- how it may be created?}
+    \section{Technical aspect -- how it may be created?}
         As we know how camera works, we can say that there are only two ways of
         building skin detection mobile device.
-        \subsubsection*{Monochrome}
+        \subsection*{Monochrome}
             We can work without filters (or with one for whole camera),
             but then we have to make picture for every wave length.
             Also, we need one diode with that very wavelength we want.
@@ -111,15 +111,15 @@
             with different LEDs in random moment of time, so hackers
             will no be able to play with own diodes to modify result.
 
-        \subsubsection*{Multispectral imaging}
+        \subsection*{Multispectral imaging}
             Also there is possibility to use filters with specific infrared colors.
             But important here is avoiding standard smoothing algorithms used
             in cameras. We truly need real light intensity from every sensor.
             Not smoothed or reduced one.
 
-    \subsection{Our attempts}
+    \section{Our attempts}
 
-        \subsubsection{Detecting reflectiveness using Kinect}
+        \subsection{Detecting reflectiveness using Kinect}
             Our first idea was to use a Kinect v2 depth and infrared camera to detect
             how well does a surface reflect light.
             Kinect v2 cameras have their own source of infrared light and they make
@@ -192,7 +192,7 @@
             % TODO Dominik: maybe describe briefly the mathematical details of what
             %               was attempted
 
-        \subsubsection{Using three infrared wavelengths}
+        \subsection{Using three infrared wavelengths}
             \subsubsection*{Prototype}
             With the previous method using only one light wavelength (the one emitted by
             Kinect), we decided to take photos using three different wavelengths.
@@ -310,7 +310,7 @@
                 so we decided to use machine learning.
                 We prepared image masks to hand picture,
                 so it was easy to provide information to algorithm, which
-                pixel is skin pixel, and which is not. 
+                pixel is skin pixel, and which is not.
 
                 [TODO: MASK PIC]
 
@@ -338,7 +338,7 @@
 
                 [TODO: RANDOM FOREST OVERFITTING PIC]
 
-    \subsection{Results}
+    \section{Results}
         The results achieved by our skin detection were far from perfect,
         however we still think that using infrared photos to analyze surface
         reflectiveness and using that to detect skin is a promising method.
@@ -348,12 +348,12 @@
         With more resources, we believe this could increase security of
         face authentication solutions.
 
-    \subsection{RGB skin detection simulation}
+    \section{RGB skin detection simulation}
         Using RGB to detect skin on picture.
         Motivations.
 
         Description of not ours solutions.
 
-        \subsubsection*{Case-study}
+        \subsection*{Case-study}
             Description of problem using math.
             Final algorithm.

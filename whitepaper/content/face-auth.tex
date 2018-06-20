@@ -1,4 +1,4 @@
-\section{Face authentication}
+\chapter{Face authentication}
     Face recognition is a problem that has been around for a while and
     human-level solutions have been developed, such as FaceNet\cite{arXiv:1503.03832}.
     However, there are many subtleties to face recognition in mobile devices
@@ -22,7 +22,7 @@
     when adding a new user to the device -- it is not unreasonable to make that procedure
     longer for increased security. We aimed to take advantage of those factors.
 
-    \subsection{Data set}
+    \section{Data set}
     We have set requirements for our dataset, aiming to reflect real-life
     appliances:
     \begin{itemize}
@@ -48,7 +48,7 @@
     deemed suiting for our project, primarily due to the lack of IR channel.
     Thus, we have decided to build a dedicated dataset.
 
-    \subsubsection*{Data collection}
+    \subsection*{Data collection}
     The dataset consists of $44$ subjects: $36$ males and
     $8$ females, mostly aged $20$-$25$. Each subject has been asked to
     follow an object with their entire head, making two cycles of slow,
@@ -65,18 +65,18 @@
     The procedure performed to collect photos of a single person took around $20$-$30$ seconds.
     We believe it could be proposed as a part of mobile device's first time security configuration.
 
-    \subsubsection*{Test set}
+    \subsection*{Test set}
     For the test set, we have chosen approximately first $25\%$ of
     frames from each subject -- the first two vertical head rotations.
 
-    \subsubsection*{Samples}
+    \subsection*{Samples}
     \begin{figure}[H]
     \caption{One of the subjects from the database -- the first $269$ IR frames.}
     \centering
     \includegraphics[scale=0.5]{tiled_faces_ludziej}
     \end{figure}
 
-    \subsection{Face angle detection}
+    \section{Face angle detection}
     \label{sec:angledetection}
     Using depth camera, we can extract more structural features of an image,
     and normalize the face angle. Face is positioned in a cube, and position vector is computed
@@ -97,8 +97,8 @@
     \end{figure}
 
 
-    \subsection{Normalization}
-        \subsubsection*{Depth mean and standard deviation normalization}
+    \section{Normalization}
+        \subsection*{Depth mean and standard deviation normalization}
         Let $F$ be the set of all points belonging to the trimmed face and
         $d(p)$ -- depth of the point $p$. Let $\mu$ denote the mean depth, i.e.
         $\mu = \frac{\sum\limits_{p \in F}{d(p)}}{|F|}$ and $\sigma$ -- standard
@@ -122,7 +122,7 @@
         $
         \end{center}
 
-        \subsubsection*{Face angle normalization}
+        \subsection*{Face angle normalization}
         Depth channel provides substantial information about faces' geometry, thus allowing
         a meaningful normalization method -- rotation to the frontal position.
 
@@ -192,9 +192,9 @@
         \includegraphics[scale=0.5]{angle_transformed}
         \end{figure}
 
-    \subsection{Preprocessing techniques}
+    \section{Preprocessing techniques}
     We have used several different preprocessing techniques.
-        \subsubsection*{Trimming faces}
+        \subsection*{Trimming faces}
         \label{sec:trimming}
         During the process of collecting the dataset, each subject has been
         recorded in only one set of clothes (the ones they were wearing at the
@@ -214,7 +214,7 @@
         \includegraphics[scale=0.25]{after_trim_ludziej}
         \end{figure}
 
-        \subsubsection*{HOGs}
+        \subsection*{HOGs}
         To transform 2-dimensional images into 1-dimensional feature descriptors,
         we used standard preprocessing called Histogram of Oriented Gradients, commonly used in
         object detection (\citeauthor{hog}), purposely to ensemble 1-dimensional classifier with CNN,
@@ -222,12 +222,12 @@
         HOGs divide image into cells, and then count gradient occurrences in each one.
         Recently, this technique alone has achieved sensible results in face detection using depth camera (\citeauthor{rgbdhog}).
 
-        \subsubsection*{Entropy maps}
+        \subsection*{Entropy maps}
         To exctract meaningful information (as \citeauthor{rgbdhog}),
         we used entropy maps, to amplify small variations on depth images, and provide
         more information to classifiers.
 
-        \subsubsection*{Channels vs concatenation}
+        \subsection*{Channels vs concatenation}
         A choice of the input format passed to a classifier is not only a matter
         of images to include. Another decision to be made is whether different
         channels (IR, depth) and different preprocessed images (entropy maps,
@@ -235,7 +235,7 @@
         we have included both approaches, although channels quickly proved to
         give better results.
 
-        \subsubsection*{Data augmentation}
+        \subsection*{Data augmentation}
         To further enhance the training set, we have used image augmentations, with \texttt{imgaug}\cite{imgaug} library.
         The used transformations include:
         \begin{itemize}
@@ -251,8 +251,8 @@
         \includegraphics[scale=0.5]{augmenters}
         \end{figure}
 
-    \subsection{Classifiers}
-        \subsubsection{Convolutional Neural Network}
+    \section{Classifiers}
+        \subsection{Convolutional Neural Network}
         We have used a convolutional neural network with the following structure:
         \begin{itemize}
             \item \textbf{Layers}:
@@ -312,7 +312,7 @@
             \end{subfigure}
         \end{figure}
 
-        \subsubsection{HOG + SVM}
+        \subsection{HOG + SVM}
         As an alterative to CNN, to classify HOG feature descriptors, we tested two common (\citeauthor{hog}, \citeauthor{rgbdhog}) approaches:
         Support Vector Machine, extremely randomised decision trees (Extra Trees), and both ensembled.
         Initially, while collecting the data and working with smaller dataset, Extra Trees where achieving higher results,
@@ -327,7 +327,7 @@
             \item \textbf{Gamma parameter}: 0.7, locally constant results results in range [0.1, 1].
         \end{itemize}
 
-        \subsubsection{Ensembling}
+        \subsection{Ensembling}
         We have experimented with a simple ensembling method -- voting.
         Each of our classifiers is implemented in a way that allows getting,
         apart from predictions, a vector of probabilities for each class.
@@ -347,11 +347,11 @@
         of classifiers $C^{(1)}$ and $C^{(2)}$ with weights $w_{1}, w_{2}$f.
 
 
-    \subsection{Quality measures}
+    \section{Quality measures}
         Models have been trained in two modes: multi-class and binary
         classification. Let $T$ be the test set, $p_t$ -- predictions for test input
         $t \in T$ and $y_t$ -- ground truth for test input $t \in T$.
-        \subsubsection*{Accuracy}
+        \subsection*{Accuracy}
         For classifiers trained in multi-class mode the accuracy score has been
         measured:
 
@@ -359,7 +359,7 @@
         $acc(p, y) = \frac{|\{t \in T\ |\ p_t = y_t\}|}{|T|}$
         \end{center}
 
-        \subsubsection*{Recall for fixed precision}
+        \subsection*{Recall for fixed precision}
 
         When testing the model in binary mode two decisions are being made:
         \begin{itemize}
@@ -388,11 +388,11 @@
     \end{figure}
 
 
-    \subsection{Single-frame model results}
+    \section{Single-frame model results}
         We call a model single-frame if it classifies the person on the photo
         using only one frame. We have evaluated several single-frame models to
         choose one multi-class and one binary classifier.
-        \subsubsection{Multi-class}
+        \subsection{Multi-class}
         \begin{table}[H]
         \begin{center}
         \small
@@ -419,7 +419,7 @@
         \end{center}
         \end{table}
 
-        \subsubsection{Binary}
+        \subsection{Binary}
         \begin{table}[H]
         \begin{center}
         \small
@@ -449,11 +449,11 @@
         \end{center}
         \end{table}
 
-    \subsection{Multiple frames based classification}
+    \section{Multiple frames based classification}
     We have chosen CNN as multi-class classifier and CNN ensembled with SVM (CNN 1 : 5 SVM) as
     best performing single-frame classifiers.
 
-    \subsubsection{Generating predictions from multiple frames}
+    \subsection{Generating predictions from multiple frames}
     Let $n$ be the number of frames, $C_{1}$ -- a single-frame classifier and
     $f_1, ..., f_n$ be the $n$ consecutive frames.
     Let $p_{C_{1}}(f)$ denote the vector of probabilities predicted for each class by $C_{1}$,
@@ -473,7 +473,7 @@
     Another way of looking at multiple frames based classifier is as an ensembling
     of $n$ identical classifiers, but each receives a different frame as an input.
 
-    \subsubsection{Frames-accuracy relation}
+    \subsection{Frames-accuracy relation}
     \begin{figure}[H]
     \caption{Frames-accuracy relation for multiclass problem}
     \centering
@@ -498,7 +498,7 @@
     \includegraphics[scale=0.7]{binary_frames_recall_relation_09999}
     \end{figure}
 
-    \subsubsection{Results -- multi-class}
+    \subsection{Results -- multi-class}
 
     \begin{table}[H]
       \begin{center}
@@ -532,7 +532,7 @@
       \end{center}
     \end{table}
 
-    \subsubsection{Results -- binary}
+    \subsection{Results -- binary}
     \begin{table}[H]
     \begin{center}
     \small
@@ -566,15 +566,15 @@
     \end{center}
     \end{table}
 
-    \subsection*{Possible improvements}
+    \section*{Possible improvements}
 
-    \subsubsection*{Not tested approach to multi-frame classification}
+    \subsection*{Not tested approach to multi-frame classification}
     Instead of implementing multiple frame based classification as an ensembling
     of several single-frame classifiers, a single classifier could also be used.
     We believe that a recurrent neural network (RNN) might be a good fit for the
     task.
 
-    \subsubsection*{Speed optimization}
+    \subsection*{Speed optimization}
     In our experiments, an external, heavy duty machine learning-based library
     has been used for finding and trimming faces (\ref{sec:trimming}). This has
     resulted in a single frame classification time of $260$ miliseconds -- most of
@@ -586,7 +586,7 @@
     all-in-one face detection library. Unfortunately, due to hardware limitations,
     we were unable to verify this assumption in our research.
 
-    \subsection{Proposed solution}
+    \section{Proposed solution}
     The solution we propose is a voting ensembling CNN 1 : 5 SVM, with
     classification based on $4$ consecutive frames. We believe that $400$ miliseconds
     is an acceptable authentication time. Using $4$ frames, precision rate $0.9999$

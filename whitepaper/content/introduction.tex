@@ -1,12 +1,12 @@
-\section{Introduction}
+\chapter{Introduction}
     In the world of authentication, there is always a trade-off between
     convenience and security. We would like to compare commonly used authentication
     methods with regard to both factors and argue that face recognition is more than
     a good balance between the two -- it does very well in terms of both security
     and convenience.
 
-    \subsection{Conventional authorization methods}
-        \subsubsection*{Passwords}
+    \section{Conventional authorization methods}
+        \subsection*{Passwords}
             Passwords come in various forms and cannot be easily placed on a
             security-convenience curve. Their strength is exponentially dependant
             on their length.\\
@@ -34,7 +34,7 @@
             easily than the password manager. \\
 
 
-        \subsubsection*{Hardware tokens and magnetic cards}
+        \subsection*{Hardware tokens and magnetic cards}
             Sometimes to protect valuable resources,
             something stronger than standard password is needed.
             Hardware tokens such as U2F-like tokens or password-protected RSA SecurID
@@ -47,7 +47,7 @@
             conduct an attack without obtaining the card itself, but instead
             being within its close range.
 
-    \subsection{Biometric authentication}
+    \section{Biometric authentication}
         Conventional authorization methods are based on \textit{possession},
         \textit{knowledge} or \textit{control} over some resource. Usually, the
         resources in question are copyable.
@@ -63,7 +63,7 @@
         Biometric authentication is a set of techniques striving to recognize a
         human being by their appearance, body or behavior.
 
-        \subsubsection*{Fingerprints}
+        \subsection*{Fingerprints}
             % If we want some link to literature, I'd go with Janusz Zajdel's Limes
             % Inferior. It has the exact theme of chopping off fingers as a form
             % of mugging - in the created world each fingerprint had some
@@ -79,7 +79,7 @@
             Unfortunately, while users are a non-copyable resource, their fingerprints
             are indeed copyable.
 
-        \subsubsection*{Behavioral biometrics}
+        \subsection*{Behavioral biometrics}
             Behavioral biometrics have been making their way into
             the banking industry. They are a set of techniques supporting the
             conventional authentication, by learning, and verifying, user's
@@ -97,7 +97,7 @@
             They are more of an anomaly detection system reinforcing the authentication
             system.
 
-        \subsubsection*{Face recognition}
+        \subsection*{Face recognition}
             Face recognition is an authentication method that is both convenient
             and secure -- in theory. It has been used in smartphones, tablets
             and laptops for several years now, mostly to unlock the device, but
@@ -106,7 +106,7 @@
             taken for granted. For instance, a static, two-dimensional picture of
             a face is perfectly copyable.
 
-    \subsection{Liveness detection}
+    \section{Liveness detection}
         To design a secure face recognition based authentication system,
         one should ensure the user's face is non-copyable. Only then will the
         system fully comply to our paradigm of relying on \textit{being} instead
@@ -114,7 +114,7 @@
         This can be achieved by adding liveness detection to the authentication
         process. Liveness detection itself can be based on multiple techniques.
 
-        \subsubsection*{Existing methods}
+        \subsection*{Existing methods}
             Various mobile phone manufacturers have implemented methods attempting to
             detect whether the visible face is actually a human and not a photo.
             For example, users were asked to blink or smile to unlock their phones.\\
@@ -123,7 +123,7 @@
             any action to unlock their device -- and were often easily hacked by having
             additional photos of the owner, even fake ones with the eyes being covered.
 
-        \subsubsection*{Depth channel}
+        \subsection*{Depth channel}
             Using a depth channel in addition to a flat image is a form of liveness
             detection itself.
             When implemented well, such system should block all attempts to authenticate
@@ -132,7 +132,7 @@
             While that would require a lot of effort, it is a realistic way to break
             into for example a stolen phone of an important person.
 
-        \subsubsection*{Pulse detection}
+        \subsection*{Pulse detection}
             Determining a person's pulse from a video is not a new idea.
             We have found existing implementations of programs that detected the user's
             pulse, using for example a webcam \cite{pulsedetector}.\\
@@ -142,23 +142,23 @@
             in one particular spot through the entire procedure.
             Therefore we we abandoned further research on this subject.
 
-        \subsubsection*{Skin recognition}
+        \subsection*{Skin recognition}
             The liveness detection idea which we decided to research is skin recognition.
             With a reliable method to detect whether real skin is visible in the camera,
             it should be nearly impossible to authenticate without actually showing
             the owner's face to the camera.\\
             Our proposed skin recognition ideas will be described later in this paper.
 
-    \subsection{Results}
+    \section{Results}
         In our work, we have focused on skin recognition and face authentication
         with depth channel.
 
-        \subsubsection*{Skin recognition}
+        \subsection*{Skin recognition}
             We have developed several skin recognition techniques working with different
             sets of light wavelengths. We have also constructed a simple hardware prototype
             and experimented with machine learning approaches to per-pixel skin recognition.
 
-        \subsubsection*{Face authentication}
+        \subsection*{Face authentication}
             We have constructed a depth + infrared face dataset and evaluated different
             machine learning approaches to face recognition. We have measured the
             effect of authentication time limit on its effectiveness and the trade-off
