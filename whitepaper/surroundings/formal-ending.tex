@@ -1,44 +1,69 @@
 \chapter{Work division}
     As this was a purely research project, it is hard to
-    put clear line defining who made what at concept level.
+    put a clear line defining who made what at concept level.
     We all have learned many things and spent a lot of time
     on discussion of possible solutions and problem,
     so we all contributed to every part of project.
     However, two groups can be separated
-    with greater contribution to other parts of the project.
-    Face recognition -- Tomasz Garbus, Jan Ludziejewski.
-    Liveness detection -- Dominik Klemba, Łukasz Raszkiewicz.
+    with greater contribution to other parts of the project.\\
+    Face recognition -- Tomasz Garbus, Jan Ludziejewski.\\
+    Liveness detection -- Dominik Klemba, Łukasz Raszkiewicz.\\
     But we weren't limited to our main subjects.
-    More exact informations you may find below,
-    but keep in midn above note.
+    More exact informations can be find below, but keep the note above in mind.
 
     \section{Tomasz Garbus}
         \begin{itemize}
-            \item stuff
+            \item TODO
         \end{itemize}
 
     \section{Dominik Klemba}
         \begin{itemize}
-            \item stuff
+            \item TODO
         \end{itemize}
 
     \section{Jan Ludziejewski}
         \begin{itemize}
-            \item stuff
+            \item TODO
         \end{itemize}
 
     \section{Łukasz Raszkiewicz}
         \begin{itemize}
-            \item stuff
+            \item Implementation of most code using Kinect.
+            \begin{itemize}
+                \item Libkinect -- a library which gives a unified interface for
+                using both Kinect v1 and Kinect v2 cameras.
+                \item Live display program -- shows the video feeds from Kinect,
+                allows saving frames to hard drive, limiting FPS.
+                \item File display program for depth and IR photos in our file format.
+                \item Thumbnailer for depth and IR photos.
+            \end{itemize}
+            \item Creating the depth photo database.
+            \begin{itemize}
+                \item Taking photos of volunteers.
+                \item Legal consultations.
+            \end{itemize}
+            \item Skin recognition using Kinect -- implementing the programs required
+            for testing the idea and implementing the first attempts.
+            \item Skin recognition prototype
+            \begin{itemize}
+                \item Research and purchase of required IR diodes.
+                \item Learning Arduino programming and how to build circuits.
+                \item Researching methods to remotely take photos from a phone's camera.
+                \item Writing an Arudino program and a Python script to synchronize
+                taking photos in different wavelengths.
+                \item Building the cardboard setup.
+                \item Taking photos of various objects in different wavelengths.
+                \item Attempting various methods to recognize skin on those photos.
+            \end{itemize}
+            \item Creating appropriate parts of the final presentation.
+            \item Writing appropriate parts of this paper.
         \end{itemize}
 
-
-
 \chapter{CD content}
-    Included CD contains code to all final algorithms
-    and models, as well as a lot of codes to
-    to run some experiments which results are described in the paper.
-    However many codes to abandoned or improved ideas are missing.
+    The included CD contains the source code of all final algorithms
+    and models, as well as a lot of code to run some experiments
+    which results are described in the paper.
+    However, the code of abandoned or improved ideas can be missing.
 
     \begin{itemize}
         \item libkinect
