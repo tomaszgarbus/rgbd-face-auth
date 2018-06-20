@@ -2,6 +2,7 @@ image: blang/latex
 
 pdf:
   before_script:
+    - apt-get install inkscape
     - cd whitepaper
   script:
     - make
