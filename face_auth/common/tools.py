@@ -12,7 +12,7 @@ from typing import List
 from common.constants import SHOW_PLOTS
 
 
-def rgb_skin_mark(R: float, G: float, B: float) -> (float, float, float):
+def rgb_skin_mark(r: float, g: float, b: float) -> (float, float, float):
     """
         Based on "Human Skin Detection by Visible and Near-Infrared Imaging"
         by Yusuke Kanzawa, Yoshikatsu Kimura, Takashi Naito
@@ -27,16 +27,14 @@ def rgb_skin_mark(R: float, G: float, B: float) -> (float, float, float):
         In paper skin_pixel implies: Cb in [77; 127] and Cr in [133; 173]
     """
 
-    Y  =  16 +    0.257 * R +    0.504 * G +    0.098 * B
-    Cb = 128 + (-0.148) * R + (-0.291) * G +    0.439 * B
-    Cr = 128 +    0.439 * R + (-0.368) * G + (-0.071) * B
+    y  =  16 +    0.257 * r +    0.504 * g +    0.098 * b
+    cb = 128 + (-0.148) * r + (-0.291) * g +    0.439 * b
+    cr = 128 +    0.439 * r + (-0.368) * g + (-0.071) * b
 
-    # return 77 <= Cb and Cb <= 127 and 133 <= Cr and Cr <= 173
-    return (Y, Cb, Cr)
+    return (y, cb, cr)
 
 
-# TODO : Add types
-def pic_with_applied_mask(pic, mask):
+def pic_with_applied_mask(pic: np.ndarray, mask: np.ndarray) -> np.ndarray:
     ret = np.copy(pic)
 
     assert len(pic) == len(mask) and len(pic[0]) == len(mask[0]), "Mask must have same size as pic"
