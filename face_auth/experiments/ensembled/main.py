@@ -60,8 +60,8 @@ def run_main(load_results=True, frames_limit=1):
         (8, 1),
         (9, 1),
         (10, 1),
-        (100, 1),
-        (1, 100)
+        (100, 0),
+        (0, 100)
     ]
 
     outs = list(map(lambda x: test_ens(x, nn_out, hog_out, y_test, frames_limit), test_probs))
