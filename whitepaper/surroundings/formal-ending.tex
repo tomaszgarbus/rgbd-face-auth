@@ -13,15 +13,32 @@
 
     \section{Tomasz Garbus}
         \begin{itemize}
-            \item Implementation of convolutional neural network in Tensorflow.
+            \item Implementation of convolutional neural network in Tensorflow:
+            \begin{itemize}
+                \item Customizable constructor.
+                \item Two modes: binary and multi-class.
+                \item Visualizations:
+                    \begin{itemize}
+                        \item Learned convolution kernels.
+                        \item Classified and misclassified inputs.
+                        \item Most activating patches for each convolution kernel.
+                    \end{itemize}
+                \item Data augmentation: on-the-fly and as preprocessing.
+                \item Storing checkpoints.
+                \item Returning raw probabilities for ensembling.
+            \end{itemize}
+            \item Implementation of face rotation (without angle detection).
             \item Building a pipeline for training CNN:
             \begin{itemize}
                 \item Splitting dataset into train and test set.
                 \item Code for loading dataset.
-                \item Partial preprocessing (trimming faces, depth normalization,
-                      data augmentation), caching preprocessed input data for future experiments.
+                \item Partial preprocessing (trimming faces, depth normalization),
+                      caching preprocessed input data for future experiments.
             \end{itemize}
+            \item Choosing score measures for classifiers.
             \item Conducting experiments with CNN.
+            \item Measuring relation between frames used in authentication and
+                  classification quality.
         \end{itemize}
 
     \section{Dominik Klemba}
@@ -80,6 +97,20 @@
             \item BBB stuff
         \end{itemize}
         \item skin-recognition
-        \item face-auth
+        \item \texttt{face-auth}
+            \begin{itemize}
+                \item \texttt{classifiers}: implementations of neural network,
+                      HOG-based classifier and ClassificationResults class for
+                      unified classification results.
+                \item \texttt{common}: constants, utilities for image manipulation and plots,
+                      DBHelper class for unified database loading.
+                \item \texttt{controller}: Controller-layer code for face normalization.
+                \item \texttt{experiments}: A playground. Each experiment is assigned its
+                      own independent subdirectory. Also contains directory \texttt{templates}
+                      with some shared helpers.
+                \item \texttt{face\_rotation}: All of code concerning face normalization, rotation
+                      and angle detection.
+                \item \texttt{model}: Model-layer code -- Face class.
+            \end{itemize}
         \item whitepaper
     \end{itemize}
