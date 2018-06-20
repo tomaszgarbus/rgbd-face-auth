@@ -79,13 +79,13 @@
     \subsection{Face angle detection}
     \label{sec:angledetection}
     Using depth camera, we can extract more structural features of an image,
-    and normalize the face angle. Face is positioned in cube, and position vector is computed
+    and normalize the face angle. Face is positioned in a cube, and position vector is computed
     by finding three points located on face, describing the surface
     and computing its orthogonal vector. We define face position
-    as the angle between the computed vector and vector [0,0,1] pointing towards the camera.
-    We have chosen the points as middle of brews and middle of the chin and compute them with
+    as the angle between the computed vector and vector $[0,0,1]^T$ pointing towards the camera.
+    We have chosen the points as the middle of each eyebrow and the middle of the chin and compute them with
     same library we use for face trimming (as an average between chosen subsets of points). Worth
-    mentioning is that choosing points too close to edge of face (as most algorithms work)
+    mentioning is that choosing points too close to edge of face (as most algorithms do)
     detected on 2-dimensional image, might turn algorithm unstable, because small error can place the point on the background,
     far away in third dimension.
 
@@ -224,7 +224,7 @@
 
         \subsubsection*{Entropy maps}
         To exctract meaningful information (as \citeauthor{rgbdhog}),
-        we used Entropy maps, to amplify small variations on depth images, and provide
+        we used entropy maps, to amplify small variations on depth images, and provide
         more information to classifiers.
 
         \subsubsection*{Channels vs concatenation}
