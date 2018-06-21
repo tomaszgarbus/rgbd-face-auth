@@ -25,6 +25,7 @@ def ml_preproc(xs):
     ret = xs
     #ret = [ list(x) + [(i//WIDTH)//100, (i%WIDTH)//100] for i, x in enumerate(ret) ]
     #ret = [[x[0]-x[3], x[0]-x[6], x[3]-x[6], (x[0]+x[3])//2, (x[0]+x[6])//2, (x[3]+x[6])//2] for x in ret]
+    ret = [ list(x) + [x[0]-x[3], x[0]-x[6], x[3]-x[6], (x[0]+x[3])//2, (x[0]+x[6])//2, (x[3]+x[6])//2] for x in ret]
     #ret = [ [x[0]/max(0.2, x[3]), x[3]/max(0.2, x[6]), x[0]/max(0.2, x[6])] for x in ret ]
     #ret = [ normalize(x, 0) for x in ret]
 
@@ -47,7 +48,7 @@ def get_model(name_list):
         #TO THINK: learn model here? Image by image.
 
     #clf = svm.SVC(kernel='poly', degree=1, verbose=True)
-    clf = RandomForestClassifier(max_depth=16, n_jobs=7, verbose=1)
+    clf = RandomForestClassifier(max_depth=27, n_jobs=7, verbose=1)
     #clf = GradientBoostingClassifier(verbose=True)
     #clf = AdaBoostClassifier()
     clf.fit(x_l, y_l)
@@ -112,9 +113,9 @@ def is_vawe_balck(pixel):
 
 
 
-m = get_model(['A', 'B', 'C'])
+m = get_model(['A', 'B'])
 
-for name in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+for name in ['A', 'H', 'I', 'B', 'C', 'D', 'E', 'F', 'G']:
     pic = load_object(name)
     pic = pic.reshape(HEIGHT*WIDTH, 9)
 
