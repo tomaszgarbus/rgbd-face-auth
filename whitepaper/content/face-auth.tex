@@ -89,9 +89,27 @@
             \centering
             \includegraphics[width=\textwidth]{libkinect_thumbnails}
         \end{subfigure}
+        \label{fig:libkinect_screenshots}
     \end{figure}
 
-    TODO
+    Both the live and file display programs allowed setting a scale for applying the color
+    map to the depth image. On \ref{fig:libkinect_screenshots}.a) the interval of shown
+    depth values is very high, so objects in the background are visible, but it is not
+    possible to see any details on the face. On \ref{fig:libkinect_screenshots}.b)
+    face details are clearly visible because the interval is much smaller.
+
+    Other feature of the live display program included:
+    \begin{itemize}
+        \item Limiting frames per second while maintaining synchronization
+        between depth and infrared frames -- we did not want to collect photos at 30 FPS,
+        because that would take too much disk space while not adding too much new
+        information.
+        \item Saving received frames to hard drive.
+        \item Quickly changing the directory of saved photos to allow easy distinction
+        between different volunteers.
+        \item A fourth display, black on the screenshot, on which we could display
+        experiments such as on figure \ref{fig:skin_kinect_2}.
+    \end{itemize}
 
 
     \subsubsection*{Details of our dataset}
