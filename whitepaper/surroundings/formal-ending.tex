@@ -82,9 +82,9 @@
             \item Implementation of most code using Kinect.
             \begin{itemize}
                 \item Libkinect -- a library which gives a unified interface for
-                using both Kinect v1 and Kinect v2 cameras.
+                      using both Kinect v1 and Kinect v2 cameras.
                 \item Live display program -- shows the video feeds from Kinect,
-                allows saving frames to hard drive, limiting FPS.
+                      allows saving frames to hard drive, limiting FPS.
                 \item File display program for depth and IR photos in our file format.
                 \item Thumbnailer for depth and IR photos.
             \end{itemize}
@@ -95,14 +95,14 @@
                 \item Legal consultations.
             \end{itemize}
             \item Skin recognition using Kinect -- implementing the programs required
-            for testing the idea and implementing the first attempts.
+                  for testing the idea and implementing the first attempts.
             \item Skin recognition prototype
             \begin{itemize}
                 \item Research and purchase of required IR diodes.
                 \item Learning Arduino programming and how to build circuits.
                 \item Researching methods to remotely take photos from a phone's camera.
                 \item Writing an Arudino program and a Python script to synchronize
-                taking photos in different wavelengths.
+                      taking photos in different wavelengths.
                 \item Building the cardboard setup.
                 \item Taking photos of various objects in different wavelengths.
                 \item Attempting various methods to recognize skin on those photos.
@@ -110,6 +110,7 @@
             \item Creating appropriate parts of the final presentation.
             \item Writing appropriate parts of this paper.
         \end{itemize}
+
 
 \chapter{CD content}
     The included CD contains the source code of all final algorithms
@@ -121,47 +122,45 @@
         \item \texttt{libkinect/}
         \begin{itemize}
             \item \texttt{libkinect.hpp} -- a library which gives a unified interface
-            for receiving frames from both Kinect v1 and Kinect v2.
+                  for receiving frames from both Kinect v1 and Kinect v2.
             \item \texttt{live\_display} -- a program displaying live feeds from a Kinect
-            camera, also allowing to save received frames.
+                  camera, also allowing to save received frames.
             \item \texttt{file\_display} -- a program displaying a depth or IR photo saved
-            by \texttt{live\_display}.
+                  by \texttt{live\_display}.
             \item \texttt{thumbnailer} -- a thumbnailer that can be used with graphical
-            file managers to show thumbnails for depth and IR photos.
+                  file managers to show thumbnails for depth and IR photos.
         \end{itemize}
-        \item \texttt{face-auth}
-            \begin{itemize}
-                \item \texttt{classifiers}: implementations of neural network,
-                      HOG-based classifier and ClassificationResults class for
-                      unified classification results.
-                \item \texttt{common}: constants, utilities for image manipulation and plots,
-                      DBHelper class for unified database loading.
-                \item \texttt{controller}: Controller-layer code for face normalization.
-                \item \texttt{experiments}: A playground. Each experiment is assigned its
-                      own independent subdirectory. Also contains directory \texttt{templates}
-                      with some shared helpers.
-                \item \texttt{face\_rotation}: All of code concerning face normalization, rotation
-                      and angle detection.
-                \item \texttt{model}: Model-layer code -- Face class.
-            \end{itemize}
-        \item whitepaper
-      \item \texttt{skin\_recognition/}
-      \begin{itemize}
-          \item \texttt{prototype/take\_ir\_photos.py} -- a program synchronizing
-          lighting up the diodes and taking photos on the phone.
-          \item \texttt{prototype/arduino\_project/} -- an Arudino project
-          compatible with the photo taking script.
-          \item \texttt{find-model.py} -- calculating a skin detection model from
-          photos taken with 850, 890, and 940nm IR light.
-          \item \texttt{rgb-model.py} -- RGB skin detection heuristic.
-      \end{itemize}
-      \item \texttt{face\_auth/}
-      \begin{itemize}
-          \item TODO
-      \end{itemize}
-      \item \texttt{whitepaper/} -- sources for this paper.
-      \item \texttt{presentation/} -- slides and videos that we showed on our
-      final presentation.
-      \item \texttt{poster.pdf} -- our poster.
-
+        \item \texttt{face\_auth/}
+        \begin{itemize}
+            \item \texttt{classifiers}: implementations of neural network,
+                  HOG-based classifier and ClassificationResults class for
+                  unified classification results.
+            \item \texttt{common}: constants, utilities for image manipulation and plots,
+                  DBHelper class for unified database loading.
+            \item \texttt{controller}: Controller-layer code for face normalization.
+            \item \texttt{experiments}: A playground. Each experiment is assigned its
+                  own independent subdirectory. Also contains directory \texttt{templates}
+                  with some shared helpers.
+            \item \texttt{face\_rotation}: All of code concerning face normalization, rotation
+                  and angle detection.
+            \item \texttt{model}: Model-layer code -- Face class.
+        \end{itemize}
+        \item \texttt{skin\_recognition/}
+        \begin{itemize}
+            \item \texttt{prototype/take\_ir\_photos.py} -- a program synchronizing
+                  lighting up the diodes and taking photos on the phone.
+            \item \texttt{prototype/arduino\_project/} -- an Arudino project
+                  compatible with the photo taking script.
+            \item \texttt{find\_model.py} -- calculating a skin detection model from
+                  photos taken with 850, 890, and 940nm IR light.
+            \item \texttt{rgb\_model.py} -- RGB skin detection heuristic.
+        \end{itemize}
+        \item \texttt{whitepaper/} -- sources for this paper.
+        \begin{itemize}
+            \item \texttt{mim\_paper.tex} -- main LaTeX file.
+            \item \texttt{mim\_paper.pdf} -- a compiled version.
+        \end{itemize}
+        \item \texttt{presentation/} -- slides and videos that we showed on our
+              final presentation.
+        \item \texttt{poster.pdf} -- our poster.
     \end{itemize}
