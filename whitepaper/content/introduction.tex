@@ -75,7 +75,7 @@
             distinguishing people as everyone's fingerprint is unique. Moreover,
             even if there happened to be two people with identical fingerprints,
             it would be an extremely unlikely coincidence for one of them to try
-            to hack the other.\\
+            to hack the other.
             Unfortunately, while users are a non-copyable resource, their fingerprints
             are indeed copyable.
 
@@ -101,7 +101,7 @@
             Face recognition is an authentication method that is both convenient
             and secure -- in theory. It has been used in smartphones, tablets
             and laptops for several years now, mostly to unlock the device, but
-            never really trusted enough for securing more vulnerable resources.\\
+            never really trusted enough for securing more vulnerable resources.
             Faces, like fingerprints, are unique, but their uniqueness cannot be
             taken for granted. For instance, a static, two-dimensional picture of
             a face is perfectly copyable.
@@ -110,14 +110,16 @@
         To design a secure face recognition based authentication system,
         one should ensure the user's face is non-copyable. Only then will the
         system fully comply to our paradigm of relying on \textit{being} instead
-        of \textit{possession}.\\
+        of \textit{possession}.
+
         This can be achieved by adding liveness detection to the authentication
         process. Liveness detection itself can be based on multiple techniques.
 
         \subsection*{Existing methods}
             Various mobile phone manufacturers have implemented methods attempting to
             detect whether the visible face is actually a human and not a photo.
-            For example, users were asked to blink or smile to unlock their phones.\\
+            For example, users were asked to blink or smile to unlock their phones.
+
             Such methods definitely increase the security of face recognition,
             but they are inconvenient to the user -- ideally, one wouldn't need to take
             any action to unlock their device -- and were often easily hacked by having
@@ -135,7 +137,7 @@
         \subsection*{Pulse detection}
             Determining a person's pulse from a video is not a new idea.
             We have found existing implementations of programs that detected the user's
-            pulse, using for example a webcam \cite{pulsedetector}.\\
+            pulse, using for example a webcam \cite{pulsedetector}.
             Unfortunately, we found out that such liveness detection method would be
             too slow for common authentication purposes.
             Detecting the pulse takes several seconds and requires the face to remain
@@ -146,7 +148,7 @@
             The liveness detection idea which we decided to research is skin recognition.
             With a reliable method to detect whether real skin is visible in the camera,
             it should be nearly impossible to authenticate without actually showing
-            the owner's face to the camera.\\
+            the owner's face to the camera.
             Our proposed skin recognition ideas will be described later in this paper.
 
     \section{Results}
