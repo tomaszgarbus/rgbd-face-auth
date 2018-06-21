@@ -3,13 +3,14 @@
     of a face recognition system and why it could greatly improve security.
     We focused on using light reflectiveness to recognize skin on photos.
     This idea comes from the fact that every material has its own, unique spectrum.
-    Different types of human skin reflect visible light very differently,
+    Different types of human skin reflect visible light very differently\cite{hsreflectance},
     but those differences become smaller when going further into infrared wavelengths
     \cite{visinfra} \cite{toyotaskin}, which is why we decided to use infrared light
-    in our experiments.
+    in our experiments. Obviouslyy in our wishful imaginations we had spectrometer
+    in mobile device, as it turned out we weren't firs and it's possible \cite{spectrometerphone}.
 
     Additionally, with the information of which pixel contains human skin,
-    it would be possible to use this to remove the background from face photos.
+    it would be possible to use this to remove the background from face photos\cite{colorstudy}.
     As described in a later chapter, this is an important part of face recognition,
     and is currently done using methods based on machine learning, which are usually
     rather slow.
@@ -25,7 +26,7 @@
         Due to better quality, as well as sensitiveness, for security reasons
         it probably would be better to use CCD.
         However, both matrices have same problem -- limitation on wavelength sensitivity.
-        Such sensors are sensitive to wavelengths approximately up to 1050nm, [TODO: LINK NEEDED]
+        Such sensors are sensitive to wavelengths approximately up to 1050nm\cite{imagesensorsmax},
         which may be a serious limitation as human skin has more undifferentiated
         characteristics in greater wavelengths.
         Therefore looking for the the best possible skin detection method,
@@ -54,7 +55,7 @@
         \subsection*{Multispectral imaging}
             Multispectral imaging is a way to measure every wavelength intensity
             in one picture, so it is an answer to the problem of the object moving.
-            Probably the easiest way to describe it is to look at RGB camera.
+            Probably the easiest way to describe it is to look at RGB camera (with Bayer like filter\cite{bayerfilter}).
             There, every photodiode is responsible for exactly one color,
             where as color we understand a wavelength interval (it is important
             to understand that we can consider any wavelength interval as one color).
@@ -76,7 +77,7 @@
 
             One of the possible realizations of reducing the range
             of light visible through the sensor is to take a standard image sensor which
-            may see the full spectrum of light (CCD -- $350$-$1050$nm) and place filters
+            may see the full spectrum of light (CCD -- $350$-$1050$nm\cite{imagesensorsmax}) and place filters
             in the way, so that only specific light will reach the chosen photodiode.
 
             \begin{figure}[H]
@@ -185,10 +186,10 @@
             $\cos(v_1, v_2) = \frac{v_1 \cdot v_2}{||v_1||~||v_2||}$.
             We were trying to calculate reflectiveness using two informations,
             how the surface is flat (using neighboring pixels and calculating angel between them),
-            and how it is rotated relative to the camera (using vector from base).
+            and how it is rotated relative to the camera (using also vector from base).
 
             With that information, it is possible to calculate the angle towards the
-            camera between each two pixels, and then use that value in the method above
+            camera between each two pixels and camera, then use that value in the method above
             to make it independent of angles.
             However, our attempts to do this were unsuccessful, possibly because the
             depth camera is not precise enough.
@@ -351,12 +352,19 @@
         With more resources, we believe this could increase security of
         face authentication solutions.
 
+        The next big step associated with development of that skin-detection
+        technology may be using hyperspectral camera to find few (like three
+        or four) colors giving greater security, as well as measuring
+        quality of that solution with fixed number of colors.
+        Unfortunately we weren't able to use high quality hyperspectral camera
+        to measure possible effectiveness and security of such solutin.
+
     \section{RGB skin detection simulation}
         Because we wanted to have the ability to check how skin detection
         (if it was implemented in a possible future device) could be utilized
         by other algorithms, but we could not integrate our prototype with
         anything else, we prepared a skin-detection heuristic based on RGB images.
-        We based our algorithm on transformation from \cite{toyotaskin}:
+        We based our algorithm on transformation from \citetitle{toyotaskin}:
         \[
             \begin{bmatrix}
                 Y \\
@@ -383,8 +391,8 @@
             \end{bmatrix}
         \]
 
-        However, conditions described in \cite{toyotaskin} gave us too many false positives
-        (what is understandable), so we decided to improve the decision process.
+        However, conditions described in \citetitle{toyotaskin} gave us too many false positives
+        (what is understandable, as it was universal solution), so we decided to improve the decision process.
         For each pixel in an image, we calculated its mark, where a mark of a pixel
         $p = (R, G, B)$ is a vector $(Y, Cb, Cr)$.
         After that we took a few marks of pixels from the central part of image and
