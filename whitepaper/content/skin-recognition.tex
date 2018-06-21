@@ -308,8 +308,8 @@
                 We had many preprocessing ideas, but all were focused
                 on using every pixel independently.
                 The one with the best results (in fact only slightly better,
-                but not negligibly) was taking one value from every
-                of three pictures and calculating ratios.
+                but not negligibly) was taking few values from every
+                of three pictures and calculating differences concatenated with basic vector.
                 There is chance to improve preprocessing using more than one pixel,
                 but we were focused on getting more reliable results
                 (taking an average of adjacent pixels would make it easier
@@ -354,7 +354,7 @@
                 Therefore we consider our results better than expected.
 
                  \begin{figure}[H]
-                    \caption{Overfitting random forest on one picture.}
+                    \caption{Overfitting random forest on one picture. Wihout and with preprocessing.}
                     \centering
                     \includegraphics[width=10cm]{rf_overfitting_op}
                     \label{fig:rf_overfitting_op}
