@@ -98,7 +98,7 @@
     possible to see any details on the face. On \ref{fig:libkinect_screenshots}.b)
     face details are clearly visible because the interval is much smaller.
 
-    Other feature of the live display program included:
+    Other features of the live display program included:
     \begin{itemize}
         \item Limiting frames per second while maintaining synchronization
         between depth and infrared frames -- we did not want to collect photos at 30 FPS,
@@ -254,6 +254,10 @@
         $
         \end{center}
 
+        Face angle normalization was implemented with smaller datasets in mind
+        (\cite{eurecom}, \cite{vapaaudk}). Our final training set
+        contains many different angles of each face, rendering this technique unnecessary.
+        In our final models we have not used it.
 
         \begin{figure}[H]
         \caption{Face from angle detection subsection, transformed.}
