@@ -1,11 +1,11 @@
-mim-paper.pdf: content/*.tex pictures/RGB-matrix.png pictures/RGB-filter.png surroundings/*
+mim-paper.pdf: content/*.tex pictures/RGB-matrix.png pictures/RGB-filter.png pictures/* surroundings/*
 	latexmk -pdf mim-paper.tex
 
 .PHONY: clean all
 
 all: temp-paper.pdf mim-paper.pdf
 
-temp-paper.pdf: content/*.tex pictures/RGB-matrix.png pictures/RGB-filter.png surroundings/*
+temp-paper.pdf: content/*.tex pictures/RGB-matrix.png pictures/RGB-filter.png pictures/* surroundings/*
 	latexmk -pdf temp-paper.tex
 
 pictures/RGB-matrix.png: pictures/RGB-matrix.svg
