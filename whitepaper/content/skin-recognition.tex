@@ -364,7 +364,7 @@
         (if it was implemented in a possible future device) could be utilized
         by other algorithms, but we could not integrate our prototype with
         anything else, we prepared a skin-detection heuristic based on RGB images.
-        We based our algorithm on transformation from \citetitle{toyotaskin}:
+        We based our algorithm on transformation from \textit{Human Skin Detection by Visible and Near-Infrared Imaging}\cite{toyotaskin}:
         \[
             \begin{bmatrix}
                 Y \\
@@ -391,7 +391,7 @@
             \end{bmatrix}
         \]
 
-        However, conditions described in \citetitle{toyotaskin} gave us too many false positives
+        However, conditions described in \textit{Human Skin Detection by Visible and Near-Infrared Imaging}\cite{toyotaskin} gave us too many false positives
         (what is understandable, as it was universal solution), so we decided to improve the decision process.
         For each pixel in an image, we calculated its mark, where a mark of a pixel
         $p = (R, G, B)$ is a vector $(Y, Cb, Cr)$.
