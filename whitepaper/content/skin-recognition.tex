@@ -1,8 +1,9 @@
 \chapter{Skin recognition}
     Earlier, we described why liveness detection is an important part
     of a face recognition system and why it could greatly improve security.
-    We focused on using light reflectiveness to recognize skin on photos.
-    This idea comes from the fact that every material has its own, unique spectrum [TODO: LINK NEEDED].
+    In our research, we focused on using light reflectiveness to recognize skin on photos.
+    This idea comes from the fact that every material has its own, unique spectrum
+    [TODO: LINK NEEDED].
     Different types of human skin reflect visible light very differently
     \cite{hsreflectance},
     but those differences become smaller when going further into infrared wavelengths
@@ -28,7 +29,7 @@
         [TODO: LINK NEEDED].
         Due to better quality, as well as sensitiveness, for security reasons
         it probably would be better to use CCD.
-        However, both matrices have same problem -- limitation on wavelength sensitivity.
+        However, both matrices have same problem -- limitations on wavelength sensitivity.
         Such sensors are sensitive to wavelengths approximately up to 1050nm
         \cite{imagesensorsmax},
         which may be a serious limitation as human skin has more undifferentiated
@@ -39,16 +40,16 @@
         Nevertheless, we were limited to very common cameras.
 
         We are describing one possible realization, but keep in mind that
-        there are more solutions, which we do not find useful in our problem.
+        there are more solutions, which we did not find useful in our problem.
 
         \subsection*{Monochrome}
             As an image sensor is a matrix built from many small photodiodes,
-            it is natural to create monochromatic image.
+            it is natural to create a monochromatic image.
             Because photodiodes do not distinguish different
             wavelengths, only light intensity, it is hard
             to measure light reflectiveness.
             The only possible way to do that is to
-            make different picture for every wavelength.
+            take a separate picture for every wavelength.
             It is not easy, as you have to
             provide your own lighting and somehow remove
             light coming from other sources.
@@ -77,17 +78,17 @@
                 \label{fig:RGB-matrix}
             \end{figure}
 
-            Each sensor reports which color it filters and what is the light intensity,
-            and that information is received by the software.
+            Each sensor reports what is the light intensity to the camera, which then
+            reports that intensity and which color that sensor filters to the software.
 
             One of the possible realizations of reducing the range
-            of light visible through the sensor is to take a standard image sensor which
+            of light visible through a sensor is to take a standard image sensor, which
             may see the full spectrum of light (CCD -- $350$-$1050$nm
-            \cite{imagesensorsmax}) and place filters
+            \cite{imagesensorsmax}), and place filters
             in the way, so that only specific light will reach the chosen photodiode.
 
             \begin{figure}[H]
-                \caption{Visualization of filters mechanism.}
+                \caption{Visualization of a filtering mechanism.}
                 \centering
                 \includegraphics[scale=0.40]{RGB-filter}
                 \label{fig:RGB-filter}
@@ -96,12 +97,12 @@
         \subsection*{Hyperspectral imaging}
             Hyperspectral imaging is creating pictures using a camera with the
             capability to distinguish a large amount of colors
-            (even hundreds or thousands) instead of just few.
-            It would be very helpful, in a skin-detection device,
+            (even hundreds or thousands) instead of just a few.
+            It would be very helpful to have one in a skin detection device,
             but it would be impractical to put a hyperspectral camera in a mobile phone.
 
     \section{Technical aspect -- how can it be created?}
-        As we know how a camera works, we can distinguish two ways of
+        As we now know how a camera works, we can distinguish two ways of
         building a skin-detecting mobile device.
         \subsection*{Monochrome}
             We can work without filters (or with one for the whole camera),
@@ -153,17 +154,18 @@
                 \caption{An unprocessed IR photo, and an image calculated using
                 the method described above.}
                 \centering
-                \includegraphics[width=\textwidth]{skin_kinect_1}
+                \includegraphics[width=0.7\textwidth]{skin_kinect_1}
                 \label{fig:skin_kinect_1}
             \end{figure}
 
             As seen on figure \ref{fig:skin_kinect_1}, we have accidentally created
-            a night vision camera (please note that some of the black areas are there because Kinect cameras do not give depth data for objects closer than 50cm)
+            a night vision camera (please note that some of the black areas are there
+            because Kinect cameras do not give depth data for objects closer than 50cm)
             -- but this means that our idea is to some extent working, because the point
             of it was to make objects in the distance indistinguishable from those close
             to the camera.
 
-            However, one this that is not considered in that method is that objects
+            However, one thing that is not considered in that method is that objects
             can also be at different angles to the camera.
             A sheet of paper perpendicular to the source of light will reflect more
             light to the Kinect than it would reflect if it was at a 45 degrees angle.
@@ -192,10 +194,11 @@
             $\cos(v_1, v_2) = \frac{v_1 \cdot v_2}{||v_1||~||v_2||}$.
             We tried to calculate reflectiveness using two data points:
             how flat is the surface (using neighboring pixels and calculating angles between them),
-            and what is its angle towards the camera (using a vector from base).
+            and what is its angle towards the camera (using a basis vector).
 
             With that information, it is possible to calculate the angle towards the
-            camera between each two pixels and camera, then use that value in the method above
+            camera between each two pixels and the camera,
+            and then use that value in the method above
             to make it independent of angles.
             However, our attempts to do this were unsuccessful, possibly because the
             depth camera is not precise enough.
@@ -204,7 +207,7 @@
             \subsubsection*{Prototype}
             With the previous method using only one light wavelength (the one emitted by
             Kinect), we decided to take photos using three different wavelengths.
-            This gives the opportunity to analyze how does the way the objects reflect
+            This gives the opportunity to analyze how does the way the object reflects
             light changes with regard to light wavelength, instead of directly looking
             at how bright a point is.
 
@@ -251,7 +254,7 @@
                 \label{fig:arduino_2}
             \end{figure}
 
-            With this setup, all that remained to do was to take more photos.
+            With this setup, all that remained to do was to take photos.
             The camera and the phone were stable, but when photographing for example
             a human hand, it might move.
             The photos have to be taken in the smallest possible intervals
@@ -260,11 +263,12 @@
 
             Turning specific diodes on and off was a rather easy task.
             Arduino is by definition programmable, so we just wrote a program that
-            listened to data sent on a USB cable and turned on the requested diode.\\
+            listened to data sent on a USB cable and turned on the requested diode.
+
             We found an Android app \cite{opencameraremote} designed to take photos
             remotely when commanded so from another phone with a special pilot app.
             It is open source, so we read its source and found out that it just sends
-            simple broadcast messages through LAN.
+            simple LAN broadcast messages.
 
             With this information, we were able to write a Python script that did the
             following:
@@ -300,7 +304,7 @@
                 our input was a picture-matrix
                 in which every pixel was a nine elements tuple.
                 In fact, values there were not independent, because
-                for almost every pixel in all JPEGs
+                for almost every pixel in all JPEGs,
                 $R \approx B \approx 2 \cdot G$ occured.
                 Therefore, using all that data would only cause overfitting,
                 instead of actually improving the model.
@@ -309,12 +313,11 @@
                 on using every pixel independently.
                 The one with the best results was taking a few values from each of three pictures
                 and calculating differences concatenated with the basic vector (best results for
-                random forest, SVM worked best with vectors extended with ratio and normalized
-                to unary vector).
-                There is a chance to improve preprocessing using more than one pixel,
+                random forest, SVM worked best with vectors normalized to unary vectors).
+                There is a chance to improve the preprocessing by using more than one pixel,
                 but we were focused on getting more reliable results
                 (taking an average of adjacent pixels would make it easier
-                by reducting the amount of anomalies).
+                by reducing the amount of anomalies).
 
             \subsubsection*{Detecting skin -- models}
                 Unfortunately, handmade algorithms to detect skin failed,
@@ -330,14 +333,14 @@
                     \label{fig:A_mask}
                 \end{figure}
 
-                We have used \texttt{scikit-learn} to test different models.
+                We used \texttt{scikit-learn} to test different models.
                 We hoped that SVM would work well, and with a
                 linear kernel it did show some promise.
 
                  \begin{figure}[H]
-                    \caption{SVM without limiting picture to well-lit area.}
+                    \caption{SVM without keeping only the well-lit area of the picture.}
                     \centering
-                    \includegraphics[width=11cm]{svm_no_cut}
+                    \includegraphics[width=7cm]{svm_no_cut}
                     \label{fig:svm_no_cut}
                 \end{figure}
 
@@ -346,8 +349,8 @@
 
                   \begin{figure}[H]
                     \caption{Skin detection with SVM using preprocessed data.
-                    The first two pictures come from learning set, others
-                    are from test set.}
+                    The first two pictures come from the learning set, others
+                    are from the test set.}
                     \centering
                     \includegraphics[width=11cm]{svm_skin}
                     \label{fig:svm_good}
@@ -356,8 +359,8 @@
 
                 \begin{figure}[H]
                     \caption{Skin detection with random forest using preprocessed data.
-                    The first two pictures come from learning set, others
-                    are from test set.}
+                    The first two pictures come from the learning set, others
+                    are from the test set.}
                     \centering
                     \includegraphics[width=11cm]{rf_good}
                     \label{fig:rf_good}
@@ -374,7 +377,7 @@
                  \begin{figure}[H]
                     \caption{Overfitting random forest on one picture. Wihout and with preprocessing.}
                     \centering
-                    \includegraphics[width=10cm]{rf_overfitting_op}
+                    \includegraphics[width=9cm]{rf_overfitting_op}
                     \label{fig:rf_overfitting_op}
                 \end{figure}
 
@@ -399,8 +402,8 @@
         Because we wanted to have the ability to check how skin detection
         (if it was implemented in a possible future device) could be utilized
         by other algorithms, but we could not integrate our prototype with
-        anything else, we prepared a skin-detection heuristic based on RGB images.
-        We based our algorithm on transformation from
+        anything else, we prepared a skin detection heuristic based on RGB images.
+        We based our algorithm on a transformation from
         \textit{Human Skin Detection by Visible and Near-Infrared Imaging} \cite{toyotaskin}:
         \[
             \begin{bmatrix}
@@ -428,20 +431,23 @@
             \end{bmatrix}
         \]
 
+        For $(Y,Cb,Cr)$ values calculated like that, we marked pixels as containing
+        skin when $Cb \in [77;127] \land Cr \in [133;173]$ held \cite{toyotaskin}.
         However, those conditions gave us too many false positives
         (what is understandable, as it was a universal solution),
         so we decided to improve the decision process.
+
         For each pixel in an image, we calculated its mark, where a mark of a pixel
-        $p = (R, G, B)$ is a vector $(Y, Cb, Cr)$.
+        $p = (R, G, B)$ is the vector $(Y, Cb, Cr)$.
         After that we took a few marks of pixels from the central part of image and
         sorted them by euclidean norm.
-        Heuristically middle element of the new table is a skin pixel.
+        The heuristically middle element of the new table is a skin pixel.
         At the end, we consider every pixel as a skin pixel if and only if
         its mark was close enough to the middle mark from the sorted list.
 
         \begin{figure}[H]
             \caption{RGB skin detection heuristic.}
             \centering
-            \includegraphics[scale=0.6]{skin_detection_heuristic}
+            \includegraphics[scale=0.5]{skin_detection_heuristic}
             \label{fig:skin_detection_heuristic}
         \end{figure}
