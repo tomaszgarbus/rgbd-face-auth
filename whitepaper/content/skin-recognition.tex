@@ -2,7 +2,7 @@
     Earlier, we described why liveness detection is an important part
     of a face recognition system and why it could greatly improve security.
     We focused on using light reflectiveness to recognize skin on photos.
-    This idea comes from the fact that every material has its own, unique spectrum.
+    This idea comes from the fact that every material has its own, unique spectrum [TODO: LINK NEEDED].
     Different types of human skin reflect visible light very differently
     \cite{hsreflectance},
     but those differences become smaller when going further into infrared wavelengths
@@ -307,9 +307,10 @@
 
                 We had many preprocessing ideas, but all were focused
                 on using every pixel independently.
-                The one with the best results (in fact only slightly better,
-                but not negligibly) was taking a few values from every of three pictures
-                and calculating differences concatenated with the basic vector.
+                The one with the best results was taking a few values from every of three pictures
+                and calculating differences concatenated with the basic vector (best results for
+                random forest, SVM worked best with vectors extended with ratio and normalized
+                to unary vector).
                 There is a chance to improve preprocessing using more than one pixel,
                 but we were focused on getting more reliable results
                 (taking an average of adjacent pixels would make it easier
@@ -330,11 +331,27 @@
                 \end{figure}
 
                 We have used \texttt{scikit-learn} to test different models.
-                We had hope that SVM will work correctly,
-                and in fact with linear kernel it worked very well.
-                However, Random Forest had slightly better results.
+                We hoped that SVM would work well, and with a
+                linear kernel it did show some promise.
 
-                [TODO: SVM PIC]
+                 \begin{figure}[H]
+                    \caption{SVM without limiting picture to well-lit area.}
+                    \centering
+                    \includegraphics[width=11cm]{svm_no_cut}
+                    \label{fig:svm_no_cut}
+                \end{figure}
+
+                However, Random Forest had  better results. Look at more images.
+                Notice that first two pictures comes from learing set, others
+                are from test set.
+
+                  \begin{figure}[H]
+                    \caption{Skin detection with SVM using preprocessed data.}
+                    \centering
+                    \includegraphics[width=11cm]{svm_skin}
+                    \label{fig:rf_good}
+                \end{figure}
+            
 
                 \begin{figure}[H]
                     \caption{Skin detection with random forest using preprocessed data.}
