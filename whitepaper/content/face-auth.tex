@@ -26,14 +26,14 @@
     We have set requirements for our dataset, aiming to reflect real-life
     appliances:
     \begin{itemize}
-        \item \textbf{depth and IR channels}: in real-life appliance, leveraging
+        \item \textbf{depth and IR channels}: in real-life appliances, leveraging
         the infrared camera allows equally good vision regardless of lighting
         conditions.
         \item \textbf{various vertical angles}: when a user is looking at their
         mobile device,
-        their head may be placed at various angles along the vertical axis.
-        However, it is reasonable to assume that the angle along the horizontal
-        axis will be small, especially if the user is consciously trying to
+        their head may be rotated vertically to a various degree.
+        However, it is reasonable to assume that the horizontal rotations will be small,
+        especially if the user is consciously trying to
         unlock the device.
         \item \textbf{many frames per subject}: when a new user is being added
         to a mobile device's authentication system, it is acceptable to require
@@ -45,7 +45,7 @@
     The EURECOM Kinect Face Database \cite{eurecom},
     RGB-D Face database \cite{vapaaudk},
     The Florence Superface dataset \cite{superface}. However, none of them was
-    deemed suiting for our project, primarily due to the lack of IR channel.
+    deemed suiting for our project, primarily due to the lack of an IR channel.
     Thus, we have decided to build a dedicated dataset.
 
     \subsection*{Data collection}
@@ -62,11 +62,11 @@
     That is why we decided to create \texttt{libkinect}, which is a library that
     gives a simple interface for receiving images from a Kinect camera
     regardless of its version, allowing the programmer to focus on important code
-    and not making the Kinect work.
+    instead of wasting time on making the Kinect work.
 
     Based on \texttt{libkinect} and its file format for depth and IR photos,
     we made a program that displayed live video from the connected Kinect device
-    and allowed saving received frames, a program that displayed a file
+    and allowed saving received frames, a program that displayed a file,
     and a thumbnailer that can be configured to show thumbnails of depth and IR photos
     in graphical file managers.
 
@@ -94,9 +94,9 @@
 
     Both the live and file display programs allowed setting a scale for applying the color
     map to the depth image. On \ref{fig:libkinect_screenshots}.a) the interval of shown
-    depth values is very high, so objects in the background are visible, but it is not
+    depth values is very wide, so objects in the background are visible, but it is not
     possible to see any details on the face. On \ref{fig:libkinect_screenshots}.b)
-    face details are clearly visible because the interval is much smaller.
+    face details are clearly visible because the interval is much more narrow.
 
     Other features of the live display program included:
     \begin{itemize}
@@ -114,25 +114,23 @@
 
     \subsubsection*{Details of our dataset}
     The dataset consists of $44$ subjects: $36$ males and
-    $8$ females, mostly aged $20$-$25$. Each subject has been asked to
+    $8$ females, mostly aged $20$-$25$.
+
+    Each subject has been asked to
     follow an object with their entire head, making two cycles of slow,
     continuous movements: \texttt{up $\to$ center $\to$ down $\to$ center $\to$
     left $\to$ center $\to$ right $\to$ center}.
-    That procedure has resulted in approximately $20$ seconds of footage per
-    subject.
-
-    IR and depth frames are synchronized, taken at $10$ FPS rate.
+    That procedure took around $20$-$30$ seconds per subject.
+    We believe it could be proposed as a part of a mobile device's first time security configuration.
 
     We used only Kinect v2 cameras, because they give more detailed depth pictures
     than Kinect v1, and its infrared images do not have a dotted pattern,
     which is projected by Kinect v1 because it uses a different depth
     measurement method.
 
-    Dataset contains also RGB frames taken at $10$ FPS rate, not synchronized
+    IR and depth frames are synchronized, taken at a $10$ FPS rate.
+    The dataset also contains RGB frames taken at a $10$ FPS rate, not synchronized
     with IR and depth frames.
-
-    The procedure performed to collect photos of a single person took around $20$-$30$ seconds.
-    We believe it could be proposed as a part of mobile device's first time security configuration.
 
     \subsection*{Test set}
     For the test set, we have chosen approximately first $25\%$ of
@@ -148,20 +146,19 @@
 
     \section{Face angle detection}
     \label{sec:angledetection}
-    Using depth camera, we can extract more structural features of an image,
-    and normalize the face angle. Face is positioned in a cube, and position vector is computed
-    by finding three points located on face, describing the surface
+    Using a depth camera, we can extract more structural features of an image,
+    and normalize the face angle. The face is positioned in a cube, and the position vector is computed
+    by finding three points located on the face, describing the surface
     and computing its orthogonal vector. We define face position
     as the angle between the computed vector and vector $[0,0,1]^T$ pointing towards the camera.
-    We have chosen the points as the middle of each eyebrow and the middle of the chin and compute them with
-    same library we use for face trimming (as an average between chosen subsets of points). Worth
-    mentioning is that choosing points too close to the edge of face (as most algorithms do)
-    detected on 2-dimensional image, might turn algorithm unstable, because small error can place the point on the background,
+    We have chosen the points as the middle of each eyebrow and the middle of the chin and computed them with
+    the same library we use for face trimming (as an average between chosen subsets of points). It is worth
+    mentioning that choosing points too close to the edge of the face
+    detected on a 2-dimensional image (as most algorithms do) might make the algorithm unstable, because a small error can place the point on the background,
     far away in third dimension.
 
-
     \begin{figure}[H]
-    \caption{Detecting the angle of face. The face orthogonal vector is positioned between eyebrows, face points are marked yellow}
+    \caption{Detecting the angle of a face. The face's orthogonal vector is positioned between eyebrows, face points are marked yellow.}
     \centering
     \includegraphics[scale=0.3]{angle}
     \end{figure}
@@ -183,8 +180,6 @@
                   \end{cases}
         $
         \end{center}
-
-
         Lastly, all depth values are scaled to the interval $[0..1]$:
         \begin{center}
         $
@@ -272,10 +267,10 @@
         \label{sec:trimming}
         During the process of collecting the dataset, each subject has been
         recorded in only one set of clothes (the ones they were wearing at the
-        time), one hairstyle and the background may slightly vary among the
+        time), one hairstyle, and the background may slightly vary among the
         subjects (the background behind subjects recorded at $12$ a.m. is
-        likely to be brighter than behind the subjects recorded at $4$ p.m.
-        Additionally, there are $4$ different backgrounds in our dataset).
+        likely to be brighter than behind the subjects recorded at $4$ p.m.;
+        also, we were taking photos in 4 different places).
 
         Since a classifier might leverage those factors, photos have been
         trimmed to polygons containing the faces. Such polygons have been
@@ -316,9 +311,9 @@
         \begin{itemize}
             \item \textbf{coarse salt and pepper} -- randomly placed patches of grain (black and white pixels)
             \item \textbf{padding} -- shifting the input image $3$ pixels in random direction
-            \item \textbf{Gaussian blur} with several different strenghts
+            \item \textbf{Gaussian blur} with several different strengths
             \item \textbf{rotations} by $2$ degrees
-            \item \textbf{PiecewiseAffine} -- augmenter that places a regular grid of points on an image and randomly moves the neighbourhood of these point around via affine transformations.
+            \item \textbf{PiecewiseAffine} -- augmenter that places a regular grid of points on an image and randomly moves the neighborhood of these point around via affine transformations.
         \end{itemize}
         \begin{figure}[H]
         \caption{Trimming + all possible augmentations.}
@@ -342,10 +337,10 @@
             \end{itemize}
             \item \textbf{Loss function}: Log Loss
             \item \textbf{Optimizer}: SGD
-            \item \textbf{Kernels initialization}: Since we have experimented with deeper
+            \item \textbf{Kernel initialization}: Since we have experimented with deeper
             networks too, and each model was trained from scratch, a reckless initialization
             would hamper the models ability to learn and increase the number of
-            iterations needed for convergence. To ensure quick start of the learning
+            iterations needed for convergence. To ensure a quick start of the learning
             process, we decided to initialize each kernel with \textbf{random normal
             distribution with $\mu = 0,\ \sigma = \sqrt{(2 / N)}$}, as advised by
             \citeauthor{initialization}.
@@ -355,7 +350,7 @@
         \begin{figure}[H]
         \caption{Convolved input images (only IR channel). First two rows
         are outputs from first and second convolutional layers. Third and fourth
-        row are outputs from all $40$ filters from last convolutional layer.
+        row are outputs from all $40$ filters from the last convolutional layer.
         }
         \centering
         \includegraphics[scale=0.25]{convolutions}
@@ -366,7 +361,7 @@
             filters the most.
             Horizontally, consecutive filters are presented, vertically -- patches
             sorted from the highest activation.
-            Note that from each patch, only IR channel is presented.
+            Note that for each patch, only the IR channel is presented.
             }
             \centering
             \begin{subfigure}[b]{0.4\textwidth}
@@ -388,14 +383,14 @@
         \end{figure}
 
         \subsection{HOG + SVM}
-        As an alterative to CNN, to classify HOG feature descriptors, we tested two common (\citeauthor{hog}, \citeauthor{rgbdhog}) approaches:
-        Support Vector Machine, extremely randomised decision trees (Extra Trees), and both ensembled.
-        Initially, while collecting the data and working with smaller dataset, Extra Trees where achieving higher results,
+        As an alternative to CNN, to classify HOG feature descriptors, we tested two common (\citeauthor{hog}, \citeauthor{rgbdhog}) approaches:
+        Support Vector Machine, extremely randomized decision trees (Extra Trees), and both ensembled.
+        Initially, while collecting the data and working with a smaller dataset, Extra Trees were achieving higher results,
         and SVM was highly overfitting, but as the work proceeded, the second approach was getting better and has finally overcome Extra Trees
         to the point that the other classifier was not even contributing to ensembling, so further work was continued only with Support Vector Machines.
         In multi-class classification, we used One vs Rest approach.
 
-        After tuning the parameters on final dataset using grid-search approach, the following configuration of most important parameters was chosen:
+        After tuning the parameters on the final dataset using grid-search approach, the following configuration of the most important parameters was chosen:
         \begin{itemize}
             \item \textbf{Polynomial kernel} with degree 3. Other kernels got significantly worse results.
             \item \textbf{Penalty C parameter}: 10, locally constant results results in range [1, 10].
@@ -439,7 +434,7 @@
         When testing the model in binary mode two decisions are being made:
         \begin{itemize}
             \item \textbf{positive class (device owner)}: One subject from the
-            database is chosen as the "device owner". All photos of this subjects
+            database is chosen as the "device owner". All photos of this subject
             are then labeled as positive. All photos of other subjects are
             labeled as negative.
             \item \textbf{desired precision threshold:}
@@ -526,7 +521,7 @@
 
     \section{Multiple frames based classification}
     We have chosen CNN as multi-class classifier and CNN ensembled with SVM (CNN 1 : 5 SVM) as
-    best performing single-frame classifiers.
+    the best performing single-frame classifiers.
 
     \subsection{Generating predictions from multiple frames}
     Let $n$ be the number of frames, $C_{1}$ -- a single-frame classifier and
@@ -660,9 +655,9 @@
     \subsection*{Speed optimization}
     In our experiments, an external, heavy duty machine learning-based library
     has been used for finding and trimming faces (\ref{sec:trimming}). This has
-    resulted in a single frame classification time of $260$ miliseconds -- most of
-    which spent on detecting and trimming the face. This is too slow for $10$ FPS
-    rate.
+    resulted in a single frame classification time of $260$ milliseconds -- most of
+    which was spent on detecting and trimming the face. This is too slow for
+    the $10$ FPS rate.
 
     We believe that a fully developed skin-recognition method, possibly with
     additional infrared channels on different wavelengths, could replace the
@@ -671,7 +666,7 @@
 
     \section{Proposed solution}
     The solution we propose is a voting ensembling CNN 1 : 5 SVM, with
-    classification based on $4$ consecutive frames. We believe that $400$ miliseconds
+    classification based on $4$ consecutive frames. We believe that $400$ milliseconds
     is an acceptable authentication time. Using $4$ frames, precision rate $0.9999$
     and recall rate $0.9868$ are achievable.
 

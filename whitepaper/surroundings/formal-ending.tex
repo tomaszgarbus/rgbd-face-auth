@@ -2,21 +2,21 @@
     As this was a purely research project, it is hard to
     put a clear line defining who made what at concept level.
     We all have learned many things and spent a lot of time
-    on discussion of possible solutions and problem,
+    on discussion of possible solutions and problems,
     so we all contributed to every part of project.
     However, two groups can be separated
     with greater contribution to other parts of the project.\\
     Face recognition -- Tomasz Garbus, Jan Ludziejewski.\\
     Liveness detection -- Dominik Klemba, Łukasz Raszkiewicz.\\
     But we were not limited to our main subjects.
-    More exact informations can be find below, but keep the note above in mind.
+    More specific information can be find below, but keep the note above in mind.
 
     \section{Tomasz Garbus}
         \begin{itemize}
             \item Implementation of convolutional neural network in Tensorflow:
             \begin{itemize}
                 \item Two modes: binary and multi-class, customizable size, neurons
-                      counts, dropout etc.
+                      counts, dropout, etc.
                 \item Visualizations:
                     \begin{itemize}
                         \item Learned convolution kernels.
@@ -33,7 +33,7 @@
                 \item Partial preprocessing (trimming faces, depth normalization),
                       caching preprocessed input data for future experiments.
             \end{itemize}
-            \item Obtaining $4$ rgbd face databases for tests before we had our own and
+            \item Obtaining $4$ RGBD face databases for tests before we had our own and
                   converting to our format.
             \item Implementation of face rotation (without angle detection).
             \item Refactoring \texttt{face\_auth} code:
@@ -44,7 +44,7 @@
             \end{itemize}
             \item Legal consultation.
             \item Choosing score measures for classifiers.
-            \item Running final experiments (+ choosing the best performing CNN configuration).
+            \item Running final experiments (and choosing the best performing CNN configuration).
             \item Measuring relation between frames used in authentication and
                   classification quality.
             \item Creating appropriate parts of the final presentation.
@@ -61,11 +61,11 @@
                 \item Small works and improvements, as well as testing code.
             \end{itemize}
             \item Research in liveness detection.
-            \item Infrared skin recognition
+            \item Infrared skin recognition.
             \begin{itemize}
                 \item Extensive research in skin detection problem.
                 \item Tools to display detected pixels.
-                \item Models to detect skin in photos from prototype.
+                \item Models to detect skin in photos from the prototype.
             \end{itemize}
             \item Creating small part of the database.
             \item Face authentication.
@@ -150,18 +150,18 @@
         \end{itemize}
         \item \texttt{face\_auth/}
         \begin{itemize}
-            \item \texttt{classifiers}: implementations of neural network,
+            \item \texttt{classifiers/} -- implementations of neural network,
                   HOG-based classifier and ClassificationResults class for
                   unified classification results.
-            \item \texttt{common}: constants, utilities for image manipulation and plots,
+            \item \texttt{common/} -- constants, utilities for image manipulation and plots,
                   DBHelper class for unified database loading.
-            \item \texttt{controller}: Controller-layer code for face normalization.
-            \item \texttt{experiments}: A playground. Each experiment is assigned its
+            \item \texttt{controller/} -- Controller-layer code for face normalization.
+            \item \texttt{experiments/} -- A playground. Each experiment is assigned its
                   own independent subdirectory. Also contains directory \texttt{templates}
                   with some shared helpers.
-            \item \texttt{face\_rotation}: All of code concerning face normalization, rotation
+            \item \texttt{face\_rotation/} -- All of code concerning face normalization, rotation
                   and angle detection.
-            \item \texttt{model}: Model-layer code -- Face class.
+            \item \texttt{model/} -- Model-layer code -- Face class.
         \end{itemize}
         \item \texttt{skin\_recognition/}
         \begin{itemize}

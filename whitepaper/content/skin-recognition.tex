@@ -441,8 +441,9 @@
         $p = (R, G, B)$ is the vector $(Y, Cb, Cr)$.
         After that we took a few marks of pixels from the central part of image and
         sorted them by euclidean norm.
-        The heuristically middle element of the new table is a skin pixel.
-        At the end, we consider every pixel as a skin pixel if and only if
+        Heuristically, we assume that the middle element of the new table
+        is a skin pixel.
+        At the end, we consider a pixel as a skin pixel if and only if
         its mark was close enough to the middle mark from the sorted list.
 
         \begin{figure}[H]
