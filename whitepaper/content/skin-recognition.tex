@@ -64,10 +64,10 @@
             There, every photodiode is responsible for exactly one color,
             where as color we understand a wavelength interval (it is important
             to understand that we can consider any wavelength interval as one color).
-            And the result picture is built from small squares (mostly $2 \times 2$)
+            The result picture is built from small squares (mostly $2 \times 2$)
             of photodiode matrix data.
             In fact, there may be more than just three colors.
-            For example, you may find a camera which can see two types of ''green''.
+            For example, you may find a camera which can see two types of green.
             Usually, in the end everything is converted to the well-known RGB format.
 
             \begin{figure}[H]
@@ -87,7 +87,7 @@
             in the way, so that only specific light will reach the chosen photodiode.
 
             \begin{figure}[H]
-                \caption{Visualization of how filters work.}
+                \caption{Visualization of filters mechanism.}
                 \centering
                 \includegraphics[scale=0.40]{RGB-filter}
                 \label{fig:RGB-filter}
@@ -97,22 +97,22 @@
             Hyperspectral imaging is creating pictures using a camera with the
             capability to distinguish a large amount of colors
             (even hundreds or thousands) instead of just few.
-            It would be very helpful, obviously, in a skin-detection device,
+            It would be very helpful, in a skin-detection device,
             but it would be impractical to put a hyperspectral camera in a mobile phone.
 
     \section{Technical aspect -- how can it be created?}
-        As we know how a camera works, we can say that there are only two ways of
+        As we know how a camera works, we can say distinguish two ways of
         building a skin-detecting mobile device.
         \subsection*{Monochrome}
-            We can work without filters (or with one for whole camera),
+            We can work without filters (or with one for the whole camera),
             but then we have to take a picture for every wave length.
-            Also, we need one diode with that very wavelength we want.
-            It is an easier method to build into phone, but taking pictures
+            Also, we need one diode producing the exact wavelength we want.
+            It is an easier method to implement in a phone, but taking pictures
             would have to be very fast.
 
-            The biggest pro of that solution is the possibility of lighting
+            The biggest advantage of that solution is the possibility of lighting
             with different LEDs in random moments of time, so hackers
-            would not be able to play with own diodes to modify the results.
+            would not be able to play with their own diodes to modify the results.
 
         \subsection*{Multispectral imaging}
             There is also a possibility to use filters with specific infrared colors.
@@ -296,7 +296,7 @@
             \end{figure}
 
             \subsubsection*{Detecting skin -- preprocessing}
-                As we only had a phone's camera (with not a fully known filter),
+                As we only had a phone camera (with a not-fully-known filter),
                 our input was a picture-matrix
                 in which every pixel was a nine elements tuple.
                 In fact, values there were not independent, because
@@ -305,7 +305,7 @@
                 Therefore, using all that data would only cause overfitting,
                 instead of actually improving the model.
 
-                We had many preprocessing ideas, but all were focused
+                We had many preprocessing ideas, all of which were focused
                 on using every pixel independently.
                 The one with the best results was taking a few values from each of three pictures
                 and calculating differences concatenated with the basic vector (best results for
@@ -341,12 +341,13 @@
                     \label{fig:svm_no_cut}
                 \end{figure}
 
-                However, Random Forest had  better results. Look at more images.
-                Notice that first two pictures comes from learing set, others
-                are from test set.
+                However, Random Forest achieved better results, as seen on the
+                images below.
 
                   \begin{figure}[H]
-                    \caption{Skin detection with SVM using preprocessed data.}
+                    \caption{Skin detection with SVM using preprocessed data.
+                    The first two pictures come from learning set, others
+                    are from test set.}
                     \centering
                     \includegraphics[width=11cm]{svm_skin}
                     \label{fig:rf_good}
@@ -354,7 +355,9 @@
 
 
                 \begin{figure}[H]
-                    \caption{Skin detection with random forest using preprocessed data.}
+                    \caption{Skin detection with random forest using preprocessed data.
+                    The first two pictures come from learning set, others
+                    are from test set.}
                     \centering
                     \includegraphics[width=11cm]{rf_good}
                     \label{fig:rf_good}
