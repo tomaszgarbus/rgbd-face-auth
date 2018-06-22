@@ -8,3 +8,18 @@ cmake-build-debug/
 exp/.idea/
 __pycache__/
 exp/database
+
+# (La)TeX
+*.aux
+*.pdf
+*.log
+*.out
+*.bbl
+*.blg
+*.toc
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*/pictures/*.pdf
+*/pictures/*.pdf_tex
+*/pictures/RGB-*.png

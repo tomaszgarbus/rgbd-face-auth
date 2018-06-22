@@ -1,0 +1,75 @@
+\documentclass[licencjacka,en]{pracamgr}
+% \documentclass{article}
+
+\usepackage{hyperref}
+\usepackage{multirow}
+% \setlength{\parindent}{0em} % no paragraph indent
+% \setlength{\parskip}{1em} % blank space between paragraphs
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{amsfonts}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{subcaption}
+
+\usepackage[numbers]{natbib}
+\bibliographystyle{unsrtnat}
+
+\graphicspath{ {./pictures/} }
+
+\autor{Tomasz Garbus}{370795}
+\autori{Dominik Klemba}{372710}
+\autorii{Jan Ludziejewski}{371158}
+\autoriii{Łukasz Raszkiewicz}{371594}
+
+\title{Novelty face authentication with liveness detection using depth and IR camera}
+\titlepl{Nowatorskie uwierzytelnianie twarzą z wykrywaniem życia przy użyciu kamery głębi oraz podczerwieni}
+
+\kierunek{Computer Science}
+
+\opiekun{mgr Grzegorz Grudziński%\\
+  % Instytut Blabalii Fetorycznej\\
+}
+
+\date{June 2018}
+
+\dziedzina{[11.3] Informatics, Computer Science}
+
+%Klasyfikacja tematyczna wedlug AMS (matematyka) lub ACM (informatyka)
+% \klasyfikacja{D. Software\\
+%   D.127. Blabalgorithms\\
+%   D.127.6. Numerical blabalysis}
+\klasyfikacja{
+Security and privacy\\
+\null\hspace{10mm}Security services\\
+\null\hspace{20mm}Authentication\\
+\null\hspace{30mm}Biometrics
+}
+
+\keywords{face recognition, liveness detection, skin detection, depth camera,
+biometric authentication, machine learning, neural network, authentication}
+% rozpoznawanie twarzy, wykrywanie życia, wykrywanie skóry, kamera głębi, uwierzytelnianie biometryczne, uczenie maszynowe, sieć neuronowa, uwierzytelnianie
+
+\begin{document}
+    \maketitle
+
+    \include{surroundings/abstract}
+    \include{surroundings/acknowledgment}
+
+    \tableofcontents
+
+    \include{content/introduction}
+    \include{content/skin-recognition}
+    \include{content/face-auth}
+    \include{content/recapitulation}
+    \include{surroundings/formal-ending}
+    \bibliography{bibliography}
+\end{document}

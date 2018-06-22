@@ -1,0 +1,185 @@
+\chapter{Work division}
+    As this was a purely research project, it is hard to
+    put a clear line defining who made what at concept level.
+    We all have learned many things and spent a lot of time
+    on discussion of possible solutions and problems,
+    so we all contributed to every part of project.
+    However, two groups can be separated
+    with greater contribution to other parts of the project.\\
+    Face recognition -- Tomasz Garbus, Jan Ludziejewski.\\
+    Liveness detection -- Dominik Klemba, Łukasz Raszkiewicz.\\
+    But we were not limited to our main subjects.
+    More specific information can be found below, but keep the note above in mind.
+
+    \section{Tomasz Garbus}
+        \begin{itemize}
+            \item Implementation of convolutional neural network in Tensorflow:
+            \begin{itemize}
+                \item Two modes: binary and multi-class, customizable size, neurons
+                      counts, dropout, etc.
+                \item Visualizations:
+                    \begin{itemize}
+                        \item Learned convolution kernels.
+                        \item Classified and misclassified inputs.
+                        \item Most activating patches for each convolution kernel.
+                    \end{itemize}
+                \item Data augmentation: on-the-fly and as preprocessing.
+                \item Storing checkpoints.
+                \item Returning raw probabilities for ensembling.
+            \end{itemize}
+            \item Building a pipeline for training CNN:
+            \begin{itemize}
+                \item Code for loading dataset.
+                \item Partial preprocessing (trimming faces, depth normalization),
+                      caching preprocessed input data for future experiments.
+            \end{itemize}
+            \item Obtaining $4$ RGBD face databases for tests before we had our own and
+                  converting to our format.
+            \item Implementation of face rotation (without angle detection).
+            \item Refactoring \texttt{face\_auth} code:
+            \begin{itemize}
+                \item Big refactor of preprocessing and normalization done with Jan.
+                \item Providing and updating templates for experiments.
+                \item Providing unified output format for classifiers.
+            \end{itemize}
+            \item Legal consultation.
+            \item Choosing score measures for classifiers.
+            \item Running final experiments (and choosing the best performing CNN configuration).
+            \item Measuring relation between frames used in authentication and
+                  classification quality.
+            \item Creating appropriate parts of the final presentation.
+            \item Writing appropriate parts of this paper.
+        \end{itemize}
+
+    \section{Dominik Klemba}
+        \begin{itemize}
+            \item Work with C++ code.
+            \begin{itemize}
+                \item First version of GUI.
+                \item First version of processing depth pictures.
+                \item Implementation of basic types -- mostly matrix class.
+                \item Small works and improvements, as well as testing code.
+            \end{itemize}
+            \item Research in liveness detection.
+            \item Infrared skin recognition.
+            \begin{itemize}
+                \item Extensive research in skin detection problem.
+                \item Tools to display detected pixels.
+                \item Models to detect skin in photos from the prototype.
+            \end{itemize}
+            \item Creating small part of the database.
+            \item Face authentication.
+            \begin{itemize}
+                \item RGB skin recognition heuristic.
+                \item Considerations about evaluation of model's quality.
+                \item Testing code.
+            \end{itemize}
+            \item Creating appropriate parts of the final presentation.
+            \item Writing appropriate parts of this paper.
+        \end{itemize}
+
+    \section{Jan Ludziejewski}
+        \begin{itemize}
+            \item Research on face detection, checking preprocessing possibilities.
+            \item Face angle detection and rotation, testing methods for smoothing and retrieving missing information.
+            \item SVM and Extra Trees classifiers for binary and multi-class
+            classification with Histogram of Oriented Gradients preprocessing.
+            \item Preprocessing for both classifiers and neural network.
+            \item Tuning classifiers and preprocessing parameters.
+            \item Ensembling of all methods.
+            \item Tests of ensemble methods and voting weights.
+            \item Restructuring tests and architecture, creating Face class, planning modules and refactoring code.
+            \item Tools for face position visualizations, image concatenation etc.
+            \item Creating appropriate parts of the final presentation.
+	          \item Legal consultations.
+            \item Writing appropriate parts of this paper.
+        \end{itemize}
+
+    \section{Łukasz Raszkiewicz}
+        \begin{itemize}
+            \item Implementation of most code using Kinect.
+            \begin{itemize}
+                \item Libkinect -- a library which gives a unified interface for
+                      using both Kinect v1 and Kinect v2 cameras.
+                \item Live display program -- shows the video feeds from Kinect,
+                      allows saving frames to hard drive, limiting FPS.
+                \item File display program for depth and IR photos in our file format.
+                \item Thumbnailer for depth and IR photos.
+            \end{itemize}
+            \item Liveness detection -- pulse detection research.
+            \item Creating the depth photo database.
+            \begin{itemize}
+                \item Taking photos of volunteers.
+                \item Legal consultations.
+            \end{itemize}
+            \item Skin recognition using Kinect -- implementing the programs required
+                  for testing the idea and implementing the first attempts.
+            \item Skin recognition prototype
+            \begin{itemize}
+                \item Research and purchase of required IR diodes.
+                \item Learning Arduino programming and how to build circuits.
+                \item Researching methods to remotely take photos from a phone's camera.
+                \item Writing an Arudino program and a Python script to synchronize
+                      taking photos in different wavelengths.
+                \item Building the cardboard setup.
+                \item Taking photos of various objects in different wavelengths.
+                \item Attempting various methods to recognize skin on those photos.
+            \end{itemize}
+            \item Setting up GitLab CI to automatically compile this paper with each commit.
+            \item Creating appropriate parts of the final presentation.
+            \item Writing appropriate parts of this paper.
+        \end{itemize}
+
+
+\chapter{CD content}
+    The included CD contains the source code of all final algorithms
+    and models, as well as a lot of code to run some experiments
+    which results are described in the paper.
+    However, the code of abandoned or improved ideas can be missing.
+
+    \begin{itemize}
+        \item \texttt{libkinect/}
+        \begin{itemize}
+            \item \texttt{libkinect.hpp} -- a library which gives a unified interface
+                  for receiving frames from both Kinect v1 and Kinect v2.
+            \item \texttt{live\_display} -- a program displaying live feeds from a Kinect
+                  camera, also allowing to save received frames.
+            \item \texttt{file\_display} -- a program displaying a depth or IR photo saved
+                  by \texttt{live\_display}.
+            \item \texttt{thumbnailer} -- a thumbnailer that can be used with graphical
+                  file managers to show thumbnails for depth and IR photos.
+        \end{itemize}
+        \item \texttt{face\_auth/}
+        \begin{itemize}
+            \item \texttt{classifiers/} -- implementations of neural network,
+                  HOG-based classifier and ClassificationResults class for
+                  unified classification results.
+            \item \texttt{common/} -- constants, utilities for image manipulation and plots,
+                  DBHelper class for unified database loading.
+            \item \texttt{controller/} -- Controller-layer code for face normalization.
+            \item \texttt{experiments/} -- A playground. Each experiment is assigned its
+                  own independent subdirectory. Also contains directory \texttt{templates}
+                  with some shared helpers.
+            \item \texttt{face\_rotation/} -- All of code concerning face normalization, rotation
+                  and angle detection.
+            \item \texttt{model/} -- Model-layer code -- Face class.
+        \end{itemize}
+        \item \texttt{skin\_recognition/}
+        \begin{itemize}
+            \item \texttt{prototype/take\_ir\_photos.py} -- a program synchronizing
+                  lighting up the diodes and taking photos on the phone.
+            \item \texttt{prototype/arduino\_project/} -- an Arudino project
+                  compatible with the photo taking script.
+            \item \texttt{find\_model.py} -- calculating a skin detection model from
+                  photos taken with 850, 890, and 940nm IR light.
+            \item \texttt{rgb\_model.py} -- RGB skin detection heuristic.
+        \end{itemize}
+        \item \texttt{whitepaper/} -- sources for this paper.
+        \begin{itemize}
+            \item \texttt{mim\_paper.tex} -- main LaTeX file.
+            \item \texttt{mim\_paper.pdf} -- a compiled version.
+        \end{itemize}
+        \item \texttt{presentation/} -- slides and videos that we showed on our
+              final presentation.
+        \item \texttt{poster.pdf} -- our poster.
+    \end{itemize}

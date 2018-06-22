@@ -1,0 +1,13 @@
+image: blang/latex
+
+pdf:
+  before_script:
+    - apt-get update -y
+    - apt-get install -y inkscape
+    - cd whitepaper
+  script:
+    - make
+  artifacts:
+    paths:
+      - whitepaper/temp-paper.pdf
+      - whitepaper/mim-paper.pdf
