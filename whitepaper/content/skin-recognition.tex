@@ -59,7 +59,8 @@
         \subsection*{Multispectral imaging}
             Multispectral imaging is a way to measure every wavelength intensity
             in one picture, so it is an answer to the problem of the object moving.
-            Probably the easiest way to describe it is to look at RGB camera (with Bayer like filter\cite{bayerfilter}).
+            Probably the easiest way to describe it is to look at an RGB camera
+            (with a Bayer-like filter \cite{bayerfilter}).
             There, every photodiode is responsible for exactly one color,
             where as color we understand a wavelength interval (it is important
             to understand that we can consider any wavelength interval as one color).
@@ -185,14 +186,13 @@
             that changes how it reflects light towards the camera, which makes the values
             different.
 
-            % TODO Check English
             Knowing the depth value and certain properties of the camera, it is possible
             to calculate the 3D coordinates of each pixel.
-            We were calculating cosine between vectors using formula
+            We calculated cosine between vectors using the formula
             $\cos(v_1, v_2) = \frac{v_1 \cdot v_2}{||v_1||~||v_2||}$.
-            We were trying to calculate reflectiveness using two informations,
-            how the surface is flat (using neighboring pixels and calculating angle between them),
-            and how it is rotated relative to the camera (using also vector from base).
+            We tried to calculate reflectiveness using two data points:
+            how flat is the surface (using neighboring pixels and calculating angles between them),
+            and what is its angle towards the camera (using a vector from base).
 
             With that information, it is possible to calculate the angle towards the
             camera between each two pixels and camera, then use that value in the method above
@@ -308,9 +308,9 @@
                 We had many preprocessing ideas, but all were focused
                 on using every pixel independently.
                 The one with the best results (in fact only slightly better,
-                but not negligibly) was taking few values from every
-                of three pictures and calculating differences concatenated with basic vector.
-                There is chance to improve preprocessing using more than one pixel,
+                but not negligibly) was taking a few values from every of three pictures
+                and calculating differences concatenated with the basic vector.
+                There is a chance to improve preprocessing using more than one pixel,
                 but we were focused on getting more reliable results
                 (taking an average of adjacent pixels would make it easier
                 by reducting the amount of anomalies).
@@ -323,13 +323,11 @@
                 about which pixels are skin and which are not.
 
                 \begin{figure}[H]
-                    \caption{Example of skin-mask.}
+                    \caption{Example of a manually made skin mask.}
                     \centering
-                    \includegraphics[width=10cm]{A_mask}
+                    \includegraphics[width=7cm]{A_mask}
                     \label{fig:A_mask}
                 \end{figure}
-
-
 
                 We have used \texttt{scikit-learn} to test different models.
                 We had hope that SVM will work correctly,
@@ -341,7 +339,7 @@
                 \begin{figure}[H]
                     \caption{Skin detection with random forest using preprocessed data.}
                     \centering
-                    \includegraphics[width=10cm]{rf_good}
+                    \includegraphics[width=11cm]{rf_good}
                     \label{fig:rf_good}
                 \end{figure}
 
@@ -411,7 +409,8 @@
         \]
 
         However, those conditions gave us too many false positives
-        (what is understandable, as it was universal solution), so we decided to improve the decision process.
+        (what is understandable, as it was a universal solution),
+        so we decided to improve the decision process.
         For each pixel in an image, we calculated its mark, where a mark of a pixel
         $p = (R, G, B)$ is a vector $(Y, Cb, Cr)$.
         After that we took a few marks of pixels from the central part of image and
