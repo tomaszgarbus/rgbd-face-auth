@@ -92,6 +92,8 @@
         \label{fig:libkinect_screenshots}
     \end{figure}
 
+    \pagebreak
+
     Both the live and file display programs allowed setting a scale for applying the color
     map to the depth image. On \ref{fig:libkinect_screenshots}.a) the interval of shown
     depth values is very wide, so objects in the background are visible, but it is not
@@ -135,13 +137,14 @@
     \subsection*{Test set}
     For the test set, we have chosen approximately first $25\%$ of
     frames from each subject -- the first two vertical head rotations.
+
     \newpage
 
     \subsection*{Samples}
     \begin{figure}[H]
     \caption{One of the subjects from the database -- the first $269$ IR frames.}
     \centering
-    \includegraphics[scale=0.5]{tiled_faces_ludziej}
+    \includegraphics[scale=0.6]{tiled_faces_ludziej}
     \end{figure}
 
     \section{Face angle detection}
@@ -320,8 +323,6 @@
         \centering
         \includegraphics[scale=0.5]{augmenters}
         \end{figure}
-
-    \pagebreak
 
     \section{Classifiers}
         \subsection{Convolutional Neural Network}
@@ -544,7 +545,6 @@
 
     Another way of looking at multiple frames based classifier is as an ensembling
     of $n$ identical classifiers, but each receives a different frame as an input.
-    \newpage
 
     \subsection{Results -- multi-class}
 
@@ -585,7 +585,6 @@
       \end{tabular}
       \end{center}
     \end{table}
-    \newpage
 
     \subsection{Results -- binary}
 
@@ -610,8 +609,8 @@
             \includegraphics[width=\textwidth]{binary_frames_recall_relation_09999}
         \end{subfigure}
     \end{figure}
-    \newpage
 
+    \newpage
 
     \begin{table}[H]
     \begin{center}
