@@ -15,8 +15,8 @@
         \begin{itemize}
             \item Implementation of convolutional neural network in Tensorflow:
             \begin{itemize}
-                \item Customizable constructor.
-                \item Two modes: binary and multi-class.
+                \item Two modes: binary and multi-class, customizable size, neurons
+                      counts, dropout etc.
                 \item Visualizations:
                     \begin{itemize}
                         \item Learned convolution kernels.
@@ -27,16 +27,24 @@
                 \item Storing checkpoints.
                 \item Returning raw probabilities for ensembling.
             \end{itemize}
-            \item Implementation of face rotation (without angle detection).
             \item Building a pipeline for training CNN:
             \begin{itemize}
-                \item Splitting dataset into train and test set.
                 \item Code for loading dataset.
                 \item Partial preprocessing (trimming faces, depth normalization),
                       caching preprocessed input data for future experiments.
             \end{itemize}
+            \item Obtaining $4$ rgbd face databases for tests before we had our own and
+                  converting to our format.
+            \item Implementation of face rotation (without angle detection).
+            \item Refactoring \texttt{face\_auth} code:
+            \begin{itemize}
+                \item Big refactor of preprocessing and normalization done with Jan.
+                \item Providing and updating templates for experiments.
+                \item Providing unified output format for classifiers.
+            \end{itemize}
+            \item Legal consultation.
             \item Choosing score measures for classifiers.
-            \item Conducting experiments with CNN.
+            \item Running final experiments (+ choosing the best performing CNN configuration).
             \item Measuring relation between frames used in authentication and
                   classification quality.
             \item Creating appropriate parts of the final presentation.
