@@ -9,4 +9,3 @@ keras
 progress
 opencv-python
 imgaug # consider: git+https://github.com/aleju/imgaug
-

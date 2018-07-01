@@ -2,7 +2,7 @@ from model.face import Face
 import numpy as np
 
 def construct_face_points(face: Face) -> None:
-    shape = face.grey_img.shape
+    shape = face.gir_img.shape
     landmarks = face.landmarks
 
     avgl = lambda x: tuple([int(sum(y) / len(y)) for y in zip(*x)])

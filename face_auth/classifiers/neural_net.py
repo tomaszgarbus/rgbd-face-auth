@@ -1,15 +1,20 @@
 import numpy as np
 import logging
+import os
 import tensorflow as tf
 from math import sqrt
-from random import sample, choice
+from random import sample, choice, shuffle
 from typing import Optional, List, Tuple
 from progress.bar import Bar
 from imgaug import augmenters as ia
+from sklearn.metrics import roc_auc_score
 
+from classifiers.classification_results import ClassificationResults
 from common.db_helper import DB_LOCATION
 from common.constants import NUM_CLASSES
 from common.tools import show_image
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 class NeuralNet:
@@ -37,8 +42,6 @@ class NeuralNet:
         ia.PiecewiseAffine(scale=0.007)
     ]
 
-    _confusion_matrix = np.zeros((NUM_CLASSES, NUM_CLASSES))
-
     def __init__(self,
                  experiment_name: str,
                  # Input shape
@@ -46,11 +49,11 @@ class NeuralNet:
                  # Mini batch size
                  mb_size: Optional = 32,
                  # Number of filters in each convolutional layer
-                 filters_count: List[int] = [32, 64],
+                 filters_count: Optional[List[int]] = None,
                  # Size of kernel, common for each convolutional layer
-                 kernel_size: List[int] =[5, 5],
+                 kernel_size: Optional[List[int]] = None,
                  # Neurons count in each dense layer
-                 dense_layers: List[int] = [32, NUM_CLASSES],
+                 dense_layers: Optional[List[int]] = None,
                  # Learning rate
                  learning_rate: float = 0.005,
                  # Number of epochs
@@ -61,26 +64,48 @@ class NeuralNet:
                  dropout_rate: float = 0.5,
                  # Whether or not augmentation should be performed when choosing next
                  # batch (as opposed to augmenting the entire
-                 augment_on_the_fly=True,
+                 augment_on_the_fly: bool = True,
                  augmenters: Optional[List[ia.Augmenter]] = None,
                  min_label: int = 0,
-                 max_label: int = NUM_CLASSES
+                 max_label: int = NUM_CLASSES,
+                 # Whether or not classification should be in binary mode. If yes,
+                 # *please* provide the |positive_class| parameter.
+                 binary_classification: bool = False,
+                 # ID of the subject that is considered "positive" in case of
+                 # binary classification.
+                 positive_class: int = 0,
+                 # If provided, will store checkpoints to ckpt_file
+                 ckpt_file: Optional[str] = None,
                  ):
         self.experiment_name = experiment_name
         self.input_shape = input_shape
         self.mb_size = mb_size
-        self.filters_count = filters_count
-        self.kernel_size = kernel_size
-        self.dense_layers = dense_layers
         self.learning_rate = learning_rate
         self.nb_epochs = nb_epochs
         self.steps_per_epoch = steps_per_epoch
         self.dropout = dropout_rate
         self.augment_on_the_fly = augment_on_the_fly
+        self.ckpt_file = ckpt_file
+        self.binary_classification = binary_classification
+        self.positive_class = positive_class
+        self.num_classes = NUM_CLASSES if not binary_classification else 1
+        if dense_layers is None:
+            dense_layers = [32, self.num_classes]
+        self.dense_layers = dense_layers
+        if filters_count is None:
+            filters_count = [32, 64]
+        self.filters_count = filters_count
+        if kernel_size is None:
+            kernel_size = [5, 5]
+        self.kernel_size = kernel_size
+        if binary_classification:
+            self._confusion_matrix = np.zeros((2, 2))
+        else:
+            self._confusion_matrix = np.zeros((self.num_classes, self.num_classes))
         if augmenters is not None:
             self.augmenters = augmenters
 
-        self._get_data(min_label, max_label)
+        self._get_data(range_beg=min_label, range_end=max_label)
 
         # Initialize logging.
         self.logger = logging.Logger("main_logger", level=logging.INFO)
@@ -152,10 +177,18 @@ class NeuralNet:
         for i in range(len(self.y_test)):
             if range_end > np.argmax(self.y_test[i]) >= range_beg:
                 test_indices.append(i)
+        shuffle(train_indices)
         self.x_train = self.x_train[train_indices]
         self.y_train = self.y_train[train_indices]
         self.x_test = self.x_test[test_indices]
         self.y_test = self.y_test[test_indices]
+
+        if self.binary_classification:
+            def to_binary(row):
+                return np.array([1.]) if np.argmax(row) == self.positive_class else np.array([0.])
+            self.y_train = np.apply_along_axis(to_binary, 1, self.y_train)
+            self.y_test = np.apply_along_axis(to_binary, 1, self.y_test)
+
         # Show first input if you want
         show_image(self.x_train[0].reshape([self.input_shape[0], self.input_shape[1] * self.input_shape[2]]))
 
@@ -187,7 +220,7 @@ class NeuralNet:
                     kernel = tf.reshape(kernel, [1, self.kernel_size[0] * self.input_shape[-1], self.kernel_size[1], 1])
                 else:
                     kernel = tf.reshape(kernel, [1] +\
-                                        [self.kernel_size[0] * self.filters_count[layer_no - 1], self.kernel_size[1]] +\
+                                        [self.kernel_size[0] * self.filters_count[layer_no - 1], self.kernel_size[1]] +
                                         [1])
                 kernels.append(kernel)
                 applied = tf.reshape(cur_conv_layer[0, :, :, filter_no], [1, inp_x, inp_y, 1])
@@ -235,7 +268,7 @@ class NeuralNet:
                 inp_x = self.input_shape[0] // (2 ** layer_no)
                 inp_y = self.input_shape[1] // (2 ** layer_no)
                 single_filtered_flattened = tf.reshape(cur_conv_layer[:, :, :, filter_no],
-                                                       [self.mb_size * inp_x * inp_y])
+                                                       [self.eff_mb_size * inp_x * inp_y])
                 top10_vals, top10_indices = tf.nn.top_k(single_filtered_flattened,
                                                         k=10,
                                                         sorted=True)
@@ -243,17 +276,20 @@ class NeuralNet:
                                            top10_indices,
                                            dtype=[tf.int32, tf.int32, tf.int32])
 
-                def safe_cut_patch(sxy, size, img):
+                def safe_cut_patch(sxy, size, img, layer_no):
                     """
                     :param (sample_no, x, y)@sxy
                     :param size: size of patch to cut out
                     :param img: image to cut it from
+                    :param layer_no: current layer number
                     :return: Cuts out a patch of size (|size|) located at (x, y) on
                         input #sample_no in current batch.
                     """
                     sample_no, x, y = sxy
-                    pad_marg_x = 2
-                    pad_marg_y = 2
+                    x *= 2 ** layer_no
+                    y *= 2 ** layer_no
+                    pad_marg_x = size[0] // 2
+                    pad_marg_y = size[1] // 2
                     padding = [[0, 0],
                                [pad_marg_x, pad_marg_x],
                                [pad_marg_y, pad_marg_y],
@@ -267,7 +303,8 @@ class NeuralNet:
                     tf.map_fn(lambda sxy: safe_cut_patch(sxy,
                                                          size=(self.kernel_size[0] * (2 ** layer_no),
                                                                self.kernel_size[1] * (2 ** layer_no)),
-                                                         img=tf.expand_dims(self.x[:, :, :, 0], axis=-1)),
+                                                         img=tf.expand_dims(self.x[:, :, :, 0], axis=-1),
+                                                         layer_no=layer_no),
                               top10_reshaped,
                               dtype=tf.float32)
                 self.patches_responses[layer_no][filter_no] = top10_vals
@@ -343,7 +380,8 @@ class NeuralNet:
 
     def _create_dense_layers(self) -> None:
         signal = self.x if not self.pool_layers else self.pool_layers[-1]
-        signal = tf.reshape(signal, [self.mb_size, -1])
+        input_size = int(signal.get_shape()[1]) * int(signal.get_shape()[2]) * int(signal.get_shape()[3])
+        signal = tf.reshape(signal, [self.eff_mb_size, input_size])
 
         for num_neurons in self.dense_layers[:-1]:
             signal = tf.layers.batch_normalization(signal)
@@ -368,7 +406,7 @@ class NeuralNet:
 
         # Init weights with std.dev = sqrt(2 / N)
         input_size = int(signal.get_shape()[1])
-        w_init = tf.initializers.random_normal(stddev=sqrt(2 / input_size))
+        w_init = tf.initializers.random_normal(stddev=tf.sqrt(tf.constant(2.) / input_size))
         cur_layer = tf.layers.dense(inputs=signal,
                                     activation=tf.nn.sigmoid,
                                     units=self.dense_layers[-1],
@@ -376,17 +414,23 @@ class NeuralNet:
         self.output_layer = cur_layer
 
     def _create_training_objectives(self) -> None:
-        self.preds = tf.argmax(self.output_layer, axis=1)
+        if self.binary_classification:
+            self.preds = tf.cast(tf.round(self.output_layer), dtype=tf.int64)
+            self.y_sparse = tf.cast(self.y, dtype=tf.int64)
+        else:
+            self.preds = tf.argmax(self.output_layer, axis=1)
+            self.y_sparse = tf.argmax(self.y, axis=1)
         self.loss = tf.losses.log_loss(self.y, self.output_layer)
-        self.correct = tf.equal(tf.argmax(self.y, axis=1), tf.argmax(self.output_layer, axis=1))
+        self.correct = tf.reshape(tf.equal(self.y_sparse, self.preds), shape=[self.eff_mb_size])
         self.accuracy = tf.reduce_mean(tf.cast(self.correct, tf.float32))
         self.train_op = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(self.loss)
 
         self.logger.info('list of variables {0}'.format(list(map(lambda x: x.name, tf.global_variables()))))
 
     def _create_model(self):
-        self.x = tf.placeholder(dtype=tf.float32, shape=[self.mb_size] + list(self.input_shape))
-        self.y = tf.placeholder(dtype=tf.float32, shape=[self.mb_size, NUM_CLASSES])
+        self.x = tf.placeholder(dtype=tf.float32, shape=[None] + list(self.input_shape))
+        self.y = tf.placeholder(dtype=tf.float32, shape=[None, self.num_classes])
+        self.eff_mb_size = tf.shape(self.x)[0]  # Effective batch size
         self.conv_layers = []
         self.pool_layers = []
 
@@ -403,20 +447,20 @@ class NeuralNet:
         self.accs.append(results[1])
         return results[:2]
 
-    def test_on_batch(self, batch_x, batch_y, global_step=1) -> Tuple[float, float]:
+    def test_on_batch(self, batch_x, batch_y, global_step=1) -> Tuple[float, float, List[float]]:
         """
         Note that this function does not fetch |self.train_op|, so that the weights
         are not updated.
         :param batch_x:
         :param batch_y:
         :param global_step:
-        :return: (loss, accuracy)
+        :return: (loss, accuracy, probs)
         """
         if self.conv_layers:
             # Write summary
-            results = self.sess.run([self.loss, self.accuracy, self.preds, self.merged_summary],
+            results = self.sess.run([self.loss, self.accuracy, self.output_layer, self.preds, self.merged_summary],
                                     feed_dict={self.x: batch_x, self.y: batch_y})
-            msum = results[3]
+            msum = results[4]
             self.writer.add_summary(msum, global_step=global_step)
             self.writer.flush()
         else:
@@ -424,29 +468,36 @@ class NeuralNet:
                                     feed_dict={self.x: batch_x, self.y: batch_y})
         self.val_accs.append(results[1])
         # Update confusion matrix
-        preds = results[2]
-        for i in range(self.mb_size):
+        preds = results[3]
+        for i in range(len(batch_x)):
             self._confusion_matrix[np.argmax(batch_y[i]), preds[i]] += 1.
 
-        return tuple(results[:2])
+        return results[0], results[1], list(results[2])
 
-    def validate(self, global_step) -> Tuple[float, float]:
+    def validate(self, global_step) -> ClassificationResults:
         """
-        :return: (loss, accuracy)
+        :return: (loss, accuracy, auc_roc)
+        Note that if self.binary_classification is False, auc_roc may be anything
         """
         losses = []
         accs = []
-        for batch_no in range(self.x_test.shape[0] // self.mb_size):
-            # TODO(Tomek): handle the remainder (e.g. by replacing mb_size with 1 in
-            # TODO(Tomek): model definitions)
-            loss, acc = self.test_on_batch(self.x_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size],
-                                           self.y_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size],
-                                           global_step=global_step)
+        all_pred_probs = []
+        all_labels = []
+        for batch_no in range(self.x_test.shape[0] // self.mb_size + 1):
+            inputs = self.x_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size]
+            labels = self.y_test[batch_no * self.mb_size: (batch_no+1) * self.mb_size]
+            loss, acc, probs = self.test_on_batch(inputs, labels, global_step=global_step)
             losses.append(loss)
             accs.append(acc)
+            all_pred_probs += probs
+            all_labels += list(labels)
+        all_pred_probs = np.array(all_pred_probs)
+        all_labels = np.array(all_labels)
+        all_labels = all_labels.astype(dtype=np.bool)
         loss = np.mean(losses)
         acc = np.mean(accs)
-        return loss, acc
+        return ClassificationResults(loss=loss, acc=acc, pred_probs=all_pred_probs, labels=all_labels,
+                                     binary=self.binary_classification)
 
     def _next_training_batch(self) -> (np.ndarray, np.ndarray):
         batch = sample(list(range(self.x_train.shape[0])), self.mb_size)
@@ -456,7 +507,7 @@ class NeuralNet:
                 batch_x[sample_no] = self._augment_single_input(batch_x[sample_no])
         return batch_x, batch_y
 
-    def train_and_evaluate(self) -> None:
+    def train_and_evaluate(self) -> ClassificationResults:
         """
         Train and evaluate model.
         """
@@ -469,7 +520,14 @@ class NeuralNet:
             self._visualize_incorrect_answer_images()
 
             # Initialize variables.
-            tf.global_variables_initializer().run()
+            if self.ckpt_file:
+                saver = tf.train.Saver()
+                try:
+                    saver.restore(self.sess, self.ckpt_file)
+                except (tf.errors.InvalidArgumentError, tf.errors.NotFoundError):
+                    tf.global_variables_initializer().run()
+            else:
+                tf.global_variables_initializer().run()
 
             # Initialize summary writer.
             self.writer = tf.summary.FileWriter(logdir='conv_vis')
@@ -494,8 +552,19 @@ class NeuralNet:
                 bar.finish()
                 bar = Bar('', max=self.steps_per_epoch, suffix='%(index)d/%(max)d ETA: %(eta)ds')
 
+                # Store model
+                if self.ckpt_file:
+                    saver.save(self.sess, self.ckpt_file)
+
                 # Validate
-                loss, acc = self.validate(global_step=epoch_no)
-                self.logger.info("Validation results: Loss: {0}, accuracy: {1}".format(loss, acc))
+                val_results = self.validate(global_step=epoch_no)
+                loss, acc, auc_roc = val_results.loss, val_results.acc, val_results.get_auc_roc()
+                if self.binary_classification:
+                    self.logger.info("Validation results: Loss: {0}, accuracy: {1}, auc_roc: {2}".
+                                     format(loss, acc, auc_roc))
+                else:
+                    self.logger.info("Validation results: Loss: {0}, accuracy: {1}".format(loss, acc))
                 # Dipslay confusion matrix
                 show_image(self._confusion_matrix)
+
+            return val_results

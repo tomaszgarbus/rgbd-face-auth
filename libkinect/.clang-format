@@ -3,7 +3,7 @@ Language:        Cpp
 # BasedOnStyle:  LLVM
 AccessModifierOffset: -2
 AlignAfterOpenBracket: DontAlign
-AlignConsecutiveAssignments: true
+AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlinesLeft: false
 AlignOperands:   true
@@ -11,7 +11,7 @@ AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: None
@@ -39,8 +39,8 @@ BreakConstructorInitializersBeforeComma: false
 ColumnLimit:     120
 CommentPragmas:  '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
-ConstructorInitializerIndentWidth: 3
-ContinuationIndentWidth: 3
+ConstructorInitializerIndentWidth: 6
+ContinuationIndentWidth: 6
 Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 DisableFormat:   false

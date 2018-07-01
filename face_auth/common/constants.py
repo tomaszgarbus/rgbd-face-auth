@@ -74,6 +74,7 @@ CENTER_DEST = (1/2, 1/5)
 SHOW_PLOTS = False
 
 """
-    Number of classes (different subjects in the dataset).
+    Number of classes (different subjects in the dataset). This value may be 
+    larger, but cannot be smaller than actual size of the dataset.
 """
-NUM_CLASSES = 129
+NUM_CLASSES = 45
