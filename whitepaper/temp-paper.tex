@@ -1,0 +1,42 @@
+% THIS IS TEMPORARY FILE
+% ALL CHANGES WILL BE LOST!
+
+\documentclass{article}
+\usepackage{hyperref}
+\usepackage{multirow}
+% \usepackage[document]{ragged2e} % do not justify text
+\setlength{\parindent}{0em} % no paragraph indent
+\setlength{\parskip}{1em} % blank space between paragraphs
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{amsfonts}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{subcaption}
+
+\usepackage[numbers]{natbib}
+\bibliographystyle{unsrtnat}
+
+\graphicspath{ {./pictures/} }
+
+\begin{document}
+    \include{surroundings/abstract}
+    \include{surroundings/acknowledgment}
+
+    \tableofcontents
+
+    \include{content/introduction}
+    \include{content/skin-recognition}
+    \include{content/face-auth}
+    \include{content/recapitulation}
+    \include{surroundings/formal-ending}
+    \bibliography{bibliography}
+\end{document}
