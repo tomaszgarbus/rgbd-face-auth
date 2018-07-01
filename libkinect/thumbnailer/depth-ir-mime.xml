@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/depth">
+    <comment>Depth image</comment>
+    <comment xml:lang="pl">Obraz głębi</comment>
+    <glob pattern="*.depth" />
+  </mime-type>
+  <mime-type type="application/ir">
+    <comment>IR image</comment>
+    <comment xml:lang="pl">Obraz IR</comment>
+    <glob pattern="*.ir" />
+  </mime-type>
+</mime-info>

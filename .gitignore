@@ -4,6 +4,11 @@
 !/.idea/codeStyles/Project.xml
 build/
 cmake-build-debug/
+**.depth
+**.ir
+**.jpg
+**.depth.gz
+**.ir.gz
 /photos/
 exp/.idea/
 __pycache__/
