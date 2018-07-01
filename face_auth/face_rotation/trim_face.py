@@ -8,13 +8,13 @@ from common.constants import IMG_SIZE, BGCOLOR
 from model.face import Face
 
 
-def find_convex_hull_vertices(grey_img: np.ndarray) -> list:
+def find_convex_hull_vertices(gir_img: np.ndarray) -> list:
     """
-        :param grey_img:
+        :param gir_img:
         :return: A list of 2-D points denoting positions of vertices
-            of convex hull on |grey_img|
+            of convex hull on |gir_img|
     """
-    landmarks = face_recognition.face_landmarks((grey_img * 256).astype(np.uint8))
+    landmarks = face_recognition.face_landmarks((gir_img * 256).astype(np.uint8))
     if landmarks == []:
         logging.warning("Face not found")
         return []
@@ -47,7 +47,7 @@ def connect_convex_hull_vertices(depth_img: np.ndarray, ch_vertices: list) -> li
             try:
                 all_points.append((int(xs), int(ys), depth_img[int(xs), int(ys)]))
             except IndexError:
-                #logging.warning("Pixel out of image")
+                # logging.warning("Pixel out of image")
                 pass
             xs += stepx
             ys += stepy
@@ -62,7 +62,7 @@ def find_convex_hull(face: Face) -> list:
         :param face:
         :return: A list of 3-D points (x,y,depth)
     """
-    ch_vertices = find_convex_hull_vertices(face.grey_img)
+    ch_vertices = find_convex_hull_vertices(face.gir_img)
     if ch_vertices == []:
         logging.warning("Face was not found")
         return []
@@ -134,10 +134,10 @@ def cut_around_mask(face: Face,
         for y in range(IMG_SIZE):
             if not face.mask[x, y]:
                 face.depth_img[x, y] = color
-                face.grey_img[x, y] = color
+                face.gir_img[x, y] = color
 
 
-def trim_greyd(face: Face, method: str='convex_hull') -> None:
+def trim_gird(face: Face, method: str='convex_hull') -> None:
     """
         :param face
         :param method: either 'convex_hull' or 'skin_detection'
@@ -154,5 +154,5 @@ def trim_greyd(face: Face, method: str='convex_hull') -> None:
         raise ValueError("Argument 'method' must be either 'convex_hull or 'skin_detection")
     cut_around_mask(face)
 
-    #tools.show_image(grey_img)
-    #tools.show_image(depth_img)
+    # tools.show_image(gir_img)
+    # tools.show_image(depth_img)
