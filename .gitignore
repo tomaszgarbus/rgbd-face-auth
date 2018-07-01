@@ -13,6 +13,7 @@ cmake-build-debug/
 exp/.idea/
 __pycache__/
 exp/database
+*/skin/*
 
 # (La)TeX
 *.aux
