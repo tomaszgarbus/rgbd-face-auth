@@ -9,7 +9,7 @@ In this project we attempt to improve face recognition
 using a camera with depth-perception and infrared capabilities, as well as
 our search for new liveness detection methods such as skin detection
 using multispectral imaging.
-More details can be found in our paper in the `whitepaper/`.
+More details can be found in our paper in the `whitepaper/` directory.
 
 ## Requirements
 
