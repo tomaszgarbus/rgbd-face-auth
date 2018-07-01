@@ -17,6 +17,8 @@
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <cmath>
+#include <stdexcept>
 #include <string>
 #include <sys/stat.h>
 
@@ -304,10 +306,6 @@ std::pair<size_t, size_t> fit_to_size(size_t width, size_t height, size_t max_wi
    }
 }
 
-// TODO: Move to other file
-
-#include <cmath>
-
 template <typename VectorT, typename ElementT = double>
 ElementT euclidian_norm(VectorT const vector) {
    size_t length = 0;
@@ -319,8 +317,6 @@ ElementT euclidian_norm(VectorT const vector) {
 
    return std::sqrt(ret);
 }
-
-#include <stdexcept>
 
 template <typename VectorT, typename ElementT = double>
 ElementT vector_dot(VectorT const &v, VectorT const &w) {
