@@ -1,12 +1,9 @@
-mim-paper.pdf: content/*.tex pictures/RGB-matrix.png pictures/RGB-filter.png pictures/* surroundings/*
-	latexmk -pdf mim-paper.tex
+mim_paper.pdf: content/*.tex pictures/RGB-matrix.png pictures/RGB-filter.png pictures/* surroundings/*
+	latexmk -pdf mim_paper.tex
 
 .PHONY: clean all
 
-all: temp-paper.pdf mim-paper.pdf
-
-temp-paper.pdf: content/*.tex pictures/RGB-matrix.png pictures/RGB-filter.png pictures/* surroundings/*
-	latexmk -pdf temp-paper.tex
+all: mim_paper.pdf
 
 pictures/RGB-matrix.png: pictures/RGB-matrix.svg
 	inkscape -D -z --file=pictures/RGB-matrix.svg --export-png=pictures/RGB-matrix.png
@@ -14,7 +11,6 @@ pictures/RGB-filter.png: pictures/RGB-filter.svg
 	inkscape -D -z --file=pictures/RGB-filter.svg --export-png=pictures/RGB-filter.png
 
 clean:
-	rm -f temp-paper.bbl mim-paper.bbl temp-paper.synctex.gz mim-paper.synctex.gz
+	rm -f mim_paper.bbl mim_paper.synctex.gz
 	rm -f pictures/RGB-filter.png pictures/RGB-matrix.png
-	latexmk temp-paper.tex -C
-	latexmk mim-paper.tex -C
+	latexmk mim_paper.tex -C
