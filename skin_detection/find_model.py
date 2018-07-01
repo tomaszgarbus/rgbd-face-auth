@@ -1,5 +1,3 @@
-# THIS FILE... needs more work.
-
 from sympy import *
 from PIL import Image
 from random import randint

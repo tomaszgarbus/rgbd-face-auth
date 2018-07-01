@@ -1,9 +1,7 @@
-# THIS FILE... needs more work.
-
 from sympy import * 
-from PIL import Image 
-from random import randint 
-import numpy as np 
+from PIL import Image
+from random import randint
+import numpy as np
 import matplotlib.pyplot as plt
 import itertools
 from common.tools import pic_with_applied_mask, rgb_skin_mark
@@ -39,7 +37,7 @@ def generate_mask_from_skin(pic) -> None:
 with Image.open('./skin/rgb-face.png') as im_frame:
     im_frame2 = Image.new("RGB", im_frame.size, (255, 255, 255))
     im_frame2.paste(im_frame, mask=im_frame.split()[3])
-    np_frame = np.array(im_frame2.getdata()) 
+    np_frame = np.array(im_frame2.getdata())
     picture = np_frame.reshape(HEIGHT, WIDTH, 3)
 
 mask = generate_mask_from_skin(picture)
